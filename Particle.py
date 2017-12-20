@@ -1,4 +1,4 @@
-import vec3d
+from Vec3d import *
 
 class Particle():
     
@@ -17,17 +17,18 @@ class Particle():
     def print_long( self ):
         print( "Particle: " )
         print( "id: {},".format( self.id ) )
-        print( "charge = {}, mass = {}, ".format( self.charge, self.mass ) )
-        print( "pos(x,y,z) = ( {}, {}, {} )".format( self.position.x,
-                                                     self.position.y,
-                                                     self.position.z ) )
-        print( "momentum(px,py,pz) = ( {}, {}, {} )".format( self.momentum.x,
-                                                             self.momentum.y,
-                                                             self.momentum.z ) )
+        print( "charge = {:.3f}, mass = {:.3f}, ".format( self.charge, self.mass ) )
+        print( "pos(x,y,z) = ( {:.2f}, {:.2f}, {:.2f} )".format( self.position.x,
+                                                                 self.position.y,
+                                                                 self.position.z ) )
+        print( "momentum(px,py,pz) = ( {:.2f}, {:.2f}, {:.2f} )".format( self.momentum.x,
+                                                                         self.momentum.y,
+                                                                         self.momentum.z ) )
 
 
     def print_short( self ):
-        print( "id: {} x = {} y = {} z = {} px = {} py = {} pz = {}".format(
-            self.id,
-            self.position.x, self.position.y, self.position.z,
-            self.momentum.x, self.momentum.y, self.momentum.z ) )
+        print( "id: {} x = {:.2f} y = {:.2f} z = {:.2f} "
+               "px = {:.2f} py = {:.2f} pz = {:.2f}".format(
+                   self.id,
+                   self.position.x, self.position.y, self.position.z,
+                   self.momentum.x, self.momentum.y, self.momentum.z ) )
