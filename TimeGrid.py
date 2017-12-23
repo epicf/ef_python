@@ -36,32 +36,32 @@ class TimeGrid():
         self.time_save_step_ge_time_step_size( conf )
 
     def get_values_from_config( self, conf ):
-        self.total_time = conf["time_config_part"]["total_time"]
-        self.time_step_size = conf["time_config_part"]["time_step_size"]
-        self.time_save_step = conf["time_config_part"]["time_save_step"]
+        self.total_time = conf["Time grid"]["total_time"]
+        self.time_step_size = conf["Time grid"]["time_step_size"]
+        self.time_save_step = conf["Time grid"]["time_save_step"]
 
     def init_total_nodes( self ):
         self.total_nodes = ceil( self.total_time / self.time_step_size ) + 1
 
     def shrink_time_step_size_if_necessary( self, conf ):
         self.time_step_size = self.total_time / ( self.total_nodes - 1 )
-        if self.time_step_size != conf["time_config_part"]["time_step_size"]:
+        if self.time_step_size != conf["Time grid"]["time_step_size"]:
             print( "Time step was shrinked to {:.3f} "
                    "from {:.3f} "
                    " to fit round number of cells.".format(
                        self.time_step_size,
-                       conf["time_config_part"]["time_step_size"] ) ) 
+                       conf["Time grid"]["time_step_size"] ) ) 
 
 
     def shrink_time_save_step_if_necessary( self, conf ):
         self.time_save_step = \
             int( self.time_save_step / self.time_step_size ) * self.time_step_size
-        if self.time_save_step != conf["time_config_part"]["time_save_step"]:      
+        if self.time_save_step != conf["Time grid"]["time_save_step"]:      
             print( "Time save step was shrinked to {:.3f} "
                    "from {:.3f} "
                    "to be a multiple of time step.".format(
                        self.time_save_step,
-                       conf["time_config_part"]["time_save_step"] ) )
+                       conf["Time grid"]["time_save_step"] ) )
         self.node_to_save = int( time_save_step / time_step_size )
         
 
@@ -96,20 +96,20 @@ class TimeGrid():
 
     def total_time_gt_zero( self, conf ):
         production_assert(
-            conf["time_config_part"]["total_time"] >= 0,
+            conf["Time grid"]["total_time"] >= 0,
             "total_time < 0" )
 
     def time_step_size_gt_zero_le_total_time( self, conf ):
         production_assert(
-            ( conf["time_config_part"]["time_step_size"] > 0 ) and
-            ( conf["time_config_part"]["time_step_size"] <= \
-              conf["time_config_part"]["total_time"] ),
+            ( conf["Time grid"]["time_step_size"] > 0 ) and
+            ( conf["Time grid"]["time_step_size"] <= \
+              conf["Time grid"]["total_time"] ),
             "time_step_size <= 0 or time_step_size > total_time" )
         
     def time_save_step_ge_time_step_size( self, conf ):
         production_assert(
-            conf["time_config_part"]["time_save_step"] >= \
-            conf["time_config_part"]["time_step_size"],
+            conf["Time grid"]["time_save_step"] >= \
+            conf["Time grid"]["time_step_size"],
             "time_save_step < time_step_size" )
 
 ##
