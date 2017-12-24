@@ -17,7 +17,7 @@ class ParticleInteractionModel():
         conf_part = conf["Particle_interaction_model"]        
         model = conf_part["particle_interaction_model"]        
         # 'PIC' or 'noninteracting'
-        if model != "noninteracting" or model != "PIC":
+        if model != "noninteracting" and model != "PIC":
             print( "Error: wrong value of 'particle_interaction_model': {}".format( model ))
             print( "Allowed values : 'noninteracting', 'PIC'" )
             print( "Aborting" )
@@ -49,6 +49,8 @@ class ParticleInteractionModel():
     def print( self ):
         print( "### Particle_interaction_model:" )
         print( self )
+        print( "self.noninteracting = {}".format( self.noninteracting ) )
+        print( "self.pic = {}".format( self.pic ) )
         
     def write_to_file( self, h5file ):
         groupname = "/Particle_interaction_model"

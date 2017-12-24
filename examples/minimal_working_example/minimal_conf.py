@@ -2,7 +2,7 @@ config = {}
 
 
 config["Time grid"] = {}
-config["Time grid"]["total_time"] = 1.0e-9
+config["Time grid"]["total_time"] = 1.0e-7
 config["Time grid"]["time_step_size"] = 1.0e-9
 config["Time grid"]["time_save_step"] = 1.0e-9
 
@@ -18,7 +18,7 @@ config["Spatial mesh"]["grid_z_step"] = 1.5
 
 config["Particle_interaction_model"] = {}
 # 'noninteracting' or 'PIC'; with quotes
-config["Particle_interaction_model"]["particle_interaction_model" = "noninteracting"
+config["Particle_interaction_model"]["particle_interaction_model"] = "noninteracting"
 #config["Particle_interaction_model"]["particle_interaction_model" = "PIC"
 
 
