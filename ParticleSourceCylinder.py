@@ -10,7 +10,7 @@ class ParticleSourceCylinder( ParticleSource ):
         
     @classmethod
     def init_from_config( cls, conf, this_source_config_part ):
-        new_obj = cls()
+        new_obj = cls.super().init_from_config( this_source_config_part )
         new_obj.geometry_type = "cylinder"
         new_obj.check_correctness_of_related_config_fields(
             conf, this_source_config_part )
@@ -20,7 +20,7 @@ class ParticleSourceCylinder( ParticleSource ):
 
     @classmethod
     def init_from_h5_source_group( h5_source_group ):
-        new_obj = cls()
+        new_obj = cls.super().init_from_h5_source_group( h5_source_group )
         new_obj.geometry_type = "cylinder"
         new_obj.read_hdf5_source_parameters( h5_source_group )
         return new_obj
