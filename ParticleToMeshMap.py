@@ -1,4 +1,4 @@
-class Particle_to_mesh_map():  
+class ParticleToMeshMap():  
 
     @classmethod
     def weight_particles_charge_to_mesh( cls, spat_mesh, particle_sources ):

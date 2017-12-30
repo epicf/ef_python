@@ -3,10 +3,10 @@ import h5py
 
 from TimeGrid import TimeGrid
 from SpatialMesh import SpatialMesh
-#include "inner_region.h"
+from InnerRegionsManager import InnerRegionsManager
 from ParticleToMeshMap import ParticleToMeshMap
 from FieldSolver import FieldSolver
-from ExternalField import ExternalField
+from ExternalFieldsManager import ExternalFieldsManager
 from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSourcesManager import ParticleSourcesManager
 from Vec3d import Vec3d
@@ -22,14 +22,16 @@ class Domain():
     @classmethod
     def init_from_config( cls, conf ):
         new_obj = cls()
-        new_obj.time_grid = TimeGrid( conf )
-        new_obj.spat_mesh = SpatialMesh( conf )
-        #new_obj.inner_regions = InnerRegionsManager( conf, new_obj.spat_mesh )
+        new_obj.time_grid = TimeGrid.init_from_config( conf )
+        new_obj.spat_mesh = SpatialMesh.init_from_config( conf )
+        new_obj.inner_regions = InnerRegionsManager.init_from_config(
+            conf, new_obj.spat_mesh )
         new_obj.particle_to_mesh_map = ParticleToMeshMap()
         new_obj.field_solver = FieldSolver( new_obj.spat_mesh, new_obj.inner_regions )
-        new_obj.particle_sources = ParticleSourcesManager( conf )
-        new_obj.external_fields = ExternalFieldsManager( conf )
-        new_obj.particle_interaction_model = ParticleInteractionModel( conf )
+        new_obj.particle_sources = ParticleSourcesManager.init_from_config( conf )
+        new_obj.external_fields = ExternalFieldsManager.init_from_config( conf )
+        new_obj.particle_interaction_model = ParticleInteractionModel.init_from_config(
+            conf )
         new_obj.output_filename_prefix = conf["Output filename"]["output_filename_prefix"]
         new_obj.output_filename_suffix = conf["Output filename"]["output_filename_suffix"]
         return new_obj
@@ -38,15 +40,17 @@ class Domain():
     @classmethod
     def init_from_h5( h5file ):
         new_obj = cls()
-        new_obj.time_grid = TimeGrid( h5file["/Time_grid"] )
-        new_obj.spat_mesh = SpatialMesh( h5file["/Spatial_mesh"] )
-        #new_obj.inner_regions = InnerRegionsManager(
-            #h5file["/Inner_regions"], new_obj.spat_mesh )
+        new_obj.time_grid = TimeGrid.init_from_h5( h5file["/Time_grid"] )
+        new_obj.spat_mesh = SpatialMesh.init_from_h5( h5file["/Spatial_mesh"] )
+        new_obj.inner_regions = InnerRegionsManager.init_from_h5(
+            h5file["/Inner_regions"], new_obj.spat_mesh )
         new_obj.particle_to_mesh_map = ParticleToMeshMap()
         new_obj.field_solver = FieldSolver( new_obj.spat_mesh, new_obj.inner_regions )
-        new_obj.particle_sources = ParticleSourcesManager( h5file["/Particle_sources"] )
-        new_obj.external_fields = ExternalFieldsManager( h5file["/External_fields"] )
-        new_obj.particle_interaction_model = ParticleInteractionModel(
+        new_obj.particle_sources = ParticleSourcesManager.init_from_h5(
+            h5file["/Particle_sources"] )
+        new_obj.external_fields = ExternalFieldsManager.init_from_h5(
+            h5file["/External_fields"] )
+        new_obj.particle_interaction_model = ParticleInteractionModel.init_from_h5(
             h5file["/Particle_interaction_model"] )
         # todo: pass output filename prefix and suffix as arguments
         # and call a method to set them here.
@@ -134,9 +138,9 @@ class Domain():
     def shift_velocities_half_time_step_back( self ):
         minus_half_dt = -self.time_grid.time_step_size / 2.0
         #
-        for src in particle_sources.sources:
+        for src in self.particle_sources.sources:
             for p in src.particles:
-                if !p.momentum_is_half_time_step_shifted:
+                if not p.momentum_is_half_time_step_shifted:
                     total_el_field = Vec3d.zero()
                     for f in external_fields.electric:
                         el_field = f.field_at_particle_position(
@@ -171,9 +175,9 @@ class Domain():
 
 
     def update_momentum( self, dt ):
-        for src in particle_sources.sources:
+        for src in self.particle_sources.sources:
             for p in src.particles:
-                if !p.momentum_is_half_time_step_shifted:
+                if not p.momentum_is_half_time_step_shifted:
                     total_el_field = Vec3d.zero()
                     for f in external_fields.electric:
                         el_field = f.field_at_particle_position(
@@ -214,7 +218,7 @@ class Domain():
     #
 
     def apply_domain_boundary_conditions( self ):
-        for src in particle_sources.sources:
+        for src in self.particle_sources.sources:
             src.particles[:] = [ p for p in src.particles if not self.out_of_bound( p ) ]
 
 

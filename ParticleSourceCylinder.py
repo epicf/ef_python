@@ -75,7 +75,7 @@ class ParticleSourceCylinder( ParticleSource ):
 
 
     def axis_start_x_plus_rad_le_grid_x_size( self, conf, this_source_config_part ):
-	if this_source_config_part["cylinder_axis_start_x"] + \
+        if this_source_config_part["cylinder_axis_start_x"] + \
            this_source_config_part["cylinder_radius"] > \
            conf["Spatial mesh"]["grid_x_size"]:
             raise ValueError( "cylinder_axis_start_x + cylinder_radius > grid_x_size" )
@@ -198,7 +198,7 @@ class ParticleSourceCylinder( ParticleSource ):
                     unit_rotation_axis.dot_product( random_pnt_in_cyl_along_z ) )        
         # shift:
         shifted = random_pnt_in_rotated_cyl.add(
-			       Vec3d( self.axis_start_x,
+                               Vec3d( self.axis_start_x,
                                       self.axis_start_y,
                                       self.axis_start_z ) )
         return shifted

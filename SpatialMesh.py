@@ -2,7 +2,7 @@ import sys
 import h5py
 import numpy as np
 from math import ceil
-import Vec3d
+from Vec3d import Vec3d
 from common import production_assert
 
 class SpatialMesh():
@@ -20,6 +20,7 @@ class SpatialMesh():
         new_obj.allocate_ongrid_values()
         new_obj.fill_node_coordinates()
         new_obj.set_boundary_conditions( conf )
+        return new_obj
 
 
     @classmethod
@@ -104,6 +105,7 @@ class SpatialMesh():
 
             
     def init_z_grid( self, conf ):
+        spat_mesh_conf = conf["Spatial mesh"]
         self.z_volume_size = spat_mesh_conf["grid_z_size"]
         self.z_n_nodes = ceil(
             spat_mesh_conf["grid_z_size"] / spat_mesh_conf["grid_z_step"] ) \
@@ -128,18 +130,13 @@ class SpatialMesh():
 
 
     def set_boundary_conditions( self, conf ):
-        self.set_boundary_conditions(
-            conf["Boundary conditions"]["boundary_phi_left"],
-            conf["Boundary conditions"]["boundary_phi_right"],
-            conf["Boundary conditions"]["boundary_phi_top"], 
-            conf["Boundary conditions"]["boundary_phi_bottom"],
-            conf["Boundary conditions"]["boundary_phi_near"], 
-            conf["Boundary conditions"]["boundary_phi_far"] )
-
-
-    def set_boundary_conditions( self, phi_left, phi_right,
-                                 phi_top, phi_bottom,
-                                 phi_near, phi_far ):
+        phi_left = conf["Boundary conditions"]["boundary_phi_left"]
+        phi_right = conf["Boundary conditions"]["boundary_phi_right"]
+        phi_top = conf["Boundary conditions"]["boundary_phi_top"]
+        phi_bottom = conf["Boundary conditions"]["boundary_phi_bottom"]
+        phi_near = conf["Boundary conditions"]["boundary_phi_near"]
+        phi_far = conf["Boundary conditions"]["boundary_phi_far"]
+        #
         nx = self.x_n_nodes
         ny = self.y_n_nodes
         nz = self.z_n_nodes
@@ -194,7 +191,7 @@ class SpatialMesh():
 
     def write_to_file( self, h5file ):
         groupname = "/Spatial_mesh";
-        h5group = h5file.create( groupname )
+        h5group = h5file.create_group( groupname )
         self.write_hdf5_attributes( h5group )
         self.write_hdf5_ongrid_values( h5group )
 
@@ -218,7 +215,7 @@ class SpatialMesh():
         tmp_x = np.empty( dim, dtype = 'f8' )
         tmp_y = np.empty_like( tmp_x )
         tmp_z = np.empty_like( tmp_x )
-        for i, v in enumerate( self.node_coordinates ):
+        for i, v in enumerate( self.node_coordinates.flat ):
             tmp_x[i] = v.x
             tmp_y[i] = v.y
             tmp_z[i] = v.z
@@ -229,7 +226,7 @@ class SpatialMesh():
         h5group.create_dataset( "./charge_density", data = self.charge_density )
         h5group.create_dataset( "./potential", data = self.potential )
         #
-        for i, v in enumerate( self.electric_field ):
+        for i, v in enumerate( self.electric_field.flat ):
             tmp_x[i] = v.x
             tmp_y[i] = v.y
             tmp_z[i] = v.z
@@ -258,7 +255,7 @@ class SpatialMesh():
         
     def grid_y_step_gt_zero_le_grid_y_size( self, conf ):
         production_assert(
-            ( conf["Spatial mesh"]["grid_y_step"] > 0 ) && 
+            ( conf["Spatial mesh"]["grid_y_step"] > 0 ) and 
             ( conf["Spatial mesh"]["grid_y_step"] <= conf["Spatial mesh"]["grid_y_size"] ),
             "grid_y_step < 0 or grid_y_step >= grid_y_size" )
 
@@ -270,7 +267,7 @@ class SpatialMesh():
         
     def grid_z_step_gt_zero_le_grid_z_size( self, conf ):
         production_assert(
-            ( conf["Spatial mesh"]["grid_z_step"] > 0 ) && 
+            ( conf["Spatial mesh"]["grid_z_step"] > 0 ) and 
             ( conf["Spatial mesh"]["grid_z_step"] <= conf["Spatial mesh"]["grid_z_size"] ),
             "grid_z_step < 0 or grid_z_step >= grid_z_size" )
 

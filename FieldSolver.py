@@ -1,7 +1,10 @@
 import sys
 
 import numpy as np
-import scipy
+import scipy.sparse
+import scipy.sparse.linalg
+
+from Vec3d import Vec3d
 
 class FieldSolver:
 
@@ -49,7 +52,7 @@ class FieldSolver:
         vals = []
         #
         for row_idx in range( nrow ):
-            i, j, k = global_index_in_matrix_to_node_ijk( row_idx, nx, ny, nz )
+            i, j, k = self.global_index_in_matrix_to_node_ijk( row_idx, nx, ny, nz )
             if i == 1:
                 # left boundary
                 rows.append( row_idx )
@@ -90,7 +93,7 @@ class FieldSolver:
         vals = []
         #
         for row_idx in range( nrow ):
-            i, j, k = global_index_in_matrix_to_node_ijk( row_idx, nx, ny, nz )
+            i, j, k = self.global_index_in_matrix_to_node_ijk( row_idx, nx, ny, nz )
             if j == 1:
                 # bottom boundary
                 rows.append( row_idx )
@@ -211,29 +214,30 @@ class FieldSolver:
                     ( kronecker_delta(i,1) * spat_mesh.potential[0][j][k] + \
                       kronecker_delta(i,nx-2) * spat_mesh.potential[nx-1][j][k] )
                     # top and bottom boundary
-                    rhs_at_node = rhs_at_node - \ 
-                    dx * dx * dz * dz * \ 
-		    ( kronecker_delta(j,1) * spat_mesh.potential[i][0][k] + \ 
+                    rhs_at_node = rhs_at_node - \
+                    dx * dx * dz * dz * \
+		    ( kronecker_delta(j,1) * spat_mesh.potential[i][0][k] + \
 		      kronecker_delta(j,ny-2) * spat_mesh.potential[i][ny-1][k] )
                     # near and far boundary
                     rhs_at_node = rhs_at_node - \
-                    dx * dx * dy * dy * \ 
-		    ( kronecker_delta(k,1) * spat_mesh.potential[i][j][0] + \ 
+                    dx * dx * dy * dy * \
+		    ( kronecker_delta(k,1) * spat_mesh.potential[i][j][0] + \
 		      kronecker_delta(k,nz-2) * spat_mesh.potential[i][j][nz-1] )
                     # set rhs vector values
-                    global_idx = node_ijk_to_global_index_in_matrix( i, j, k, nx, ny, nz )
-                    rhs[ global_idx ] = rhs_at_node        
+                    global_idx = self.node_ijk_to_global_index_in_matrix( i, j, k,
+                                                                          nx, ny, nz )
+                    self.rhs[ global_idx ] = rhs_at_node        
 
 
-    def node_ijk_to_global_index_in_matrix( i, j, k, nx, ny, nz ):
+    def node_ijk_to_global_index_in_matrix( self, i, j, k, nx, ny, nz ):
         # numbering of nodes corresponds to axis direction
         # i.e. numbering starts from bottom-left-near corner
         #   then along X axis to the right
         #   then along Y axis to the top
         #   then along Z axis far
-        if ( ( i <= 0 ) || ( i >= nx-1 ) || \
-             ( j <= 0 ) || ( j >= ny-1 ) || \
-             ( k <= 0 ) || ( k >= nz-1 ) ): 
+        if ( ( i <= 0 ) or ( i >= nx-1 ) or \
+             ( j <= 0 ) or ( j >= ny-1 ) or \
+             ( k <= 0 ) or ( k >= nz-1 ) ): 
             print( "incorrect index at node_ijk_to_global_index_in_matrix: "
                    "i = {:d}, j={:d}, k={:d} \n", i, j, k )
             print( "this is not supposed to happen; aborting \n" )
@@ -243,13 +247,13 @@ class FieldSolver:
 
 
         
-    def global_index_in_matrix_to_node_ijk( global_index, nx, ny, nz ):
+    def global_index_in_matrix_to_node_ijk( self, global_index, nx, ny, nz ):
         # global_index = (i - 1) +
         #                (j - 1) * ( nx - 2 ) +
         #                ( k - 1 ) * ( nx - 2 ) * ( ny - 2 );        
-        k = global_index / ( ( nx - 2 ) * ( ny - 2 ) ) + 1
+        k = global_index // ( ( nx - 2 ) * ( ny - 2 ) ) + 1
         i_and_j_part = global_index % ( ( nx - 2 ) * ( ny - 2 ) )
-        j = i_and_j_part / ( nx - 2 ) + 1
+        j = i_and_j_part // ( nx - 2 ) + 1
         i = i_and_j_part % ( nx - 2 ) + 1
         # todo: remove test
         # if( node_ijk_to_global_index_in_matrix( i, j, k, nx, ny, nz ) != global_index ){
@@ -266,7 +270,7 @@ class FieldSolver:
         nrow = ( nx - 2 ) * ( ny - 2 ) * ( nz - 2 )
         ncol = nrow        
         for global_index in range( nrow ):
-            i, j, k = global_index_in_matrix_to_node_ijk( global_index, nx, ny, nz )
+            i, j, k = self.global_index_in_matrix_to_node_ijk( global_index, nx, ny, nz )
             spat_mesh.potential[i][j][k] = self.phi_vec[global_index]
 
 
@@ -307,7 +311,8 @@ class FieldSolver:
                     spat_mesh.electric_field[i][j][k] = Vec3d( ex, ey, ez )
 
 
-    def clear( self ):    
+    def clear( self ):
+        pass
         # todo: deallocate 
         # phi_vec;
         # rhs;
@@ -315,7 +320,7 @@ class FieldSolver:
         # precond;
         # monitor;
                     
-
+        
 def central_difference( phi1, phi2, dx ):
     return ( (phi2 - phi1) / ( 2.0 * dx ) )
 

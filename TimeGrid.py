@@ -87,7 +87,7 @@ class TimeGrid():
 
     def write_to_file( self, h5file ):
         groupname = "/Time_grid"
-        h5group = h5file.create( groupname )
+        h5group = h5file.create_group( groupname )
         h5group.attrs.create( "total_time", self.total_time )
         h5group.attrs.create( "current_time", self.current_time ) 
         h5group.attrs.create( "time_step_size", self.time_step_size )

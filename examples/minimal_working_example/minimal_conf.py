@@ -15,6 +15,7 @@ config["Spatial mesh"]["grid_y_step"] = 0.5
 config["Spatial mesh"]["grid_z_size"] = 15.0
 config["Spatial mesh"]["grid_z_step"] = 1.5
 
+config["Particle sources"] = {}
 
 config["Particle_interaction_model"] = {}
 # 'noninteracting' or 'PIC'; with quotes
@@ -30,6 +31,7 @@ config["Boundary conditions"]["boundary_phi_top"] = 0.0
 config["Boundary conditions"]["boundary_phi_near"] = 0.0
 config["Boundary conditions"]["boundary_phi_far"] = 0.0	
 
+config["External fields"] = {}
 
 config["Output filename"] = {}
 config["Output filename"]["output_filename_prefix"] = "minimal_example_"

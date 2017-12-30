@@ -122,7 +122,8 @@ class ParticleSource():
     def populate_vec_of_ids( self, num_of_particles ):
         vec_of_ids = []
         for i in range( num_of_particles ):
-            vec_of_ids.append( self.max_id += 1 )
+            self.max_id += 1
+            vec_of_ids.append( self.max_id )
         return vec_of_ids
 
     
