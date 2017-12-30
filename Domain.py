@@ -4,11 +4,11 @@ import h5py
 from TimeGrid import TimeGrid
 from SpatialMesh import SpatialMesh
 #include "inner_region.h"
-#include "particle_to_mesh_map.h"
-#include "field_solver.h"
-#include "External_field.h"
+from ParticleToMeshMap import ParticleToMeshMap
+from FieldSolver import FieldSolver
+from ExternalField import ExternalField
 from ParticleInteractionModel import ParticleInteractionModel
-#include "particle_source.h"
+from ParticleSourcesManager import ParticleSourcesManager
 from Vec3d import Vec3d
 import physical_constants
 
@@ -25,10 +25,10 @@ class Domain():
         new_obj.time_grid = TimeGrid( conf )
         new_obj.spat_mesh = SpatialMesh( conf )
         #new_obj.inner_regions = InnerRegionsManager( conf, new_obj.spat_mesh )
-        #new_obj.particle_to_mesh_map = ParticleToMeshMap()
-        #new_obj.field_solver = FieldSolver( new_obj.spat_mesh, new_obj.inner_regions )
-        #new_obj.particle_sources = ParticleSourcesManager( conf )
-        #new_obj.external_fields = ExternalFieldsManager( conf )
+        new_obj.particle_to_mesh_map = ParticleToMeshMap()
+        new_obj.field_solver = FieldSolver( new_obj.spat_mesh, new_obj.inner_regions )
+        new_obj.particle_sources = ParticleSourcesManager( conf )
+        new_obj.external_fields = ExternalFieldsManager( conf )
         new_obj.particle_interaction_model = ParticleInteractionModel( conf )
         new_obj.output_filename_prefix = conf["Output filename"]["output_filename_prefix"]
         new_obj.output_filename_suffix = conf["Output filename"]["output_filename_suffix"]
@@ -42,11 +42,10 @@ class Domain():
         new_obj.spat_mesh = SpatialMesh( h5file["/Spatial_mesh"] )
         #new_obj.inner_regions = InnerRegionsManager(
             #h5file["/Inner_regions"], new_obj.spat_mesh )
-        #new_obj.particle_to_mesh_map = ParticleToMeshMap()
-        #new_obj.field_solver = FieldSolver( new_obj.spat_mesh, new_obj.inner_regions )
-        #new_obj.particle_sources = ParticleSourcesManager(
-            #h5file["/Particle_sources"] )
-        #new_obj.external_fields = ExternalFieldsManager( h5file["/External_fields"] )
+        new_obj.particle_to_mesh_map = ParticleToMeshMap()
+        new_obj.field_solver = FieldSolver( new_obj.spat_mesh, new_obj.inner_regions )
+        new_obj.particle_sources = ParticleSourcesManager( h5file["/Particle_sources"] )
+        new_obj.external_fields = ExternalFieldsManager( h5file["/External_fields"] )
         new_obj.particle_interaction_model = ParticleInteractionModel(
             h5file["/Particle_interaction_model"] )
         # todo: pass output filename prefix and suffix as arguments
