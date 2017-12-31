@@ -1,11 +1,13 @@
+import sys
+
 from ExternalFields import ExternalField
 from ExternalFields import ExternalFieldMagneticUniform, ExternalFieldElectricUniform
 
 class ExternalFieldsManager():
 
     def __init__( self ):
-        electric = []
-        magnetic = []
+        self.electric = []
+        self.magnetic = []
         pass
 
     @classmethod 
@@ -13,13 +15,19 @@ class ExternalFieldsManager():
         new_obj = cls()
         new_obj.electric = []
         new_obj.magnetic = []
-        for field_conf in conf["External fields"]:
-            if type( field_conf ) == "magnetic_uniform":
+        # todo: decide how to store field name:
+        # as section in config or in section name
+        for field_conf_name, field_conf in conf["External fields"].items():
+            if ExternalFieldMagneticUniform.is_magnetic_uniform_config_part(
+                    field_conf_name ):
                 new_obj.magnetic.append(
-                    ExternalFieldMagneticUniform.init_from_config( field_conf ) )
-            elif type( field_conf ) == "electric_uniform":
+                    ExternalFieldMagneticUniform.init_from_config(
+                        field_conf, field_conf_name ) )
+            elif ExternalFieldElectricUniform.is_electric_uniform_config_part(
+                    field_conf_name ):
                 new_obj.electric.append(
-                    ExternalFieldElectricUniform.init_from_config( field_conf ) )
+                    ExternalFieldElectricUniform.init_from_config(
+                        field_conf, field_conf_name ) )
             else:
                 print( "In fields_manager constructor: " )
                 print( "Unknown config type. Aborting" )
@@ -31,22 +39,13 @@ class ExternalFieldsManager():
         new_obj = cls()
         new_obj.electric = []
         new_obj.magnetic = []
-        pass
-    #     err = H5Gget_num_objs(h5_external_fields_group, &nobj);
-    #     for( hsize_t i = 0; i < nobj; i++ ){
-    #         len = H5Gget_objname_by_idx( h5_external_fields_group, i, 
-    #                                      memb_name_cstr, MAX_NAME );
-    #         otype = H5Gget_objtype_by_idx( h5_external_fields_group, i );
-    #         if ( otype == H5G_GROUP ) {
-    #             current_field_grpid = H5Gopen( h5_external_fields_group,
-    #                                            memb_name_cstr, H5P_DEFAULT );
-    #             parse_hdf5_external_field( current_field_grpid );
-    #             err = H5Gclose( current_field_grpid ); hdf5_status_check( err );
-    #   return new_obj
+        for field_name in h5_external_fields_group.keys():
+            current_field_grpid = h5_external_fields_group[ field_name ]
+            self.parse_hdf5_external_field( current_field_grpid )
+        return new_obj
 
     def parse_hdf5_external_field( self, current_field_grpid ):
-        # status = H5LTget_attribute_string( current_field_grpid, "./",
-        #                                    "field_type", field_type_cstr );
+        field_type = current_field_grpid.attrs["field_type"][0]
         if field_type == "magnetic_uniform":
             self.magnetic.append(
                 ExternalFieldMagneticUniform.init_from_h5( current_field_grpid ) )

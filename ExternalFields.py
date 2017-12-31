@@ -1,22 +1,26 @@
+from Vec3d import Vec3d
+import physical_constants
+
 class ExternalField:
 
     def __init__( self ):
         pass
 
     @classmethod
-    def init_from_config( cls, field_conf ):
-        new_obj = cls() 
-        new_obj.name = field_conf.name
+    def init_from_config( cls, field_conf, field_conf_name ):
+        new_obj = cls()        
+        new_obj.name = field_conf_name[ field_conf_name.rfind(".") + 1 : ]
         return new_obj
 
     @classmethod
     def init_from_h5( cls, h5group ):
         new_obj = cls() 
         new_obj.name = os.path.basename( h5group.name )
+        return new_obj
 
 
     def write_to_file( self, h5_fields_group ):
-        current_field_group = h5_fields_group[ "./" + name ].create()
+        current_field_group = h5_fields_group.create_group( "./" + self.name )
         self.write_hdf5_field_parameters( current_field_group )
 
     
@@ -29,11 +33,12 @@ class ExternalFieldMagneticUniform( ExternalField ):
         super().__init__()
 
     @classmethod
-    def init_from_config( cls, field_conf ):
-        new_obj = cls.super().init_from_config( field_conf )
+    def init_from_config( cls, field_conf, field_conf_name ):
+        new_obj = super().init_from_config( field_conf, field_conf_name )
         new_obj.field_type = "magnetic_uniform"
         new_obj.check_correctness_of_related_config_fields( field_conf )
         new_obj.get_values_from_config( field_conf )
+        return new_obj
 
 
     def check_correctness_of_related_config_fields( self, field_conf ):
@@ -48,7 +53,7 @@ class ExternalFieldMagneticUniform( ExternalField ):
 
     @classmethod 
     def init_from_h5( cls, h5_field_group ):
-        new_obj = cls.super().init_from_h5( h5_field_group )        
+        new_obj = super().init_from_h5( h5_field_group )        
         new_obj.field_type = "magnetic_uniform"
         Hx = h5_field_group.attrs["magnetic_uniform_field_x"][0]
         Hy = h5_field_group.attrs["magnetic_uniform_field_y"][0]
@@ -61,8 +66,8 @@ class ExternalFieldMagneticUniform( ExternalField ):
         return self.magnetic_field
 
 
-    def write_hdf5_field_parameters( current_field_group_id ):
-        current_field_group_id.attrs.create( "field_type", self.field_type )
+    def write_hdf5_field_parameters( self, current_field_group_id ):
+        current_field_group_id.attrs["field_type"] = self.field_type
         current_field_group_id.attrs.create( "magnetic_uniform_field_x",
                                              self.magnetic_field.x )
         current_field_group_id.attrs.create( "magnetic_uniform_field_y",
@@ -72,6 +77,10 @@ class ExternalFieldMagneticUniform( ExternalField ):
         current_field_group_id.attrs.create( "speed_of_light",
                                              physical_constants.speed_of_light )
 
+
+    @classmethod
+    def is_magnetic_uniform_config_part( cls, field_name ):
+        return "ExternalFieldMagneticUniform" in field_name
         
 # Uniform electric
 
@@ -82,11 +91,12 @@ class ExternalFieldElectricUniform( ExternalField ):
         pass
 
     @classmethod
-    def init_from_config( field_conf ):
-        new_obj = cls.super().init_from_config( field_conf )
+    def init_from_config( cls, field_conf, field_conf_name ):
+        new_obj = super().init_from_config( field_conf, field_conf_name )
         new_obj.field_type = "electric_uniform"
         new_obj.check_correctness_of_related_config_fields( field_conf )
         new_obj.get_values_from_config( field_conf )
+        return new_obj
 
 
     def check_correctness_of_related_config_fields( self, field_conf ):
@@ -100,7 +110,7 @@ class ExternalFieldElectricUniform( ExternalField ):
 
     @classmethod 
     def init_from_h5( cls, h5_field_group ):
-        new_obj = cls.super().init_from_h5( h5_field_group )        
+        new_obj = super().init_from_h5( h5_field_group )        
         new_obj.field_type = "electric_uniform"
         Ex = h5_field_group.attrs["electric_uniform_field_x"][0]
         Ey = h5_field_group.attrs["electric_uniform_field_y"][0]
@@ -113,11 +123,16 @@ class ExternalFieldElectricUniform( ExternalField ):
         return self.electric_field
     
 
-    def write_hdf5_field_parameters( current_field_group_id ):
-        current_field_group_id.attrs.create( "field_type", self.field_type )
+    def write_hdf5_field_parameters( self, current_field_group_id ):
+        current_field_group_id.attrs["field_type"] = self.field_type
         current_field_group_id.attrs.create( "electric_uniform_field_x",
                                              self.electric_field.x )
         current_field_group_id.attrs.create( "electric_uniform_field_y",
                                              self.electric_field.y )
         current_field_group_id.attrs.create( "electric_uniform_field_z",
                                              self.electric_field.z )
+
+
+    @classmethod
+    def is_electric_uniform_config_part( cls, field_name ):
+        return "ExternalFieldElectricUniform" in field_name

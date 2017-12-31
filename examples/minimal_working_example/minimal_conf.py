@@ -32,6 +32,16 @@ config["Boundary conditions"]["boundary_phi_near"] = 0.0
 config["Boundary conditions"]["boundary_phi_far"] = 0.0	
 
 config["External fields"] = {}
+config["External fields"]["ExternalFieldMagneticUniform.mgn_uni"] = {}
+config["External fields"]["ExternalFieldMagneticUniform.mgn_uni"]["magnetic_field_x"] = 0.0
+config["External fields"]["ExternalFieldMagneticUniform.mgn_uni"]["magnetic_field_y"] = 0.0
+config["External fields"]["ExternalFieldMagneticUniform.mgn_uni"]["magnetic_field_z"] = 0.0
+#
+config["External fields"]["ExternalFieldElectricUniform.el_uni"] = {}
+config["External fields"]["ExternalFieldElectricUniform.el_uni"]["electric_field_x"] = 0.0
+config["External fields"]["ExternalFieldElectricUniform.el_uni"]["electric_field_y"] = 0.0
+config["External fields"]["ExternalFieldElectricUniform.el_uni"]["electric_field_z"] = 0.0
+
 
 config["Output filename"] = {}
 config["Output filename"]["output_filename_prefix"] = "minimal_example_"
