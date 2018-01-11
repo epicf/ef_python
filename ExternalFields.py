@@ -47,9 +47,9 @@ class ExternalFieldMagneticUniform( ExternalField ):
         
 
     def get_values_from_config( self, field_conf ):
-        self.magnetic_field = Vec3d( field_conf["magnetic_field_x"],
-                                     field_conf["magnetic_field_y"],
-                                     field_conf["magnetic_field_z"] )
+        self.magnetic_field = Vec3d( field_conf.getfloat("magnetic_field_x"),
+                                     field_conf.getfloat("magnetic_field_y"),
+                                     field_conf.getfloat("magnetic_field_z") )
 
     @classmethod 
     def init_from_h5( cls, h5_field_group ):
@@ -104,9 +104,9 @@ class ExternalFieldElectricUniform( ExternalField ):
         # nothing to check here
 
     def get_values_from_config( self, field_conf ):
-        self.electric_field = Vec3d( field_conf["electric_field_x"],
-                                     field_conf["electric_field_y"],
-                                     field_conf["electric_field_z"] )
+        self.electric_field = Vec3d( field_conf.getfloat("electric_field_x"),
+                                     field_conf.getfloat("electric_field_y"),
+                                     field_conf.getfloat("electric_field_z") )
 
     @classmethod 
     def init_from_h5( cls, h5_field_group ):

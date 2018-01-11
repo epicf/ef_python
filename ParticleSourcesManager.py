@@ -15,15 +15,11 @@ class ParticleSourcesManager:
     def init_from_config( cls, conf ):
         new_obj = cls()
         new_obj.sources = []
-        for src_conf in conf["Particle sources"]:
-            if config_type( src_conf ) == "box":
-                new_obj.sources.append( ParticleSourceBox( conf, src_conf ) )
-            elif config_type( src_conf ) == "cylinder":
-                new_obj.sources.append( ParticleSourceCylinder( conf, src_conf ) )
-            else:
-                print( "In sources_manager constructor: " 
-                       "Unknown config type. Aborting" )
-                sys.exit( -1 )
+        for sec_name in conf.sections():
+            if 'ParticleSourceBox' in sec_name:
+                new_obj.sources.append( ParticleSourceBox( conf, conf[sec_name] ) )
+            elif 'ParticleSourceCylinder' in sec_name:
+                new_obj.sources.append( ParticleSourceCylinder( conf, conf[sec_name] ) )
         return new_obj
         
     @classmethod

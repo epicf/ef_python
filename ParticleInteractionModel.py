@@ -14,7 +14,7 @@ class ParticleInteractionModel():
         return new_obj
         
     def check_correctness_of_related_config_fields( self, conf ):
-        conf_part = conf["Particle_interaction_model"]        
+        conf_part = conf["Particle interaction model"]        
         model = conf_part["particle_interaction_model"]        
         # 'PIC' or 'noninteracting'
         if model != "noninteracting" and model != "PIC":
@@ -24,7 +24,7 @@ class ParticleInteractionModel():
             sys.exit( -1 ) 
 
     def get_values_from_config( self, conf ):
-        conf_part = conf["Particle_interaction_model"]
+        conf_part = conf["Particle interaction model"]
         self.particle_interaction_model = conf_part["particle_interaction_model"]        
         if self.particle_interaction_model == "noninteracting":
             self.noninteracting = True

@@ -2,6 +2,7 @@ import re
 import sys
 import h5py
 import argparse
+import configparser
 
 from Domain import Domain
 
@@ -37,13 +38,13 @@ def construct_domain( config_or_h5_file ):
         dom.set_output_filename_prefix_and_suffix( filename_prefix, filename_suffix )
         continue_from_h5 = True
     else:
-        with open( config_or_h5_file ) as f:
-            code = compile( f.read(), config_or_h5_file, 'exec')
-            global_vars = {}
-            exec( code, global_vars )
-            #print( global_vars )
-        conf = global_vars["config"]
-        #print( config_or_h5_file )
+        conf = configparser.ConfigParser()
+        conf.read( config_or_h5_file )
+        # print( config_or_h5_file )
+        # for s in conf.sections():
+        #     print( s )
+        #     for k in conf[s]:
+        #         print("  ", k, conf[s][k] )
         dom = Domain.init_from_config( conf )
         continue_from_h5 = False
     return dom, continue_from_h5

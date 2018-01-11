@@ -17,21 +17,15 @@ class ExternalFieldsManager():
         new_obj.magnetic = []
         # todo: decide how to store field name:
         # as section in config or in section name
-        for field_conf_name, field_conf in conf["External fields"].items():
-            if ExternalFieldMagneticUniform.is_magnetic_uniform_config_part(
-                    field_conf_name ):
+        for sec_name in conf:
+            if ExternalFieldMagneticUniform.is_magnetic_uniform_config_part( sec_name ):
                 new_obj.magnetic.append(
                     ExternalFieldMagneticUniform.init_from_config(
-                        field_conf, field_conf_name ) )
-            elif ExternalFieldElectricUniform.is_electric_uniform_config_part(
-                    field_conf_name ):
+                        conf[sec_name], sec_name ) )
+            elif ExternalFieldElectricUniform.is_electric_uniform_config_part( sec_name ):
                 new_obj.electric.append(
                     ExternalFieldElectricUniform.init_from_config(
-                        field_conf, field_conf_name ) )
-            else:
-                print( "In fields_manager constructor: " )
-                print( "Unknown config type. Aborting" )
-                sys.exit( -1 )
+                        conf[ sec_name ], sec_name ) )
         return new_obj
 
     @classmethod

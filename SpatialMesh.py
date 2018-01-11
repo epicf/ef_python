@@ -81,40 +81,38 @@ class SpatialMesh():
 
     def init_x_grid( self, conf ):
         spat_mesh_conf = conf["Spatial mesh"]
-        self.x_volume_size = spat_mesh_conf["grid_x_size"]
-        self.x_n_nodes = ceil(
-            spat_mesh_conf["grid_x_size"] / spat_mesh_conf["grid_x_step"] ) + 1
+        self.x_volume_size = spat_mesh_conf.getfloat("grid_x_size")
+        self.x_n_nodes = ceil( spat_mesh_conf.getfloat("grid_x_size") /
+                               spat_mesh_conf.getfloat("grid_x_step") ) + 1
         self.x_cell_size = self.x_volume_size / ( self.x_n_nodes - 1 )
-        if ( self.x_cell_size != spat_mesh_conf["grid_x_step"] ):
+        if ( self.x_cell_size != spat_mesh_conf.getfloat("grid_x_step") ):
             print( "X_step was shrinked to {:.3f} from {:.3f} "
                    "to fit round number of cells".format(
-                       self.x_cell_size, spat_mesh_conf["grid_x_step"] ) )
+                       self.x_cell_size, spat_mesh_conf.getfloat("grid_x_step") ) )
 
 
     def init_y_grid( self, conf ):
         spat_mesh_conf = conf["Spatial mesh"]
-        self.y_volume_size = spat_mesh_conf["grid_y_size"]
-        self.y_n_nodes = ceil(
-            spat_mesh_conf["grid_y_size"] / spat_mesh_conf["grid_y_step"] ) \
-            + 1
+        self.y_volume_size = spat_mesh_conf.getfloat("grid_y_size")
+        self.y_n_nodes = ceil( spat_mesh_conf.getfloat("grid_y_size") /
+                               spat_mesh_conf.getfloat("grid_y_step") ) + 1
         self.y_cell_size = self.y_volume_size / ( self.y_n_nodes - 1 )
-        if ( self.y_cell_size != spat_mesh_conf["grid_y_step"] ):        
+        if ( self.y_cell_size != spat_mesh_conf.getfloat("grid_y_step") ):        
             print( "Y_step was shrinked to {:.3f} from {:.3f} "
                    "to fit round number of cells".format(
-                       self.y_cell_size, spat_mesh_conf["grid_y_step"] ) )
+                       self.y_cell_size, spat_mesh_conf.getfloat("grid_y_step") ) )
 
             
     def init_z_grid( self, conf ):
         spat_mesh_conf = conf["Spatial mesh"]
-        self.z_volume_size = spat_mesh_conf["grid_z_size"]
-        self.z_n_nodes = ceil(
-            spat_mesh_conf["grid_z_size"] / spat_mesh_conf["grid_z_step"] ) \
-            + 1
+        self.z_volume_size = spat_mesh_conf.getfloat("grid_z_size")
+        self.z_n_nodes = ceil( spat_mesh_conf.getfloat("grid_z_size") /
+                               spat_mesh_conf.getfloat("grid_z_step") ) + 1
         self.z_cell_size = self.z_volume_size / ( self.z_n_nodes - 1 )
-        if ( self.z_cell_size != spat_mesh_conf["grid_z_step"] ):        
+        if ( self.z_cell_size != spat_mesh_conf.getfloat("grid_z_step") ):        
             print( "Z_step was shrinked to {:.3f} from {:.3f} "
                    "to fit round number of cells".format(
-                       self.z_cell_size, spat_mesh_conf["grid_z_step"] ) )
+                       self.z_cell_size, spat_mesh_conf.getfloat("grid_z_step") ) )
 
         
     def fill_node_coordinates( self ):
@@ -130,12 +128,12 @@ class SpatialMesh():
 
 
     def set_boundary_conditions( self, conf ):
-        phi_left = conf["Boundary conditions"]["boundary_phi_left"]
-        phi_right = conf["Boundary conditions"]["boundary_phi_right"]
-        phi_top = conf["Boundary conditions"]["boundary_phi_top"]
-        phi_bottom = conf["Boundary conditions"]["boundary_phi_bottom"]
-        phi_near = conf["Boundary conditions"]["boundary_phi_near"]
-        phi_far = conf["Boundary conditions"]["boundary_phi_far"]
+        phi_left = conf["Boundary conditions"].getfloat("boundary_phi_left")
+        phi_right = conf["Boundary conditions"].getfloat("boundary_phi_right")
+        phi_top = conf["Boundary conditions"].getfloat("boundary_phi_top")
+        phi_bottom = conf["Boundary conditions"].getfloat("boundary_phi_bottom")
+        phi_near = conf["Boundary conditions"].getfloat("boundary_phi_near")
+        phi_far = conf["Boundary conditions"].getfloat("boundary_phi_far")
         #
         nx = self.x_n_nodes
         ny = self.y_n_nodes
@@ -236,39 +234,42 @@ class SpatialMesh():
 
         
     def grid_x_size_gt_zero( self, conf ):
-        production_assert( conf["Spatial mesh"]["grid_x_size"] > 0,
+        production_assert( conf["Spatial mesh"].getfloat("grid_x_size") > 0,
                            "grid_x_size < 0" )
         
 
     def grid_x_step_gt_zero_le_grid_x_size( self, conf ):
         production_assert( 
-            ( conf["Spatial mesh"]["grid_x_step"] > 0 ) and
-            ( conf["Spatial mesh"]["grid_x_step"] <= conf["Spatial mesh"]["grid_x_size"] ),
+            ( conf["Spatial mesh"].getfloat("grid_x_step") > 0 ) and
+            ( conf["Spatial mesh"].getfloat("grid_x_step") <=
+              conf["Spatial mesh"].getfloat("grid_x_size") ),
             "grid_x_step < 0 or grid_x_step >= grid_x_size" )
 
         
     def grid_y_size_gt_zero( self, conf ):
         production_assert(
-            conf["Spatial mesh"]["grid_y_size"] > 0,
+            conf["Spatial mesh"].getfloat("grid_y_size") > 0,
             "grid_y_size < 0" )
 
         
     def grid_y_step_gt_zero_le_grid_y_size( self, conf ):
         production_assert(
-            ( conf["Spatial mesh"]["grid_y_step"] > 0 ) and 
-            ( conf["Spatial mesh"]["grid_y_step"] <= conf["Spatial mesh"]["grid_y_size"] ),
+            ( conf["Spatial mesh"].getfloat("grid_y_step") > 0 ) and 
+            ( conf["Spatial mesh"].getfloat("grid_y_step") <=
+              conf["Spatial mesh"].getfloat("grid_y_size") ),
             "grid_y_step < 0 or grid_y_step >= grid_y_size" )
 
 
     def grid_z_size_gt_zero( self, conf ):
-        production_assert( conf["Spatial mesh"]["grid_z_size"] > 0,
+        production_assert( conf["Spatial mesh"].getfloat("grid_z_size") > 0,
 			   "grid_z_size < 0" )
 
         
     def grid_z_step_gt_zero_le_grid_z_size( self, conf ):
         production_assert(
-            ( conf["Spatial mesh"]["grid_z_step"] > 0 ) and 
-            ( conf["Spatial mesh"]["grid_z_step"] <= conf["Spatial mesh"]["grid_z_size"] ),
+            ( conf["Spatial mesh"].getfloat("grid_z_step") > 0 ) and 
+            ( conf["Spatial mesh"].getfloat("grid_z_step") <=
+              conf["Spatial mesh"].getfloat("grid_z_size") ),
             "grid_z_step < 0 or grid_z_step >= grid_z_size" )
 
 
