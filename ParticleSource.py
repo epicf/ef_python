@@ -3,6 +3,7 @@ import sys
 import h5py
 import random
 from math import sqrt, copysign
+import numpy as np
 
 from common import production_assert
 from Vec3d import Vec3d
@@ -10,15 +11,15 @@ from Particle import Particle
 
 class ParticleSource():
 
-    def __init__():
+    def __init__( self ):
         pass
 
     @classmethod
-    def init_from_config( cls, conf, this_source_config_part ):
+    def init_from_config( cls, conf, this_source_config_part, sec_name ):
         new_obj = cls()
-        new_obj.check_correctness_of_related_config_fields(
+        new_obj.check_correctness_of_related_config_fields( 
             conf, this_source_config_part )
-        new_obj.set_parameters_from_config( this_source_config_part )
+        new_obj.set_parameters_from_config( this_source_config_part, sec_name )
         return new_obj
 
 
@@ -46,18 +47,18 @@ class ParticleSource():
         self.mass_gt_zero( conf, this_source_config_part )
         
 
-    def set_parameters_from_config( self, this_source_config_part ):
-        self.name = this_source_config_part.name
+    def set_parameters_from_config( self, this_source_config_part, sec_name ):
+        self.name = sec_name[ sec_name.rfind(".") + 1 : ]
         self.initial_number_of_particles = \
-            this_source_config_part["initial_number_of_particles"]
+            this_source_config_part.getint("initial_number_of_particles")
         self.particles_to_generate_each_step = \
-            this_source_config_part["particles_to_generate_each_step"]
-        self.mean_momentum = Vec3d( this_source_config_part["mean_momentum_x"], 
-                                    this_source_config_part["mean_momentum_y"],
-                                    this_source_config_part["mean_momentum_z"] )
-        self.temperature = this_source_config_part["temperature"]
-        self.charge = this_source_config_part["charge"]
-        self.mass = this_source_config_part["mass"]
+            this_source_config_part.getint("particles_to_generate_each_step")
+        self.mean_momentum = Vec3d( this_source_config_part.getfloat("mean_momentum_x"), 
+                                    this_source_config_part.getfloat("mean_momentum_y"),
+                                    this_source_config_part.getfloat("mean_momentum_z") )
+        self.temperature = this_source_config_part.getfloat("temperature")
+        self.charge = this_source_config_part.getfloat("charge")
+        self.mass = this_source_config_part.getfloat("mass")
         #
         tmp = random.getstate()
         random.seed() # system time is used by default
@@ -101,6 +102,7 @@ class ParticleSource():
 
     def generate_initial_particles( self ):
         #particles.reserve( initial_number_of_particles )
+        self.particles = []
         self.generate_num_of_particles( self.initial_number_of_particles )
 
         
@@ -112,11 +114,11 @@ class ParticleSource():
     def generate_num_of_particles( self, num_of_particles ):
         vec_of_ids = self.populate_vec_of_ids( num_of_particles )
         for i in range( num_of_particles ):
-            pos = self.uniform_position_in_source( self.rnd_state )
+            pos = self.uniform_position_in_source()
             mom = self.maxwell_momentum_distr(
                 self.mean_momentum, self.temperature, self.mass, self.rnd_state )
             self.particles.append(
-                vec_of_ids, self.charge, self.mass, pos, mom )
+                Particle( vec_of_ids[i], self.charge, self.mass, pos, mom ) )
 
             
     def populate_vec_of_ids( self, num_of_particles ):
@@ -130,11 +132,16 @@ class ParticleSource():
     def random_in_range( self, low, up, rnd_state ):
         tmp = random.getstate()
         random.setstate( rnd_state )
-        r = random.randrange( low, up )
+        r = random.uniform( low, up )
         random.setstate( tmp )
         return r
 
+
+    def uniform_position_in_source( self ):
+        # virtual method
+        raise NotImplementedError()
     
+
     def maxwell_momentum_distr( self, mean_momentum, temperature, mass, rnd_state ):
         maxwell_gauss_std_mean_x = mean_momentum.x
         maxwell_gauss_std_mean_y = mean_momentum.y
@@ -163,18 +170,21 @@ class ParticleSource():
         for p in self.particles:
             p.print_short()
 
+    def print_num_of_particles( self ):
+        print( "Source name: {}, N of particles: {}".format(
+            self.name, len( self.particles ) ) )
             
     def write_to_file( self, h5group ):
         print( "Source name = {}, number of particles = {}".format(
             self.name, len( self.particles ) ) )
-        this_source_h5group = h5group.create( "./" + self.name )
+        this_source_h5group = h5group.create_group( "./" + self.name )
         self.write_hdf5_particles( this_source_h5group )
         self.write_hdf5_source_parameters( this_source_h5group )
 
         
     def write_hdf5_particles( self, this_source_h5group ):
-        id_buf = np.empty( self.particles.size, dtype = 'i8' )
-        x_buf = np.empty( self.particles.size, dtype = 'f8' )
+        id_buf = np.empty( len( self.particles ), dtype = 'i8' )
+        x_buf = np.empty( len( self.particles ), dtype = 'f8' )
         y_buf = np.empty_like( x_buf )
         z_buf = np.empty_like( x_buf )
         px_buf = np.empty_like( x_buf )
@@ -200,11 +210,11 @@ class ParticleSource():
 
 
     def write_hdf5_source_parameters( self, this_source_h5group ):
-        this_source_h5group.attrs.create( "geometry_type", self.geometry_type )
+        this_source_h5group.attrs["geometry_type"] = self.geometry_type
         this_source_h5group.attrs.create( "temperature", self.temperature )
-        this_source_h5group.attrs.create( "mean_momentum_x", self.mean_momentum_x )
-        this_source_h5group.attrs.create( "mean_momentum_y", self.mean_momentum_y )
-        this_source_h5group.attrs.create( "mean_momentum_z", self.mean_momentum_z )
+        this_source_h5group.attrs.create( "mean_momentum_x", self.mean_momentum.x )
+        this_source_h5group.attrs.create( "mean_momentum_y", self.mean_momentum.y )
+        this_source_h5group.attrs.create( "mean_momentum_z", self.mean_momentum.z )
         this_source_h5group.attrs.create( "charge", self.charge )
         this_source_h5group.attrs.create( "mass", self.mass )
         this_source_h5group.attrs.create( "initial_number_of_particles",
@@ -214,23 +224,21 @@ class ParticleSource():
         this_source_h5group.attrs.create( "max_id", self.max_id )
 
 
-        def initial_number_of_particles_gt_zero( self, conf, this_source_config_part ):
-            production_assert(
-                this_source_config_part["initial_number_of_particles"] > 0,
-                "initial_number_of_particles <= 0" )
+    def initial_number_of_particles_gt_zero( self, conf, this_source_config_part ):
+        if this_source_config_part.getint("initial_number_of_particles") <= 0:
+            raise ValueError( "initial_number_of_particles <= 0" )
 
 
-        def particles_to_generate_each_step_ge_zero( self, conf, this_source_config_part ):
-            production_assert(
-                this_source_config_part["particles_to_generate_each_step"] >= 0,
-                "particles_to_generate_each_step < 0" )
+    def particles_to_generate_each_step_ge_zero( self, conf, this_source_config_part ):
+        if this_source_config_part.getint("particles_to_generate_each_step") < 0:
+            raise ValueError( "particles_to_generate_each_step < 0" )
 
 
-        def temperature_gt_zero( self, conf, this_source_config_part ):
-            production_assert( this_source_config_part["temperature"] >= 0,
-                               "temperature < 0" )
-
-        def mass_gt_zero( self, conf, this_source_config_part ):
-            production_assert( this_source_config_part["mass"] >= 0,
-                               "mass < 0" )
+    def temperature_gt_zero( self, conf, this_source_config_part ):
+        if this_source_config_part.getfloat("temperature") < 0:
+            raise ValueError( "temperature < 0" )
+        
+    def mass_gt_zero( self, conf, this_source_config_part ):
+        if this_source_config_part.getfloat("mass") < 0:
+            raise ValueError( "mass < 0" )
 

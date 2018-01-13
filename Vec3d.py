@@ -20,6 +20,7 @@ class Vec3d():
         return self.negate()
 
     def add( self, v2 ):
+        # todo: consider modify self inplace and return it
         return Vec3d( self.x + v2.x, 
                       self.y + v2.y,
                       self.z + v2.z )
@@ -69,4 +70,4 @@ class Vec3d():
         return "{:.3f}, {:.3f}, {:.3f}".format( self.x, self.y, self.z ) 
 
     def __str__ ( self ):
-        return "{:.3f}, {:.3f}, {:.3f}".format( self.x, self.y, self.z ) 
+        return "{:.13f}, {:.13f}, {:.13f}".format( self.x, self.y, self.z ) 

@@ -65,9 +65,9 @@ class SpatialMesh():
         ny = self.y_n_nodes
         nz = self.z_n_nodes
         self.node_coordinates = np.empty( (nx, ny, nz), dtype=object )
-        self.charge_density = np.empty( (nx, ny, nz), dtype='f8' )
-        self.potential = np.empty( (nx, ny, nz), dtype='f8' )
-        self.electric_field = np.empty( (nx, ny, nz), dtype=object )
+        self.charge_density = np.zeros( (nx, ny, nz), dtype='f8' )
+        self.potential = np.zeros( (nx, ny, nz), dtype='f8' )
+        self.electric_field = np.full( (nx, ny, nz), Vec3d.zero(), dtype=object )
     
 
     def check_correctness_of_related_config_fields( self, conf ):
@@ -220,7 +220,7 @@ class SpatialMesh():
         h5group.create_dataset( "./node_coordinates_x", data = tmp_x )
         h5group.create_dataset( "./node_coordinates_y", data = tmp_y )
         h5group.create_dataset( "./node_coordinates_z", data = tmp_z )
-        #
+        # todo: write 1d arrays (use .flatten? )
         h5group.create_dataset( "./charge_density", data = self.charge_density )
         h5group.create_dataset( "./potential", data = self.potential )
         #

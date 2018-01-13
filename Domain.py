@@ -79,6 +79,7 @@ class Domain():
                 i, i+1, total_time_iterations ) )
             self.advance_one_time_step()
             self.write_step_to_save()
+            #self.particle_sources.print_num_of_particles()
 
         
     def prepare_boris_integration( self ):
@@ -137,28 +138,29 @@ class Domain():
 
     def shift_velocities_half_time_step_back( self ):
         minus_half_dt = -self.time_grid.time_step_size / 2.0
-        #
+        #        
         for src in self.particle_sources.sources:
             for p in src.particles:
                 if not p.momentum_is_half_time_step_shifted:
                     total_el_field = Vec3d.zero()
-                    for f in external_fields.electric:
+                    for f in self.external_fields.electric:
                         el_field = f.field_at_particle_position(
                             p, self.time_grid.current_time )
-                        total_el_field.add( el_field )
+                        total_el_field = total_el_field.add( el_field )
                     pic_el_field = self.particle_to_mesh_map.field_at_particle_position(
                         self.spat_mesh, p )
-                    total_el_field.add( pic_el_field )
+                    total_el_field = total_el_field.add( pic_el_field )
                     # 
                     total_mgn_field = Vec3d.zero()
-                    for f in external_fields.magnetic:
+                    for f in self.external_fields.magnetic:
                         mgn_field = f.field_at_particle_position(
                             p, self.time_grid.current_time )
-                        total_mgn_field.add( mgn_field )
+                        total_mgn_field = total_mgn_field.add( mgn_field )
                     #
-                    if len( external_fields.magnetic ) == 0:
+                    if len( self.external_fields.magnetic ) == 0:
                         dp = total_el_field.times_scalar( p.charge * minus_half_dt )
-                        p.momentum.add( p.momentum, dp )
+                        p.momentum = p.momentum.add( dp )
+                        print( dp )
                     else:
                         q_quote = minus_half_dt * p.charge / p.mass / 2.0
                         half_el_force = total_el_field.times_scalar( q_quote )
@@ -171,43 +173,42 @@ class Domain():
                         tmp = u.add( u.cross_product( h ) )
                         u_quote = u.add( tmp.cross_product( s ) )
                         p.momentum = u_quote.add( half_el_force ).times_scalar( p.mass )
-                    p.momentum_is_half_time_step_shifted = true;
+                    p.momentum_is_half_time_step_shifted = True
 
 
     def update_momentum( self, dt ):
         for src in self.particle_sources.sources:
             for p in src.particles:
-                if not p.momentum_is_half_time_step_shifted:
-                    total_el_field = Vec3d.zero()
-                    for f in external_fields.electric:
-                        el_field = f.field_at_particle_position(
-                            p, self.time_grid.current_time )
-                        total_el_field.add( el_field )
-                    pic_el_field = self.particle_to_mesh_map.field_at_particle_position(
-                        self.spat_mesh, p )
-                    total_el_field.add( pic_el_field )
-                    # 
-                    total_mgn_field = Vec3d.zero()
-                    for f in external_fields.magnetic:
-                        mgn_field = f.field_at_particle_position(
-                            p, self.time_grid.current_time )
-                        total_mgn_field.add( mgn_field )
-                    #
-                    if len( external_fields.magnetic ) == 0:
-                        dp = total_el_field.times_scalar( p.charge * dt )
-                        p.momentum.add( p.momentum, dp )
-                    else:
-                        q_quote = dt * p.charge / p.mass / 2.0
-                        half_el_force = total_el_field.times_scalar( q_quote )
-                        v_current = p.momentum.times_scalar( 1.0 / p.mass )
-                        u = v_current.add( half_el_force )
-                        h = total_mgn_field.times_scalar(
-                            q_quote / physical_constants.speed_of_light )
-                        s = h.times_scalar(
-                            2.0 / ( 1.0 + h.dot_product( h ) ) )
-                        tmp = u.add( u.cross_product( h ) )
-                        u_quote = u.add( tmp.cross_product( s ) )
-                        p.momentum = u_quote.add( half_el_force ).times_scalar( p.mass )
+                total_el_field = Vec3d.zero()
+                for f in self.external_fields.electric:
+                    el_field = f.field_at_particle_position(
+                        p, self.time_grid.current_time )
+                    total_el_field = total_el_field.add( el_field )
+                pic_el_field = self.particle_to_mesh_map.field_at_particle_position(
+                    self.spat_mesh, p )
+                total_el_field = total_el_field.add( pic_el_field )
+                # 
+                total_mgn_field = Vec3d.zero()
+                for f in self.external_fields.magnetic:
+                    mgn_field = f.field_at_particle_position(
+                        p, self.time_grid.current_time )
+                    total_mgn_field = total_mgn_field.add( mgn_field )
+                #
+                if len( self.external_fields.magnetic ) == 0:
+                    dp = total_el_field.times_scalar( p.charge * dt )
+                    p.momentum = p.momentum.add( dp )
+                else:
+                    q_quote = dt * p.charge / p.mass / 2.0
+                    half_el_force = total_el_field.times_scalar( q_quote )
+                    v_current = p.momentum.times_scalar( 1.0 / p.mass )
+                    u = v_current.add( half_el_force )
+                    h = total_mgn_field.times_scalar(
+                        q_quote / physical_constants.speed_of_light )
+                    s = h.times_scalar(
+                        2.0 / ( 1.0 + h.dot_product( h ) ) )
+                    tmp = u.add( u.cross_product( h ) )
+                    u_quote = u.add( tmp.cross_product( s ) )
+                    p.momentum = u_quote.add( half_el_force ).times_scalar( p.mass )
 	    		                                            
 
     def update_position( self, dt ):

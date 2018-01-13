@@ -10,7 +10,7 @@ class ParticleSourceCylinder( ParticleSource ):
         
     @classmethod
     def init_from_config( cls, conf, this_source_config_part ):
-        new_obj = cls.super().init_from_config( this_source_config_part )
+        new_obj = super().init_from_config( conf, this_source_config_part )
         new_obj.geometry_type = "cylinder"
         new_obj.check_correctness_of_related_config_fields(
             conf, this_source_config_part )
@@ -20,7 +20,7 @@ class ParticleSourceCylinder( ParticleSource ):
 
     @classmethod
     def init_from_h5_source_group( h5_source_group ):
-        new_obj = cls.super().init_from_h5_source_group( h5_source_group )
+        new_obj = super().init_from_h5_source_group( h5_source_group )
         new_obj.geometry_type = "cylinder"
         new_obj.read_hdf5_source_parameters( h5_source_group )
         return new_obj
@@ -147,6 +147,7 @@ class ParticleSourceCylinder( ParticleSource ):
 
 
     def write_hdf5_source_parameters( self, this_source_h5_group ):
+        super().write_hdf5_source_parameters( this_source_h5_group )
         this_source_h5_group.attrs.create( "cylinder_axis_start_x", self.axis_start_x )
         this_source_h5_group.attrs.create( "cylinder_axis_start_y", self.axis_start_y )
         this_source_h5_group.attrs.create( "cylinder_axis_start_z", self.axis_start_z )
@@ -202,3 +203,8 @@ class ParticleSourceCylinder( ParticleSource ):
                                       self.axis_start_y,
                                       self.axis_start_z ) )
         return shifted
+
+
+    @classmethod
+    def is_cylinder_source( cls, conf_sec_name ):
+        return 'ParticleSourceCylinder' in conf_sec_name

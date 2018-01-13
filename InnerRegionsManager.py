@@ -18,6 +18,9 @@ class InnerRegionsManager():
     def write_to_file( self, h5file ):
         pass
 
+    def check_if_particle_inside_and_count_charge( self, p ):
+        pass
+    
 # public:
 #     boost::ptr_vector<Inner_region> regions;
 # public:
@@ -134,7 +137,7 @@ class InnerRegionsManager():
 # 	}
 # 	return false;
 #     }
-    
+   
 #     void print( )
 #     {
 # 	for( auto &region : regions )

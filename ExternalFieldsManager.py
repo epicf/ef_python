@@ -15,8 +15,6 @@ class ExternalFieldsManager():
         new_obj = cls()
         new_obj.electric = []
         new_obj.magnetic = []
-        # todo: decide how to store field name:
-        # as section in config or in section name
         for sec_name in conf:
             if ExternalFieldMagneticUniform.is_magnetic_uniform_config_part( sec_name ):
                 new_obj.magnetic.append(

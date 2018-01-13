@@ -1,3 +1,6 @@
+from math import ceil
+from Vec3d import Vec3d
+
 class ParticleToMeshMap():  
 
     @classmethod

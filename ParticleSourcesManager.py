@@ -16,12 +16,19 @@ class ParticleSourcesManager:
         new_obj = cls()
         new_obj.sources = []
         for sec_name in conf.sections():
-            if 'ParticleSourceBox' in sec_name:
-                new_obj.sources.append( ParticleSourceBox( conf, conf[sec_name] ) )
-            elif 'ParticleSourceCylinder' in sec_name:
-                new_obj.sources.append( ParticleSourceCylinder( conf, conf[sec_name] ) )
+            if ParticleSourceBox.is_box_source( sec_name ):
+                new_obj.sources.append(
+                    ParticleSourceBox.init_from_config( conf,
+                                                        conf[sec_name],
+                                                        sec_name ) )
+            elif ParticleSourceCylinder.is_cylinder_source( sec_name ):
+                new_obj.sources.append(
+                    ParticleSourceCylinder.init_from_config( conf,
+                                                             conf[sec_name],
+                                                             sec_name ) )
         return new_obj
-        
+
+    
     @classmethod
     def init_from_h5( cls, h5_sources_group ):
         new_obj = cls()
@@ -34,9 +41,11 @@ class ParticleSourcesManager:
     def parse_hdf5_particle_source( self, this_source_h5_group ):
         geometry_type = this_source_h5_group.attr["geometry_type"][0]
         if geometry_type == "box":
-            self.sources.push_back( ParticleSourceBox( this_source_h5_group ) )
+            self.sources.append(
+                ParticleSourceBox.init_from_h5( this_source_h5_group ) )
         elif geometry_type == "cylinder":
-            self.sources.push_back( ParticleSourceCylinder( this_source_h5_group ) )
+            self.sources.append(
+                ParticleSourceCylinder.init_from_h5( this_source_h5_group ) )
         else:
             print( "In Particle_source_manager constructor-from-h5: "
                    "Unknown particle_source type. Aborting" )            
@@ -58,6 +67,10 @@ class ParticleSourcesManager:
         for src in self.sources:
             src.print_particles()
 
+    def print_num_of_particles( self ):
+        for src in self.sources:
+            src.print_num_of_particles()        
+            
             
     def update_particles_position( self, dt ):
         for src in self.sources:

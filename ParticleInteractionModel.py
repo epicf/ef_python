@@ -54,6 +54,5 @@ class ParticleInteractionModel():
         
     def write_to_file( self, h5file ):
         groupname = "/Particle_interaction_model"
-        h5group = h5file.create_group( groupname )
-        print( self.particle_interaction_model )
+        h5group = h5file.create_group( groupname )        
         h5group.attrs["particle_interaction_model"] = self.particle_interaction_model
