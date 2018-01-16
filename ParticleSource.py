@@ -116,7 +116,7 @@ class ParticleSource():
         for i in range( num_of_particles ):
             pos = self.uniform_position_in_source()
             mom = self.maxwell_momentum_distr(
-                self.mean_momentum, self.temperature, self.mass, self.rnd_state )
+                self.mean_momentum, self.temperature, self.mass )
             self.particles.append(
                 Particle( vec_of_ids[i], self.charge, self.mass, pos, mom ) )
 
@@ -129,10 +129,11 @@ class ParticleSource():
         return vec_of_ids
 
     
-    def random_in_range( self, low, up, rnd_state ):
+    def random_in_range( self, low, up ):
         tmp = random.getstate()
-        random.setstate( rnd_state )
+        random.setstate( self.rnd_state )
         r = random.uniform( low, up )
+        self.rnd_state = random.getstate()
         random.setstate( tmp )
         return r
 
@@ -142,17 +143,18 @@ class ParticleSource():
         raise NotImplementedError()
     
 
-    def maxwell_momentum_distr( self, mean_momentum, temperature, mass, rnd_state ):
+    def maxwell_momentum_distr( self, mean_momentum, temperature, mass ):
         maxwell_gauss_std_mean_x = mean_momentum.x
         maxwell_gauss_std_mean_y = mean_momentum.y
         maxwell_gauss_std_mean_z = mean_momentum.z
         maxwell_gauss_std_dev = sqrt( mass * temperature )
         #
         tmp = random.getstate()
-        random.setstate( rnd_state )
+        random.setstate( self.rnd_state )
         px = random.gauss( maxwell_gauss_std_mean_x, maxwell_gauss_std_dev )
         py = random.gauss( maxwell_gauss_std_mean_y, maxwell_gauss_std_dev )
         pz = random.gauss( maxwell_gauss_std_mean_z, maxwell_gauss_std_dev )
+        self.rnd_state = random.getstate()
         random.setstate( tmp )
         #
         mom = Vec3d( px, py, pz )

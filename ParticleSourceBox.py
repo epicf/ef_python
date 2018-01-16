@@ -130,9 +130,9 @@ class ParticleSourceBox( ParticleSource ):
 
     
     def uniform_position_in_cube( self ):
-        p = Vec3d( self.random_in_range( self.xleft, self.xright, self.rnd_state ), 
-                   self.random_in_range( self.ybottom, self.ytop, self.rnd_state ),
-                   self.random_in_range( self.znear, self.zfar, self.rnd_state ) )
+        p = Vec3d( self.random_in_range( self.xleft, self.xright ), 
+                   self.random_in_range( self.ybottom, self.ytop ),
+                   self.random_in_range( self.znear, self.zfar ) )
         return p
 
 

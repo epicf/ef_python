@@ -160,7 +160,6 @@ class Domain():
                     if len( self.external_fields.magnetic ) == 0:
                         dp = total_el_field.times_scalar( p.charge * minus_half_dt )
                         p.momentum = p.momentum.add( dp )
-                        print( dp )
                     else:
                         q_quote = minus_half_dt * p.charge / p.mass / 2.0
                         half_el_force = total_el_field.times_scalar( q_quote )

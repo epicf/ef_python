@@ -9,12 +9,12 @@ class ParticleSourceCylinder( ParticleSource ):
 
         
     @classmethod
-    def init_from_config( cls, conf, this_source_config_part ):
-        new_obj = super().init_from_config( conf, this_source_config_part )
+    def init_from_config( cls, conf, this_source_config_part, sec_name ):
+        new_obj = super().init_from_config( conf, this_source_config_part, sec_name )
         new_obj.geometry_type = "cylinder"
-        new_obj.check_correctness_of_related_config_fields(
+        new_obj.check_correctness_of_cylinder_config_fields(
             conf, this_source_config_part )
-        new_obj.set_parameters_from_config( this_source_config_part )
+        new_obj.set_cylinder_parameters_from_config( this_source_config_part )
         new_obj.generate_initial_particles()
         return new_obj
 
@@ -26,7 +26,7 @@ class ParticleSourceCylinder( ParticleSource ):
         return new_obj
 
 
-    def check_correctness_of_related_config_fields( self, conf, this_source_config_part ):
+    def check_correctness_of_cylinder_config_fields( self, conf, this_source_config_part ):
         # todo:
         self.radius_gt_zero( conf, this_source_config_part )
         self.axis_start_x_min_rad_ge_zero( conf, this_source_config_part )
@@ -43,14 +43,14 @@ class ParticleSourceCylinder( ParticleSource ):
         self.axis_end_z_plus_rad_le_grid_z_size( conf, this_source_config_part )
 
 
-    def set_parameters_from_config( self, this_source_config_part ):
-        self.axis_start_x = this_source_config_part["cylinder_axis_start_x"]
-        self.axis_start_y = this_source_config_part["cylinder_axis_start_y"]
-        self.axis_start_z = this_source_config_part["cylinder_axis_start_z"]
-        self.axis_end_x = this_source_config_part["cylinder_axis_end_x"]
-        self.axis_end_y = this_source_config_part["cylinder_axis_end_y"]
-        self.axis_end_z = this_source_config_part["cylinder_axis_end_z"]
-        self.radius = this_source_config_part["cylinder_radius"]
+    def set_cylinder_parameters_from_config( self, this_source_config_part ):
+        self.axis_start_x = this_source_config_part.getfloat("cylinder_axis_start_x")
+        self.axis_start_y = this_source_config_part.getfloat("cylinder_axis_start_y")
+        self.axis_start_z = this_source_config_part.getfloat("cylinder_axis_start_z")
+        self.axis_end_x = this_source_config_part.getfloat("cylinder_axis_end_x")
+        self.axis_end_y = this_source_config_part.getfloat("cylinder_axis_end_y")
+        self.axis_end_z = this_source_config_part.getfloat("cylinder_axis_end_z")
+        self.radius = this_source_config_part.getfloat("cylinder_radius")
 
 
     def read_hdf5_source_parameters( self, this_source_h5_group ):
@@ -64,85 +64,85 @@ class ParticleSourceCylinder( ParticleSource ):
 
         
     def radius_gt_zero( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_radius"] < 0:
+        if this_source_config_part.getfloat("cylinder_radius") < 0:
             raise ValueError( "radius < 0" )
 
 
     def axis_start_x_min_rad_ge_zero( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_start_x"] - \
-           this_source_config_part["cylinder_radius"] < 0:
+        if this_source_config_part.getfloat("cylinder_axis_start_x") - \
+           this_source_config_part.getfloat("cylinder_radius") < 0:
             raise ValueError( "cylinder_axis_start_x - cylinder_radius < 0" )
 
 
     def axis_start_x_plus_rad_le_grid_x_size( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_start_x"] + \
-           this_source_config_part["cylinder_radius"] > \
-           conf["Spatial mesh"]["grid_x_size"]:
+        if this_source_config_part.getfloat("cylinder_axis_start_x") + \
+           this_source_config_part.getfloat("cylinder_radius") > \
+           conf["Spatial mesh"].getfloat("grid_x_size"):
             raise ValueError( "cylinder_axis_start_x + cylinder_radius > grid_x_size" )
 
 
     def axis_start_y_min_rad_ge_zero( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_start_y"] - \
-           this_source_config_part["cylinder_radius"] < 0:
+        if this_source_config_part.getfloat("cylinder_axis_start_y") - \
+           this_source_config_part.getfloat("cylinder_radius") < 0:
             raise ValueError( "cylinder_axis_start_y - cylinder_radius < 0" )
         
 
     def axis_start_y_plus_rad_le_grid_y_size( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_start_y"] + \
-           this_source_config_part["cylinder_radius"] > \
-           conf["Spatial mesh"]["grid_y_size"]:
+        if this_source_config_part.getfloat("cylinder_axis_start_y") + \
+           this_source_config_part.getfloat("cylinder_radius") > \
+           conf["Spatial mesh"].getfloat("grid_y_size"):
             raise ValueError( "cylinder_axis_start_y + cylinder_radius > grid_y_size" )
 
 
     def axis_start_z_min_rad_ge_zero( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_start_z"] - \
-           this_source_config_part["cylinder_radius"] < 0:
+        if this_source_config_part.getfloat("cylinder_axis_start_z") - \
+           this_source_config_part.getfloat("cylinder_radius") < 0:
             raise ValueError( "cylinder_axis_start_z - cylinder_radius < 0" )
 
 
     def axis_start_z_plus_rad_le_grid_z_size( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_start_z"] + \
-           this_source_config_part["cylinder_radius"] > \
-           conf["Spatial mesh"]["grid_z_size"]:
+        if this_source_config_part.getfloat("cylinder_axis_start_z") + \
+           this_source_config_part.getfloat("cylinder_radius") > \
+           conf["Spatial mesh"].getfloat("grid_z_size"):
             raise ValueError( "cylinder_axis_start_z + cylinder_radius > grid_z_size" )
 
         
     def axis_end_x_min_rad_ge_zero( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_end_x"] - \
-           this_source_config_part["cylinder_radius"] < 0:
+        if this_source_config_part.getfloat("cylinder_axis_end_x") - \
+           this_source_config_part.getfloat("cylinder_radius") < 0:
             raise ValueError( "cylinder_axis_end_x - cylinder_radius < 0" )
 
 
     def axis_end_x_plus_rad_le_grid_x_size( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_end_x"] + \
-           this_source_config_part["cylinder_radius"] >\
-           conf["Spatial mesh"]["grid_x_size"]:
+        if this_source_config_part.getfloat("cylinder_axis_end_x") + \
+           this_source_config_part.getfloat("cylinder_radius") >\
+           conf["Spatial mesh"].getfloat("grid_x_size"):
             raise ValueError ("cylinder_axis_end_x + cylinder_radius > grid_x_size" )
 
 
     def axis_end_y_min_rad_ge_zero( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_end_y"] - \
-           this_source_config_part["cylinder_radius"] < 0:
+        if this_source_config_part.getfloat("cylinder_axis_end_y") - \
+           this_source_config_part.getfloat("cylinder_radius") < 0:
             raise ValueError( "cylinder_axis_end_y - cylinder_radius < 0" )
         
 
     def axis_end_y_plus_rad_le_grid_y_size( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_end_y"] + \
-           this_source_config_part["cylinder_radius"] > \
-           conf["Spatial mesh"]["grid_y_size"]:
+        if this_source_config_part.getfloat("cylinder_axis_end_y") + \
+           this_source_config_part.getfloat("cylinder_radius") > \
+           conf["Spatial mesh"].getfloat("grid_y_size"):
             raise ValueError( "cylinder_axis_end_y + cylinder_radius > grid_y_size" )
 
 
     def axis_end_z_min_rad_ge_zero( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_end_z"] - \
-           this_source_config_part["cylinder_radius"] < 0:
+        if this_source_config_part.getfloat("cylinder_axis_end_z") - \
+           this_source_config_part.getfloat("cylinder_radius") < 0:
             raise ValueError( "cylinder_axis_end_z - cylinder_radius < 0" )
 
 
     def axis_end_z_plus_rad_le_grid_z_size( self, conf, this_source_config_part ):
-        if this_source_config_part["cylinder_axis_end_z"] + \
-           this_source_config_part["cylinder_radius"] > \
-           conf["Spatial mesh"]["grid_z_size"]:
+        if this_source_config_part.getfloat("cylinder_axis_end_z") + \
+           this_source_config_part.getfloat("cylinder_radius") > \
+           conf["Spatial mesh"].getfloat("grid_z_size"):
             raise ValueError( "cylinder_axis_end_z + cylinder_radius > grid_z_size" )
 
 
@@ -167,12 +167,12 @@ class ParticleSourceCylinder( ParticleSource ):
                           ( self.axis_end_y - self.axis_start_y ),
                           ( self.axis_end_z - self.axis_start_z ) )
         cyl_axis_length = cyl_axis.length()
-        r = sqrt( self.random_in_range( 0.0, 1.0, self.rnd_state ) ) * self.radius
-        phi = random_in_range( 0.0, 2.0 * M_PI, self.rnd_state )
-        z = random_in_range( 0.0, cyl_axis_length, self.rnd_state )
+        r = sqrt( self.random_in_range( 0.0, 1.0 ) ) * self.radius
+        phi = self.random_in_range( 0.0, 2.0 * np.pi )
+        z = self.random_in_range( 0.0, cyl_axis_length )
         #
-        x = r * cos( phi )
-        y = r * sin( phi )
+        x = r * np.cos( phi )
+        y = r * np.sin( phi )
         z = z
         random_pnt_in_cyl_along_z = Vec3d( x, y, z )
         # rotate:
@@ -207,4 +207,4 @@ class ParticleSourceCylinder( ParticleSource ):
 
     @classmethod
     def is_cylinder_source( cls, conf_sec_name ):
-        return 'ParticleSourceCylinder' in conf_sec_name
+        return 'Particle_source_cylinder' in conf_sec_name
