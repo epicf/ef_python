@@ -34,7 +34,7 @@ class ParticleSourcesManager:
         new_obj = cls()
         new_obj.sources = []
         for src_group_name in h5_sources_group.keys():
-            self.parse_hdf5_particle_source( h5_sources_group["src_group_name"] )
+            new_obj.parse_hdf5_particle_source( h5_sources_group[src_group_name] )
         return new_obj
 
     
