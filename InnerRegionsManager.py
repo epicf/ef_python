@@ -1,3 +1,8 @@
+from InnerRegionBox import InnerRegionBox
+from InnerRegionSphere import InnerRegionSphere
+from InnerRegionCylinder import InnerRegionCylinder
+from InnerRegionTube import InnerRegionTube
+
 class InnerRegionsManager():
 
     def __init__( self ):
@@ -66,35 +71,35 @@ class InnerRegionsManager():
     
     def write_to_file( self, h5file ):
         h5group = h5file.create_group( "/Inner_regions" )
-        h5group.attrs.create( "number_of_regions", len( self.regions ) )    	
-	for reg in self.regions:
-	    reg.write_to_file( h5group )
+        h5group.attrs.create( "number_of_regions", len( self.regions ) )
+        for reg in self.regions:
+            reg.write_to_file( h5group )
 
 
     def check_if_particle_inside( self, p ):
-	for region in self.regions:
-	    if region.check_if_particle_inside( p ):
-		return true
-        return false
+        for region in self.regions:
+            if region.check_if_particle_inside( p ):
+                return true
+        return False
 
     
     def check_if_particle_inside_and_count_charge( self, p ):
-	for region in self.regions:
+        for region in self.regions:
             if region.check_if_particle_inside_and_count_charge( p ):
-		return true
-        return false    
+                return true
+        return False    
     
    
     def print( self ):
-	for region in self.regions:
-	    region.print()
+        for region in self.regions:
+            region.print()
 
             
     def print_inner_nodes( self ):
-    	for region in self.regions:
-	    region.print_inner_nodes()
+        for region in self.regions:
+            region.print_inner_nodes()
 
             
     def print_near_boundary_nodes( self ):
-    	for region in self.regions:
-	    region.print_near_boundary_nodes()
+        for region in self.regions:
+            region.print_near_boundary_nodes()

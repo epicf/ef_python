@@ -1,3 +1,6 @@
+from InnerRegion import InnerRegion
+from Vec3d import Vec3d
+
 class InnerRegionCylinder( InnerRegion ):
 
     def __init__( self ):
@@ -29,7 +32,8 @@ class InnerRegionCylinder( InnerRegion ):
         return new_obj
     
 
-    def check_correctness_of_cylinder_config_fields( conf, inner_region_cylinder_conf ):
+    def check_correctness_of_cylinder_config_fields( self,
+                                                     conf, inner_region_cylinder_conf ):
         # todo: check if region lies inside the domain
         pass
     
@@ -68,10 +72,10 @@ class InnerRegionCylinder( InnerRegion ):
         
         projection = pointvec.dot_product( unit_axisvec )
         perp_to_axis = pointvec.sub( unit_axisvec.times_scalar( projection ) )
-        in = ( projection >= 0 and \
-               projection <= axisvec.length() and 
-               perp_to_axis.length() <= self.radius )
-        return in
+        inside = ( projection >= 0 and \
+                   projection <= axisvec.length() and 
+                   perp_to_axis.length() <= self.radius )
+        return inside
 
 
     
@@ -83,3 +87,8 @@ class InnerRegionCylinder( InnerRegion ):
         current_region_group.attrs.create( "cylinder_axis_end_y",   self.axis_end_y )
         current_region_group.attrs.create( "cylinder_axis_end_z",   self.axis_end_z )
         current_region_group.attrs.create( "cylinder_radius",       self.radius )
+
+
+    @classmethod
+    def is_cylinder_region( cls, conf_sec_name ):
+        return 'Inner_region_cylinder' in conf_sec_name

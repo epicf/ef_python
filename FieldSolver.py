@@ -11,7 +11,8 @@ class FieldSolver:
     def __init__( self, spat_mesh, inner_regions ):            
         if len( inner_regions.regions ) > 0:
             print( "field-solver: inner regions are not supported" )
-            sys.exit( -1 )
+            for ir in inner_regions.regions:
+                print( "ignoring " + ir.name )
         nx = spat_mesh.x_n_nodes
         ny = spat_mesh.y_n_nodes
         nz = spat_mesh.z_n_nodes
@@ -31,6 +32,7 @@ class FieldSolver:
         dy = spat_mesh.y_cell_size
         dz = spat_mesh.z_cell_size
         self.construct_equation_matrix_in_full_domain( nx, ny, nz, dx, dy, dz )
+        self.zero_nondiag_for_nodes_inside_objects( nx, ny, nz, inner_regions )
 
         
     def construct_equation_matrix_in_full_domain( self, nx, ny, nz, dx, dy, dz ):
@@ -42,6 +44,7 @@ class FieldSolver:
         d2dz2 = self.construct_d2dz2_in_3d( nx, ny, nz )
         self.A = self.A + d2dz2 * ( dx * dx * dy * dy )
         #d2dz2 = None
+        self.A = self.A.tocsr()
 
 
     def construct_d2dx2_in_3d( self, nx, ny, nz ):
@@ -166,7 +169,21 @@ class FieldSolver:
         d2dz2 = scipy.sparse.coo_matrix( ( vals, ( rows, cols ) ) )
         return d2dz2
         
-
+    def zero_nondiag_for_nodes_inside_objects( self, nx, ny, nz, inner_regions ):
+        for ir in inner_regions.regions:
+            for node in ir.inner_nodes:
+                row_idx = self.node_ijk_to_global_index_in_matrix(
+                    node.x, node.y, node.z, nx, ny, nz )
+                csr_row_start = self.A.indptr[row_idx]
+                csr_row_end = self.A.indptr[row_idx + 1]
+                for j in range( csr_row_start, csr_row_end ):
+                    if self.A.indices[j] != row_idx:
+                        self.A.data[j] = 0
+                    else:
+                        self.A.data[j] = 1
+                
+                
+    
     def create_solver_and_preconditioner( self ):
         self.maxiter = 1000
         self.tol = 1e-10
@@ -192,6 +209,7 @@ class FieldSolver:
         
     def init_rhs_vector( self, spat_mesh, inner_regions ):
         self.init_rhs_vector_in_full_domain( spat_mesh )
+        self.set_rhs_for_nodes_inside_objects( spat_mesh, inner_regions )
 
         
     def init_rhs_vector_in_full_domain( self, spat_mesh ):
@@ -229,6 +247,18 @@ class FieldSolver:
                     self.rhs[ global_idx ] = rhs_at_node        
 
 
+    def set_rhs_for_nodes_inside_objects( self, spat_mesh, inner_regions ):
+        nx = spat_mesh.x_n_nodes
+        ny = spat_mesh.y_n_nodes
+        nz = spat_mesh.z_n_nodes
+        for ir in inner_regions.regions:
+            for node in ir.inner_nodes:
+                global_idx = self.node_ijk_to_global_index_in_matrix(
+                    node.x, node.y, node.z, nx, ny, nz )
+                self.rhs[ global_idx ] = ir.potential
+
+                    
+
     def node_ijk_to_global_index_in_matrix( self, i, j, k, nx, ny, nz ):
         # numbering of nodes corresponds to axis direction
         # i.e. numbering starts from bottom-left-near corner
@@ -238,8 +268,9 @@ class FieldSolver:
         if ( ( i <= 0 ) or ( i >= nx-1 ) or \
              ( j <= 0 ) or ( j >= ny-1 ) or \
              ( k <= 0 ) or ( k >= nz-1 ) ): 
-            print( "incorrect index at node_ijk_to_global_index_in_matrix: "
-                   "i = {:d}, j={:d}, k={:d} \n", i, j, k )
+            print( "incorrect index at node_ijk_to_global_index_in_matrix: " + \
+                   "i  = {:d}, j  = {:d},  k  = {:d} \n".format(i, j, k) + \
+                   "nx = {:d}, ny = {:d},  nz = {:d} \n".format(nx, ny, nz) )
             print( "this is not supposed to happen; aborting \n" )
             sys.exit( -1 )
         else:

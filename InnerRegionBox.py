@@ -1,3 +1,6 @@
+from InnerRegion import InnerRegion
+from Vec3d import Vec3d
+
 class InnerRegionBox( InnerRegion ):
 
     def __init__( self ):
@@ -28,7 +31,7 @@ class InnerRegionBox( InnerRegion ):
         return new_obj
 
 
-    def check_correctness_of_box_config_fields( conf, inner_region_box_conf ):
+    def check_correctness_of_box_config_fields( self, conf, inner_region_box_conf ):
         # todo: check if region lies inside the domain
         pass
     
@@ -52,10 +55,10 @@ class InnerRegionBox( InnerRegion ):
 
 
     def check_if_point_inside( self, x, y, z ):
-        in = ( x <= self.x_left ) and ( x >= self.x_right  ) and \
-             ( y <= self.y_top  ) and ( y >= self.y_bottom ) and \
-             ( z <= self.z_far  ) and ( z >= self.z_near   ) 
-        return in
+        inside = ( x <= self.x_left ) and ( x >= self.x_right  )
+        inside = inside and ( y <= self.y_top  ) and ( y >= self.y_bottom )
+        inside = inside and ( z <= self.z_far  ) and ( z >= self.z_near   )
+        return inside
 
 
     def write_hdf5_region_specific_parameters( self, current_region_group ):        
@@ -65,3 +68,8 @@ class InnerRegionBox( InnerRegion ):
         current_region_group.attrs.create( "box_y_bottom", self.y_bottom )
         current_region_group.attrs.create( "box_z_far",    self.z_far )
         current_region_group.attrs.create( "box_z_near",   self.z_near )
+
+
+    @classmethod
+    def is_box_region( cls, conf_sec_name ):
+        return 'Inner_region_box' in conf_sec_name

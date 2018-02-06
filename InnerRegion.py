@@ -5,6 +5,7 @@ import numpy as np
 
 from common import production_assert
 from Vec3d import Vec3d
+from Node import Node
 
 class InnerRegion():
 
@@ -41,7 +42,7 @@ class InnerRegion():
     
     def set_parameters_from_config( self, this_reg_config_part, sec_name ):        
         self.name = sec_name[ sec_name.rfind(".") + 1 : ]
-        self.potential = this_reg_config_part.potential
+        self.potential = this_reg_config_part.getfloat("potential")
 
 
     def get_values_from_h5( self, h5_inner_region_group ):
@@ -63,7 +64,7 @@ class InnerRegion():
     def check_if_particle_inside_and_count_charge( self, p ):
         in_or_out = self.check_if_particle_inside( p )
         if in_or_out:
-            self.absorbed_particles_current_timestep++
+            self.absorbed_particles_current_timestep += 1
             self.absorbed_charge_current_timestep += p.charge
         return in_or_out
 
@@ -98,12 +99,12 @@ class InnerRegion():
         ny = spat_mesh.y_n_nodes
         nz = spat_mesh.z_n_nodes            
         for node in self.inner_nodes:
-            if !node.at_domain_edge( nx, ny, nz ):
+            if not node.at_domain_edge( nx, ny, nz ):
                 inner_nodes_not_at_domain_edge.append( node )
 
 
     def write_to_file( self, regions_group_id ):
-        current_region_group_id = h5group.create_group( "./" + self.name )
+        current_region_group_id = regions_group_id.create_group( "./" + self.name )
         self.write_hdf5_common_parameters( current_region_group_id )
         self.write_hdf5_region_specific_parameters( current_region_group_id )
 

@@ -1,3 +1,6 @@
+from InnerRegion import InnerRegion
+from Vec3d import Vec3d
+
 class InnerRegionSphere( InnerRegion ):
 
     def __init__( self ):
@@ -29,7 +32,8 @@ class InnerRegionSphere( InnerRegion ):
         return new_obj
     
 
-    def check_correctness_of_sphere_config_fields( conf, inner_region_sphere_conf ):
+    def check_correctness_of_sphere_config_fields( self,
+                                                   conf, inner_region_sphere_conf ):
         # todo: check if region lies inside the domain
         pass
     
@@ -52,8 +56,9 @@ class InnerRegionSphere( InnerRegion ):
         xdist = x - self.origin_x
         ydist = y - self.origin_y
         zdist = z - self.origin_z
-        in = (xdist * xdist + ydist * ydist + zdist * zdist <= self.radius * self.radius)
-        return in
+        inside = (xdist * xdist + ydist * ydist + zdist * zdist <= \
+                  self.radius * self.radius)
+        return inside
     
 
     def write_hdf5_region_specific_parameters( self, current_region_group ):        
@@ -61,3 +66,8 @@ class InnerRegionSphere( InnerRegion ):
         current_region_group.attrs.create( "sphere_origin_y", self.origin_y )
         current_region_group.attrs.create( "sphere_origin_z", self.origin_z )
         current_region_group.attrs.create( "sphere_radius",   self.radius )
+
+
+    @classmethod
+    def is_sphere_region( cls, conf_sec_name ):
+        return 'Inner_region_sphere' in conf_sec_name

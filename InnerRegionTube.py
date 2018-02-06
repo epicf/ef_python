@@ -1,3 +1,6 @@
+from InnerRegion import InnerRegion
+from Vec3d import Vec3d
+
 class InnerRegionTube( InnerRegion ):
 
     def __init__( self ):
@@ -29,7 +32,7 @@ class InnerRegionTube( InnerRegion ):
         return new_obj
     
 
-    def check_correctness_of_tube_config_fields( conf, inner_region_tube_conf ):
+    def check_correctness_of_tube_config_fields( self, conf, inner_region_tube_conf ):
         # todo: check if region lies inside the domain
         pass
     
@@ -67,11 +70,11 @@ class InnerRegionTube( InnerRegion ):
         
         projection = pointvec.dot_product( unit_axisvec )
         perp_to_axis = pointvec.sub( unit_axisvec.times_scalar( projection ) )
-        in = ( projection >= 0 and \
-               projection <= axisvec.length() and \
-               perp_to_axis.length() >= self.inner_radius
-               perp_to_axis.length() <= self.outer_radius )
-        return in
+        inside = ( projection >= 0 and \
+                   projection <= axisvec.length() and \
+                   perp_to_axis.length() >= self.inner_radius and \
+                   perp_to_axis.length() <= self.outer_radius )
+        return inside
 
 
     
@@ -82,4 +85,10 @@ class InnerRegionTube( InnerRegion ):
         current_region_group.attrs.create( "tube_axis_end_x",   self.axis_end_x )
         current_region_group.attrs.create( "tube_axis_end_y",   self.axis_end_y )
         current_region_group.attrs.create( "tube_axis_end_z",   self.axis_end_z )
-        current_region_group.attrs.create( "tube_radius",       self.radius )
+        current_region_group.attrs.create( "tube_inner_radius", self.inner_radius )
+        current_region_group.attrs.create( "tube_outer_radius", self.outer_radius )
+
+
+    @classmethod
+    def is_tube_region( cls, conf_sec_name ):
+        return 'Inner_region_tube' in conf_sec_name
