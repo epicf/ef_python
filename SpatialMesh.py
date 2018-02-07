@@ -213,6 +213,7 @@ class SpatialMesh():
         tmp_x = np.empty( dim, dtype = 'f8' )
         tmp_y = np.empty_like( tmp_x )
         tmp_z = np.empty_like( tmp_x )
+        # todo: make view instead of copy
         for i, v in enumerate( self.node_coordinates.flat ):
             tmp_x[i] = v.x
             tmp_y[i] = v.y
@@ -220,9 +221,12 @@ class SpatialMesh():
         h5group.create_dataset( "./node_coordinates_x", data = tmp_x )
         h5group.create_dataset( "./node_coordinates_y", data = tmp_y )
         h5group.create_dataset( "./node_coordinates_z", data = tmp_z )
-        # todo: write 1d arrays (use .flatten? )
-        h5group.create_dataset( "./charge_density", data = self.charge_density )
-        h5group.create_dataset( "./potential", data = self.potential )
+        # C (C-order): index along the first axis varies slowest
+        # in self.node_coordinates.flat above default order is C
+        flat_phi = self.potential.ravel( order = 'C' )
+        h5group.create_dataset( "./potential", data = flat_phi )
+        flat_rho = self.charge_density.ravel( order = 'C' )
+        h5group.create_dataset( "./charge_density", data = flat_rho )
         #
         for i, v in enumerate( self.electric_field.flat ):
             tmp_x[i] = v.x
