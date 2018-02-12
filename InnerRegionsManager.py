@@ -2,6 +2,7 @@ from InnerRegionBox import InnerRegionBox
 from InnerRegionSphere import InnerRegionSphere
 from InnerRegionCylinder import InnerRegionCylinder
 from InnerRegionTube import InnerRegionTube
+from InnerRegionTubeAlongZSegment import InnerRegionTubeAlongZSegment
 
 class InnerRegionsManager():
 
@@ -37,6 +38,12 @@ class InnerRegionsManager():
                                                       conf[sec_name],
                                                       sec_name,
                                                       spat_mesh ) )
+            elif InnerRegionTubeAlongZSegment.is_tube_along_z_segment_region( sec_name ):
+                new_obj.regions.append(
+                    InnerRegionTubeAlongZSegment.init_from_config( conf,
+                                                                   conf[sec_name],
+                                                                   sec_name,
+                                                                   spat_mesh ) )
         return new_obj
 
 
@@ -63,6 +70,9 @@ class InnerRegionsManager():
         elif geometry_type == "tube":
             self.regions.append(
                 InnerRegionTube.init_from_h5( this_reg_h5_group, spat_mesh ) )
+        elif geometry_type == "tube_along_z_segment":
+            self.regions.append(
+                InnerRegionTubeAlongZSegment.init_from_h5( this_reg_h5_group, spat_mesh ) )
         else:
             print( "In InnerRegionsManager constructor-from-h5: "
                    "Unknown inner-region type. Aborting" )            
