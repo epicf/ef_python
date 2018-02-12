@@ -1,3 +1,4 @@
+import numpy as np
 from InnerRegion import InnerRegion
 from Vec3d import Vec3d
 
@@ -14,7 +15,7 @@ class InnerRegionTubeAlongZSegment( InnerRegion ):
                                             sec_name,
                                             spat_mesh )
         new_obj.object_type = "tube_along_z_segment"
-        new_obj.check_correctness_tube_segment_config_fields(
+        new_obj.check_correctness_of_tube_segment_config_fields(
             conf,
             inner_region_tube_segment_conf )
         new_obj.get_tube_segment_values_from_config( inner_region_tube_segment_conf )

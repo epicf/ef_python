@@ -10,9 +10,9 @@ class FieldSolver:
 
     def __init__( self, spat_mesh, inner_regions ):            
         if len( inner_regions.regions ) > 0:
-            print( "field-solver: inner regions are not supported" )
+            print( "field-solver: inner regions support is experimental" )
             for ir in inner_regions.regions:
-                print( "ignoring " + ir.name )
+                print( "keep eye on " + ir.name )
         nx = spat_mesh.x_n_nodes
         ny = spat_mesh.y_n_nodes
         nz = spat_mesh.z_n_nodes
