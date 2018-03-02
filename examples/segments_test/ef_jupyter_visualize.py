@@ -101,7 +101,7 @@ class EfConf:
             print()
 
             
-    def run( self, ef_command = "../../ef.out", workdir = "./",
+    def run( self, ef_command = "python3 ../../main.py", workdir = "./",
              save_config_as = None ):
         current_dir = os.getcwd()
         os.chdir( workdir )
@@ -125,7 +125,7 @@ class EfConf:
 
 
     @classmethod
-    def run_from_file( cls, startfile, ef_command = "../../ef.out", workdir = "./" ):
+    def run_from_file( cls, startfile, ef_command = "python3 ../../main.py", workdir = "./" ):
         current_dir = os.getcwd()
         os.chdir( workdir )
         command = ef_command + " " + startfile
