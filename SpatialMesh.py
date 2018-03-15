@@ -45,7 +45,7 @@ class SpatialMesh():
         tmp_x = h5group["./node_coordinates_x"]
         tmp_y = h5group["./node_coordinates_y"]
         tmp_z = h5group["./node_coordinates_z"]
-        for i, (vx, vy, vz) in enumerate( zip( tmp_x, tmp_y, tmp_y ) ):
+        for i, (vx, vy, vz) in enumerate( zip( tmp_x, tmp_y, tmp_z ) ):
             new_obj.node_coordinates[i] = Vec3d( vx, vy, vz )
         #
         new_obj.charge_density = h5group["./charge_density"]
@@ -54,7 +54,7 @@ class SpatialMesh():
         tmp_x = h5group["./electric_field_x"]
         tmp_y = h5group["./electric_field_y"]
         tmp_z = h5group["./electric_field_z"]
-        for i, (vx, vy, vz) in enumerate( zip( tmp_x, tmp_y, tmp_y ) ):
+        for i, (vx, vy, vz) in enumerate( zip( tmp_x, tmp_y, tmp_z ) ):
             new_obj.electric_field[i] = Vec3d( vx, vy, vz )
         #
         return new_obj
