@@ -36,7 +36,7 @@ class ParticleInteractionModel():
     def init_from_h5( cls, h5group ):
         new_obj = cls()
         new_obj.particle_interaction_model = \
-                h5group.attrs["particle_interaction_model"][0]        
+                h5group.attrs["particle_interaction_model"]
         if new_obj.particle_interaction_model == "noninteracting":
             new_obj.noninteracting = True
         elif new_obj.particle_interaction_model == "PIC":

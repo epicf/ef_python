@@ -23,13 +23,13 @@ class TimeGrid():
     @classmethod
     def init_from_h5( cls, h5group ):
         new_obj = cls()
-        new_obj.total_time = h5group.attrs["total_time"][0]
-        new_obj.current_time = h5group.attrs["current_time"][0]
-        new_obj.time_step_size = h5group.attrs["time_step_size"][0]
-        new_obj.time_save_step = h5group.attrs["time_save_step"][0]
-        new_obj.total_nodes = h5group.attrs["total_nodes"][0]
-        new_obj.current_node = h5group.attrs["current_node"][0]
-        new_obj.node_to_save = h5group.attrs["node_to_save"][0]
+        new_obj.total_time = h5group.attrs["total_time"]
+        new_obj.current_time = h5group.attrs["current_time"]
+        new_obj.time_step_size = h5group.attrs["time_step_size"]
+        new_obj.time_save_step = h5group.attrs["time_save_step"]
+        new_obj.total_nodes = h5group.attrs["total_nodes"]
+        new_obj.current_node = h5group.attrs["current_node"]
+        new_obj.node_to_save = h5group.attrs["node_to_save"]
         return new_obj
         
     def check_correctness_of_related_config_fields( self, conf ):

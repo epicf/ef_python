@@ -55,12 +55,12 @@ def parse_cmd_line():
 
 
 def extract_filename_prefix_and_suffix_from_h5filename( h5_file ):
-    rgx = "[0-9]{7}"
+    rgx = "[0-9]{7}" # search for timestep in filename (7 digits in a row)
     match = re.search( rgx, h5_file )
-    if len( match.group ) == 1:
+    if match:
         prefix = h5_file[ 0:match.start() ]
-        suffix = h5_file.substr[ match.end(): ]
-        print( prefix, suffix )
+        suffix = h5_file[ match.end(): ]
+        print( "Extracted h5 prefix and suffix:", prefix, suffix )
     else:
         print( "Can't identify filename prefix and suffix in ", h5_file )
         print( "Aborting." )

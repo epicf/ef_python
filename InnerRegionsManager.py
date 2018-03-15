@@ -50,7 +50,7 @@ class InnerRegionsManager():
 
 
     def parse_hdf5_inner_region( self, this_reg_h5_group, spat_mesh ):
-        geometry_type = this_reg_h5_group.attr["geometry_type"][0]
+        geometry_type = this_reg_h5_group.attrs["geometry_type"]
         if geometry_type == "box":
             self.regions.append(
                 InnerRegionBox.init_from_h5( this_reg_h5_group, spat_mesh ) )

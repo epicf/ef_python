@@ -49,14 +49,14 @@ class InnerRegionTube( InnerRegion ):
 
 
     def get_tube_values_from_h5( self, h5_inner_region_tube_group ):
-        self.axis_start_x = h5_inner_region_tube_group.attrs["tube_axis_start_x"][0]
-        self.axis_start_y = h5_inner_region_tube_group.attrs["tube_axis_start_y"][0]
-        self.axis_start_z = h5_inner_region_tube_group.attrs["tube_axis_start_z"][0]
-        self.axis_end_x = h5_inner_region_tube_group.attrs["tube_axis_end_x"][0]
-        self.axis_end_y = h5_inner_region_tube_group.attrs["tube_axis_end_y"][0]
-        self.axis_end_z = h5_inner_region_tube_group.attrs["tube_axis_end_z"][0]
-        self.inner_radius = h5_inner_region_tube_group.attrs["tube_inner_radius"][0]
-        self.outer_radius = h5_inner_region_tube_group.attrs["tube_outer_radius"][0]
+        self.axis_start_x = h5_inner_region_tube_group.attrs["tube_axis_start_x"]
+        self.axis_start_y = h5_inner_region_tube_group.attrs["tube_axis_start_y"]
+        self.axis_start_z = h5_inner_region_tube_group.attrs["tube_axis_start_z"]
+        self.axis_end_x = h5_inner_region_tube_group.attrs["tube_axis_end_x"]
+        self.axis_end_y = h5_inner_region_tube_group.attrs["tube_axis_end_y"]
+        self.axis_end_z = h5_inner_region_tube_group.attrs["tube_axis_end_z"]
+        self.inner_radius = h5_inner_region_tube_group.attrs["tube_inner_radius"]
+        self.outer_radius = h5_inner_region_tube_group.attrs["tube_outer_radius"]
 
 
     def check_if_point_inside( self, x, y, z ):

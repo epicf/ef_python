@@ -39,7 +39,7 @@ class ParticleSourcesManager:
 
     
     def parse_hdf5_particle_source( self, this_source_h5_group ):
-        geometry_type = this_source_h5_group.attr["geometry_type"][0]
+        geometry_type = this_source_h5_group.attrs["geometry_type"]
         if geometry_type == "box":
             self.sources.append(
                 ParticleSourceBox.init_from_h5( this_source_h5_group ) )

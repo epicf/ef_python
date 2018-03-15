@@ -46,12 +46,12 @@ class InnerRegionBox( InnerRegion ):
 
 
     def get_box_values_from_h5( self, h5_inner_region_box_group ):
-        self.x_left = h5_inner_region_box_group.attrs["x_left"][0]
-        self.x_right = h5_inner_region_box_group.attrs["x_right"][0]
-        self.y_bottom = h5_inner_region_box_group.attrs["y_bottom"][0]
-        self.y_top = h5_inner_region_box_group.attrs["y_top"][0]
-        self.z_near = h5_inner_region_box_group.attrs["z_near"][0]
-        self.z_far = h5_inner_region_box_group.attrs["z_far"][0]
+        self.x_left = h5_inner_region_box_group.attrs["x_left"]
+        self.x_right = h5_inner_region_box_group.attrs["x_right"]
+        self.y_bottom = h5_inner_region_box_group.attrs["y_bottom"]
+        self.y_top = h5_inner_region_box_group.attrs["y_top"]
+        self.z_near = h5_inner_region_box_group.attrs["z_near"]
+        self.z_far = h5_inner_region_box_group.attrs["z_far"]
 
 
     def check_if_point_inside( self, x, y, z ):

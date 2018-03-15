@@ -20,10 +20,10 @@ class ParticleSourceBox( ParticleSource ):
 
     
     @classmethod
-    def init_from_h5_source_group( h5_source_group ):
-        new_obj = super().init_from_h5_source_group( h5_source_group )
+    def init_from_h5( cls, h5_source_group ):
+        new_obj = super().init_from_h5( h5_source_group )
         new_obj.geometry_type = "box"
-        new_obj.read_hdf5_source_parameters( h5_source_group )
+        new_obj.read_hdf5_box_parameters( h5_source_group )
         return new_obj
 
     
@@ -48,13 +48,13 @@ class ParticleSourceBox( ParticleSource ):
         self.zfar = this_source_config_part.getfloat("box_z_far")
 
 
-    def read_hdf5_source_parameters( self, this_source_h5_group ):
-        self.xleft = this_source_h5_group.attrs["box_x_left"][0]
-        self.xright = this_source_h5_group.attrs["box_x_xright"][0]
-        self.ytop = this_source_h5_group.attrs["box_y_top"][0]
-        self.ybottom = this_source_h5_group.attrs["box_y_bottom"][0]
-        self.zfar = this_source_h5_group.attrs["box_z_far"][0]
-        self.znear = this_source_h5_group.attrs["box_z_near"][0]
+    def read_hdf5_box_parameters( self, this_source_h5_group ):
+        self.xleft = this_source_h5_group.attrs["box_x_left"]
+        self.xright = this_source_h5_group.attrs["box_x_right"]
+        self.ytop = this_source_h5_group.attrs["box_y_top"]
+        self.ybottom = this_source_h5_group.attrs["box_y_bottom"]
+        self.zfar = this_source_h5_group.attrs["box_z_far"]
+        self.znear = this_source_h5_group.attrs["box_z_near"]
 
         
     def x_left_ge_zero( self, conf, this_source_config_part ):

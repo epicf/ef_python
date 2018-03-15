@@ -26,15 +26,15 @@ class SpatialMesh():
     @classmethod
     def init_from_h5( cls, h5group ):
         new_obj = cls()
-        new_obj.x_volume_size = h5group.attrs["x_volume_size"][0]
-        new_obj.y_volume_size = h5group.attrs["y_volume_size"][0]
-        new_obj.z_volume_size = h5group.attrs["z_volume_size"][0]
-        new_obj.x_cell_size = h5group.attrs["x_cell_size"][0]
-        new_obj.y_cell_size = h5group.attrs["y_cell_size"][0]
-        new_obj.z_cell_size = h5group.attrs["z_cell_size"][0]
-        new_obj.x_n_nodes = h5group.attrs["x_n_nodes"][0]
-        new_obj.y_n_nodes = h5group.attrs["y_n_nodes"][0]
-        new_obj.z_n_nodes = h5group.attrs["z_n_nodes"][0]    
+        new_obj.x_volume_size = h5group.attrs["x_volume_size"]
+        new_obj.y_volume_size = h5group.attrs["y_volume_size"]
+        new_obj.z_volume_size = h5group.attrs["z_volume_size"]
+        new_obj.x_cell_size = h5group.attrs["x_cell_size"]
+        new_obj.y_cell_size = h5group.attrs["y_cell_size"]
+        new_obj.z_cell_size = h5group.attrs["z_cell_size"]
+        new_obj.x_n_nodes = h5group.attrs["x_n_nodes"]
+        new_obj.y_n_nodes = h5group.attrs["y_n_nodes"]
+        new_obj.z_n_nodes = h5group.attrs["z_n_nodes"]
         new_obj.allocate_ongrid_values()
         #
         dim = new_obj.node_coordinates.size
@@ -45,17 +45,24 @@ class SpatialMesh():
         tmp_x = h5group["./node_coordinates_x"]
         tmp_y = h5group["./node_coordinates_y"]
         tmp_z = h5group["./node_coordinates_z"]
-        for i, (vx, vy, vz) in enumerate( zip( tmp_x, tmp_y, tmp_z ) ):
-            new_obj.node_coordinates[i] = Vec3d( vx, vy, vz )
+        for global_idx, (vx, vy, vz) in enumerate( zip( tmp_x, tmp_y, tmp_z ) ):
+            # todo: highly nonoptimal; use np.reshape?
+            i, j, k = new_obj.global_idx_to_node_ijk( global_idx )            
+            new_obj.node_coordinates[i][j][k] = Vec3d( vx, vy, vz )
         #
         new_obj.charge_density = h5group["./charge_density"]
+        np.reshape( new_obj.charge_density,
+                    ( new_obj.x_n_nodes, new_obj.y_n_nodes, new_obj.z_n_nodes ) )
         new_obj.potential = h5group["./potential"]
+        np.reshape( new_obj.potential,
+                    ( new_obj.x_n_nodes, new_obj.y_n_nodes, new_obj.z_n_nodes ) )
         #
         tmp_x = h5group["./electric_field_x"]
         tmp_y = h5group["./electric_field_y"]
         tmp_z = h5group["./electric_field_z"]
         for i, (vx, vy, vz) in enumerate( zip( tmp_x, tmp_y, tmp_z ) ):
-            new_obj.electric_field[i] = Vec3d( vx, vy, vz )
+            i, j, k = new_obj.global_idx_to_node_ijk( global_idx )
+            new_obj.electric_field[i][j][k] = Vec3d( vx, vy, vz )
         #
         return new_obj
 
@@ -302,3 +309,19 @@ class SpatialMesh():
             print( "invalid node number k={:d} "
                    "at node_number_to_coordinate_z".format( k ) )
             sys.exit( -1 )
+
+
+    def global_idx_to_node_ijk( self, global_idx ):
+        # In row-major order: (used to save on disk)
+        # global_index = i * nz * ny +
+        #                j * nz + 
+        #                k
+        #    
+        nx = self.x_n_nodes
+        ny = self.y_n_nodes
+        nz = self.z_n_nodes
+        i = global_idx // ( nz * ny )
+        j_and_k_part = global_idx % ( nx * ny )
+        j = j_and_k_part // nz
+        k = j_and_k_part % nz
+        return (i, j, k)

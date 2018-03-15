@@ -55,9 +55,9 @@ class ExternalFieldMagneticUniform( ExternalField ):
     def init_from_h5( cls, h5_field_group ):
         new_obj = super().init_from_h5( h5_field_group )        
         new_obj.field_type = "magnetic_uniform"
-        Hx = h5_field_group.attrs["magnetic_uniform_field_x"][0]
-        Hy = h5_field_group.attrs["magnetic_uniform_field_y"][0]
-        Hz = h5_field_group.attrs["magnetic_uniform_field_z"][0]        
+        Hx = h5_field_group.attrs["magnetic_uniform_field_x"]
+        Hy = h5_field_group.attrs["magnetic_uniform_field_y"]
+        Hz = h5_field_group.attrs["magnetic_uniform_field_z"]        
         new_obj.magnetic_field = Vec3d( Hx, Hy, Hz )
         return new_obj
 
@@ -112,9 +112,9 @@ class ExternalFieldElectricUniform( ExternalField ):
     def init_from_h5( cls, h5_field_group ):
         new_obj = super().init_from_h5( h5_field_group )        
         new_obj.field_type = "electric_uniform"
-        Ex = h5_field_group.attrs["electric_uniform_field_x"][0]
-        Ey = h5_field_group.attrs["electric_uniform_field_y"][0]
-        Ez = h5_field_group.attrs["electric_uniform_field_z"][0]        
+        Ex = h5_field_group.attrs["electric_uniform_field_x"]
+        Ey = h5_field_group.attrs["electric_uniform_field_y"]
+        Ez = h5_field_group.attrs["electric_uniform_field_z"]        
         new_obj.electric_field = Vec3d( Ex, Ey, Ez )
         return new_obj
         

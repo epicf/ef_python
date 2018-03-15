@@ -19,10 +19,10 @@ class ParticleSourceCylinder( ParticleSource ):
         return new_obj
 
     @classmethod
-    def init_from_h5_source_group( h5_source_group ):
-        new_obj = super().init_from_h5_source_group( h5_source_group )
+    def init_from_h5_source_group( cls, h5_source_group ):
+        new_obj = super().init_from_h5( h5_source_group )
         new_obj.geometry_type = "cylinder"
-        new_obj.read_hdf5_source_parameters( h5_source_group )
+        new_obj.read_hdf5_cylinder_parameters( h5_source_group )
         return new_obj
 
 
@@ -53,14 +53,14 @@ class ParticleSourceCylinder( ParticleSource ):
         self.radius = this_source_config_part.getfloat("cylinder_radius")
 
 
-    def read_hdf5_source_parameters( self, this_source_h5_group ):
-        self.axis_start_x = this_source_h5_group.attrs["cylinder_axis_start_x"][0]
-        self.axis_start_y = this_source_h5_group.attrs["cylinder_axis_start_y"][0]
-        self.axis_start_z = this_source_h5_group.attrs["cylinder_axis_start_z"][0]
-        self.axis_end_x = this_source_h5_group.attrs["cylinder_axis_end_x"][0]
-        self.axis_end_y = this_source_h5_group.attrs["cylinder_axis_end_y"][0]
-        self.axis_end_z = this_source_h5_group.attrs["cylinder_axis_end_z"][0]
-        self.radius = this_source_h5_group.attrs["cylinder_radius"][0]
+    def read_hdf5_cylinder_parameters( self, this_source_h5_group ):
+        self.axis_start_x = this_source_h5_group.attrs["cylinder_axis_start_x"]
+        self.axis_start_y = this_source_h5_group.attrs["cylinder_axis_start_y"]
+        self.axis_start_z = this_source_h5_group.attrs["cylinder_axis_start_z"]
+        self.axis_end_x = this_source_h5_group.attrs["cylinder_axis_end_x"]
+        self.axis_end_y = this_source_h5_group.attrs["cylinder_axis_end_y"]
+        self.axis_end_z = this_source_h5_group.attrs["cylinder_axis_end_z"]
+        self.radius = this_source_h5_group.attrs["cylinder_radius"]
 
         
     def radius_gt_zero( self, conf, this_source_config_part ):

@@ -37,7 +37,7 @@ class ExternalFieldsManager():
         return new_obj
 
     def parse_hdf5_external_field( self, current_field_grpid ):
-        field_type = current_field_grpid.attrs["field_type"][0]
+        field_type = current_field_grpid.attrs["field_type"]
         if field_type == "magnetic_uniform":
             self.magnetic.append(
                 ExternalFieldMagneticUniform.init_from_h5( current_field_grpid ) )

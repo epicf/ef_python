@@ -50,15 +50,15 @@ class InnerRegionCylinder( InnerRegion ):
 
     def get_cylinder_values_from_h5( self, h5_inner_region_cylinder_group ):
         self.axis_start_x = h5_inner_region_cylinder_group.attrs[
-            "cylinder_axis_start_x"][0]
+            "cylinder_axis_start_x"]
         self.axis_start_y = h5_inner_region_cylinder_group.attrs[
-            "cylinder_axis_start_y"][0]
+            "cylinder_axis_start_y"]
         self.axis_start_z = h5_inner_region_cylinder_group.attrs[
-            "cylinder_axis_start_z"][0]
-        self.axis_end_x = h5_inner_region_cylinder_group.attrs["cylinder_axis_end_x"][0]
-        self.axis_end_y = h5_inner_region_cylinder_group.attrs["cylinder_axis_end_y"][0]
-        self.axis_end_z = h5_inner_region_cylinder_group.attrs["cylinder_axis_end_z"][0]
-        self.radius = h5_inner_region_cylinder_group.attrs["cylinder_radius"][0]
+            "cylinder_axis_start_z"]
+        self.axis_end_x = h5_inner_region_cylinder_group.attrs["cylinder_axis_end_x"]
+        self.axis_end_y = h5_inner_region_cylinder_group.attrs["cylinder_axis_end_y"]
+        self.axis_end_z = h5_inner_region_cylinder_group.attrs["cylinder_axis_end_z"]
+        self.radius = h5_inner_region_cylinder_group.attrs["cylinder_radius"]
 
 
     def check_if_point_inside( self, x, y, z ):

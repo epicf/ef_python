@@ -47,11 +47,11 @@ class InnerRegion():
 
     def get_values_from_h5( self, h5_inner_region_group ):
         self.name = os.path.basename( h5_inner_region_group.name )        
-        self.potential = h5_inner_region_group.attrs["potential"][0]
+        self.potential = h5_inner_region_group.attrs["potential"]
         self.total_absorbed_particles = h5_inner_region_group.attrs[
-            "total_absorbed_particles"][0]
+            "total_absorbed_particles"]
         self.total_absorbed_charge = h5_inner_region_group.attrs[
-            "total_absorbed_charge"][0]
+            "total_absorbed_charge"]
 
 
     def check_if_particle_inside( self, p ):

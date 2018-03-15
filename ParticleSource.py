@@ -70,17 +70,17 @@ class ParticleSource():
 	
     def read_hdf5_source_parameters( self, h5group ):
         self.name = os.path.basename( h5group.name )
-        self.temperature = h5group.attrs["temperature"][0]
-        mean_momentum_x = h5group.attrs["mean_momentum_x"][0]
-        mean_momentum_y = h5group.attrs["mean_momentum_y"][0]
-        mean_momentum_z = h5group.attrs["mean_momentum_z"][0]
+        self.temperature = h5group.attrs["temperature"]
+        mean_momentum_x = h5group.attrs["mean_momentum_x"]
+        mean_momentum_y = h5group.attrs["mean_momentum_y"]
+        mean_momentum_z = h5group.attrs["mean_momentum_z"]
         self.mean_momentum = Vec3d( mean_momentum_x, mean_momentum_y, mean_momentum_z )
-        self.charge = h5group.attrs["charge"][0]
-        self.mass = h5group.attrs["mass"][0]
-        self.initial_number_of_particles = h5group.attrs["initial_number_of_particles"][0]
+        self.charge = h5group.attrs["charge"]
+        self.mass = h5group.attrs["mass"]
+        self.initial_number_of_particles = h5group.attrs["initial_number_of_particles"]
         self.particles_to_generate_each_step = \
-            h5group.attrs["particles_to_generate_each_step"][0]
-        self.max_id = h5group.attrs["max_id"][0]
+            h5group.attrs["particles_to_generate_each_step"]
+        self.max_id = h5group.attrs["max_id"]
 
 
     def read_hdf5_particles( self, h5group ):        
@@ -92,12 +92,13 @@ class ParticleSource():
         py_buf = h5group["./momentum_y"]
         pz_buf = h5group["./momentum_z"]
         #
+        self.particles = []
         for (i, x, y, z, px, py, pz) in \
             zip( id_buf, x_buf, y_buf, z_buf, px_buf, py_buf, pz_buf ):
             pos = Vec3d( x, y, z )
             mom = Vec3d( px, py, pz )
             self.particles.append( Particle( i, self.charge, self.mass, pos, mom ) )
-            self.particles[-1].momentum_is_half_time_step_shifted = true
+            self.particles[-1].momentum_is_half_time_step_shifted = True
             
 
     def generate_initial_particles( self ):

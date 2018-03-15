@@ -46,10 +46,10 @@ class InnerRegionSphere( InnerRegion ):
 
 
     def get_sphere_values_from_h5( self, h5_inner_region_sphere_group ):
-        self.origin_x = h5_inner_region_sphere_group.attrs["sphere_origin_x"][0]
-        self.origin_y = h5_inner_region_sphere_group.attrs["sphere_origin_y"][0]
-        self.origin_z = h5_inner_region_sphere_group.attrs["sphere_origin_z"][0]
-        self.radius = h5_inner_region_sphere_group.attrs["sphere_radius"][0]
+        self.origin_x = h5_inner_region_sphere_group.attrs["sphere_origin_x"]
+        self.origin_y = h5_inner_region_sphere_group.attrs["sphere_origin_y"]
+        self.origin_z = h5_inner_region_sphere_group.attrs["sphere_origin_z"]
+        self.radius = h5_inner_region_sphere_group.attrs["sphere_radius"]
 
 
     def check_if_point_inside( self, x, y, z ):
