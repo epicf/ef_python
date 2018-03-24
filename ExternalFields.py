@@ -1,3 +1,5 @@
+import os
+
 from Vec3d import Vec3d
 import physical_constants
 

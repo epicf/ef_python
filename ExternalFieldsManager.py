@@ -33,7 +33,7 @@ class ExternalFieldsManager():
         new_obj.magnetic = []
         for field_name in h5_external_fields_group.keys():
             current_field_grpid = h5_external_fields_group[ field_name ]
-            self.parse_hdf5_external_field( current_field_grpid )
+            new_obj.parse_hdf5_external_field( current_field_grpid )
         return new_obj
 
     def parse_hdf5_external_field( self, current_field_grpid ):
