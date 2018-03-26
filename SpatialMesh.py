@@ -62,7 +62,7 @@ class SpatialMesh():
         tmp_x = h5group["./electric_field_x"]
         tmp_y = h5group["./electric_field_y"]
         tmp_z = h5group["./electric_field_z"]
-        for i, (vx, vy, vz) in enumerate( zip( tmp_x, tmp_y, tmp_z ) ):
+        for global_idx, (vx, vy, vz) in enumerate( zip( tmp_x, tmp_y, tmp_z ) ):
             i, j, k = new_obj.global_idx_to_node_ijk( global_idx )
             new_obj.electric_field[i][j][k] = Vec3d( vx, vy, vz )
         #
