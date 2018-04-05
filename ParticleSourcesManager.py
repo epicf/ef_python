@@ -4,6 +4,7 @@ import h5py
 from ParticleSource import *
 from ParticleSourceBox import *
 from ParticleSourceCylinder import *
+from ParticleSourceTube import *
 
 class ParticleSourcesManager:
 
@@ -26,6 +27,11 @@ class ParticleSourcesManager:
                     ParticleSourceCylinder.init_from_config( conf,
                                                              conf[sec_name],
                                                              sec_name ) )
+            elif ParticleSourceTube.is_tube_source( sec_name ):
+                new_obj.sources.append(
+                    ParticleSourceTube.init_from_config( conf,
+                                                         conf[sec_name],
+                                                         sec_name ) )
         return new_obj
 
     
@@ -46,6 +52,9 @@ class ParticleSourcesManager:
         elif geometry_type == "cylinder":
             self.sources.append(
                 ParticleSourceCylinder.init_from_h5( this_source_h5_group ) )
+        elif geometry_type == "tube":
+            self.sources.append(
+                ParticleSourceTube.init_from_h5( this_source_h5_group ) )
         else:
             print( "In Particle_source_manager constructor-from-h5: "
                    "Unknown particle_source type. Aborting" )            
