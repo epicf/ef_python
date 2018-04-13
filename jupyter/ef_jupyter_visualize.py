@@ -3,6 +3,7 @@ import shlex
 import tempfile
 import subprocess
 import configparser
+import io
 
 import numpy as np
 import matplotlib as mpl
@@ -65,7 +66,11 @@ class EfConf:
         for ctr, dim in zip(centers, 'xyz'):
             getattr(ax, 'set_{}lim'.format(dim))(ctr - r, ctr + r)
 
-    def export(self, filename):
+    def export_to_file(self, filename):
+        with open(filename, 'w') as f:
+            f.write(self.as_text())
+
+    def as_text(self):
         as_dict = {}
         as_dict.update(self.time_grid.export())
         as_dict.update(self.spatial_mesh.export())
@@ -85,27 +90,12 @@ class EfConf:
             config[sec_name] = {}
             for k, v in sec.items():
                 config[sec_name][k] = str(v)
-        with open(filename, 'w') as f:
-            config.write(f)
+        f = io.StringIO()
+        config.write(f)
+        return f.getvalue()
 
     def print_config(self):
-        as_dict = {}
-        as_dict.update(self.time_grid.export())
-        as_dict.update(self.spatial_mesh.export())
-        for src in self.sources:
-            as_dict.update(src.export())
-        for ir in self.inner_regions:
-            as_dict.update(ir.export())
-        as_dict.update(self.output_file.export())
-        as_dict.update(self.boundary_conditions.export())
-        as_dict.update(self.particle_interaction_model.export())
-        for ef in self.ex_fields:
-            as_dict.update(ef.export())
-        for sec_name, sec in as_dict.items():
-            print("[" + sec_name + "]")
-            for k, v in sec.items():
-                print(k, " = ", v)
-            print()
+        print(self.as_text())
 
     def run(self, ef_command="python3 ../../main.py", workdir="./",
             save_config_as=None):
