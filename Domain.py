@@ -15,7 +15,16 @@ import physical_constants
 class Domain():
 
     def __init__(self):
-        pass
+        self.time_grid = None
+        self.spat_mesh = None
+        self.inner_regions = None
+        self.particle_to_mesh_map = None
+        self.field_solver = None
+        self.particle_sources = None
+        self.external_fields = None
+        self.particle_interaction_model = None
+        self.output_filename_prefix = None
+        self.output_filename_suffix = None
 
 
     @classmethod
@@ -37,7 +46,7 @@ class Domain():
 
 
     @classmethod
-    def init_from_h5(cls, h5file):
+    def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
         new_obj = cls()
         new_obj.time_grid = TimeGrid.init_from_h5(h5file["/Time_grid"])
         new_obj.spat_mesh = SpatialMesh.init_from_h5(h5file["/Spatial_mesh"])
@@ -51,8 +60,8 @@ class Domain():
             h5file["/External_fields"])
         new_obj.particle_interaction_model = ParticleInteractionModel.init_from_h5(
             h5file["/Particle_interaction_model"])
-        # todo: pass output filename prefix and suffix as arguments
-        # and call a method to set them here.
+        new_obj.output_filename_prefix = filename_prefix
+        new_obj.output_filename_suffix = filename_suffix
         return new_obj
 
 
@@ -125,9 +134,9 @@ class Domain():
         self.apply_domain_boundary_conditions()
         self.remove_particles_inside_inner_regions()
 
-    #
-    # Push particles
-    #
+#
+# Push particles
+#
 
     def boris_integration(self):
         dt = self.time_grid.time_step_size
@@ -212,9 +221,9 @@ class Domain():
     def update_position(self, dt):
         self.particle_sources.update_particles_position(dt)
 
-    #
-    # Apply domain constrains
-    #
+#
+# Apply domain constrains
+#
 
     def apply_domain_boundary_conditions(self):
         for src in self.particle_sources.sources:
@@ -245,17 +254,17 @@ class Domain():
         self.shift_velocities_half_time_step_back()
 
 
-    #
-    # Update time grid
-    #
+#
+# Update time grid
+#
 
     def update_time_grid(self):
         self.time_grid.update_to_next_step()
 
 
-    #
-    # Write domain to file
-    #
+#
+# Write domain to file
+#
 
     def write_step_to_save(self):
         current_step = self.time_grid.current_node
@@ -295,21 +304,16 @@ class Domain():
         return filename
 
 
-    #
-    # Free domain
-    #
+#
+# Free domain
+#
 
     def free(self):
         print("TODO: free domain.\n")
 
-    #
-    # Various functions
-    #
-
-    def set_output_filename_prefix_and_suffix(self, prefix, suffix):
-        self.output_filename_prefix = prefix
-        self.output_filename_suffix = suffix
-
+#
+# Various functions
+#
 
     def print_particles(self):
         self.particle_sources.print_particles()
