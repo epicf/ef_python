@@ -66,12 +66,9 @@ class Domain():
 
 
     def start_pic_simulation(self):
-        # fields in domain without any particles
         self.eval_and_write_fields_without_particles()
-        # generate particles and write initial step
-        self.prepare_boris_integration()
+        self.prepare_recently_generated_particles_for_boris_integration()
         self.write_step_to_save()
-        # run simulation
         self.run_pic()
 
 
@@ -87,35 +84,22 @@ class Domain():
                 i, i+1, total_time_iterations))
             self.advance_one_time_step()
             self.write_step_to_save()
-            #self.particle_sources.print_num_of_particles()
 
 
-    def prepare_boris_integration(self):
-        if self.particle_interaction_model.noninteracting:
-            self.shift_velocities_half_time_step_back()
-        elif self.particle_interaction_model.binary:
-            self.shift_velocities_half_time_step_back()
-        elif self.particle_interaction_model.pic:
+    def prepare_recently_generated_particles_for_boris_integration(self):
+        if self.particle_interaction_model.pic:
             self.eval_charge_density()
             self.eval_potential_and_fields()
-            self.shift_velocities_half_time_step_back()
+        self.shift_new_particles_velocities_half_time_step_back()
 
 
     def advance_one_time_step(self):
-        if self.particle_interaction_model.noninteracting:
-            self.push_particles()
-            self.apply_domain_constrains()
-            self.update_time_grid()
-        elif self.particle_interaction_model.binary:
-            self.push_particles_binary_interaction()
-            self.apply_domain_constrains()
-            self.update_time_grid()
-        elif self.particle_interaction_model.pic:
-            self.push_particles()
-            self.apply_domain_constrains()
+        self.push_particles()
+        self.apply_domain_constrains()
+        if self.particle_interaction_model.pic:
             self.eval_charge_density()
             self.eval_potential_and_fields()
-            self.update_time_grid()
+        self.update_time_grid()
 
 
     def eval_charge_density(self):
@@ -130,11 +114,12 @@ class Domain():
 
 
     def push_particles(self):
-        self.boris_integration()
-
-
-    def push_particles_binary_interaction(self):
-        self.boris_integration_with_binary_force()
+        dt = self.time_grid.time_step_size
+        current_time = self.time_grid.current_time
+        self.particle_sources.boris_integration(
+            dt, current_time,
+            self.spat_mesh, self.external_fields, self.inner_regions,
+            self.particle_to_mesh_map, self.particle_interaction_model)
 
 
     def apply_domain_constrains(self):
@@ -148,34 +133,25 @@ class Domain():
 # Push particles
 #
 
-    def boris_integration(self):
-        dt = self.time_grid.time_step_size
-        self.update_momentum(dt)
-        self.update_position(dt)
 
-
-    def shift_velocities_half_time_step_back(self):
+    def shift_new_particles_velocities_half_time_step_back(self):
         minus_half_dt = -self.time_grid.time_step_size / 2.0
         #
         for src in self.particle_sources.sources:
             for p in src.particles:
                 if not p.momentum_is_half_time_step_shifted:
-                    total_el_field = Vec3d.zero()
-                    for f in self.external_fields.electric:
-                        el_field = f.field_at_particle_position(
-                            p, self.time_grid.current_time)
-                        total_el_field = total_el_field.add(el_field)
+                    total_el_field = \
+                    self.external_fields.total_electric_field_at_particle_position(
+                        p, self.time_grid.current_time)
                     pic_el_field = self.particle_to_mesh_map.field_at_particle_position(
                         self.spat_mesh, p)
                     total_el_field = total_el_field.add(pic_el_field)
                     #
-                    total_mgn_field = Vec3d.zero()
-                    for f in self.external_fields.magnetic:
-                        mgn_field = f.field_at_particle_position(
-                            p, self.time_grid.current_time)
-                        total_mgn_field = total_mgn_field.add(mgn_field)
+                    total_mgn_field = \
+                    self.external_fields.total_magnetic_field_at_particle_position(
+                        p, self.time_grid.current_time)
                     #
-                    if len(self.external_fields.magnetic) == 0:
+                    if not self.external_fields.magnetic:
                         dp = total_el_field.times_scalar(p.charge * minus_half_dt)
                         p.momentum = p.momentum.add(dp)
                     else:
@@ -193,97 +169,6 @@ class Domain():
                     p.momentum_is_half_time_step_shifted = True
 
 
-    def update_momentum(self, dt):
-        for src in self.particle_sources.sources:
-            for p in src.particles:
-                total_el_field = Vec3d.zero()
-                for f in self.external_fields.electric:
-                    el_field = f.field_at_particle_position(
-                        p, self.time_grid.current_time)
-                    total_el_field = total_el_field.add(el_field)
-                pic_el_field = self.particle_to_mesh_map.field_at_particle_position(
-                    self.spat_mesh, p)
-                total_el_field = total_el_field.add(pic_el_field)
-                #
-                total_mgn_field = Vec3d.zero()
-                for f in self.external_fields.magnetic:
-                    mgn_field = f.field_at_particle_position(
-                        p, self.time_grid.current_time)
-                    total_mgn_field = total_mgn_field.add(mgn_field)
-                #
-                if len(self.external_fields.magnetic) == 0:
-                    dp = total_el_field.times_scalar(p.charge * dt)
-                    p.momentum = p.momentum.add(dp)
-                else:
-                    q_quote = dt * p.charge / p.mass / 2.0
-                    half_el_force = total_el_field.times_scalar(q_quote)
-                    v_current = p.momentum.times_scalar(1.0 / p.mass)
-                    u = v_current.add(half_el_force)
-                    h = total_mgn_field.times_scalar(
-                        q_quote / physical_constants.speed_of_light)
-                    s = h.times_scalar(
-                        2.0 / (1.0 + h.dot_product(h)))
-                    tmp = u.add(u.cross_product(h))
-                    u_quote = u.add(tmp.cross_product(s))
-                    p.momentum = u_quote.add(half_el_force).times_scalar(p.mass)
-
-
-    def update_position(self, dt):
-        self.particle_sources.update_particles_position(dt)
-
-
-    def boris_integration_with_binary_force(self):
-        dt = self.time_grid.time_step_size
-        self.update_momentum_and_position_with_bin_force(dt)
-
-
-    def update_momentum_and_position_with_bin_force(self, dt):
-        # todo: same code 3 times. get rid of duplication.
-        for src_idx, src in enumerate(self.particle_sources.sources):
-            for p_idx, p in enumerat(src.particles):
-                total_el_field = Vec3d.zero()
-                for f in self.external_fields.electric:
-                    el_field = f.field_at_particle_position(p, self.time_grid.current_time)
-                    total_el_field = total_el_field.add(el_field)
-                bin_el_field = self.binary_field_at_particle_position(p, src_idx, p_idx)
-                total_el_field = total_el_field.add(bin_el_field)
-                #
-                total_mgn_field = Vec3d.zero()
-                for f in self.external_fields.magnetic:
-                    mgn_field = f.field_at_particle_position(
-                        p, self.time_grid.current_time)
-                    total_mgn_field = total_mgn_field.add(mgn_field)
-                #
-                if len(self.external_fields.magnetic) == 0:
-                    dp = total_el_field.times_scalar(p.charge * dt)
-                    p.momentum = p.momentum.add(dp)
-                else:
-                    q_quote = dt * p.charge / p.mass / 2.0
-                    half_el_force = total_el_field.times_scalar(q_quote)
-                    v_current = p.momentum.times_scalar(1.0 / p.mass)
-                    u = v_current.add(half_el_force)
-                    h = total_mgn_field.times_scalar(
-                        q_quote / physical_constants.speed_of_light)
-                    s = h.times_scalar(
-                        2.0 / (1.0 + h.dot_product(h)))
-                    tmp = u.add(u.cross_product(h))
-                    u_quote = u.add(tmp.cross_product(s))
-                    p.momentum = u_quote.add(half_el_force).times_scalar(p.mass)
-
-
-    def binary_field_at_particle_position(self, particle, src_idx, p_idx):
-        bin_force = Vec3d.zero()
-        for iter_src_idx, src in enumerate(self.particle_sources.sources):
-            if iter_src_idx != src_idx:
-                for p in src.particles:
-                    bin_force.add(p.field_at_point(particle.position))
-            else:
-                tmp_p = src.particles[0]
-                src.particles[0] = particle
-                src.particles[p_idx] = tmp_p
-                for p in src.particles[1:]:
-                    bin_force.add(p.field_at_point(particle.position))
-        return bin_force
 
 #
 # Apply domain constrains
@@ -315,7 +200,7 @@ class Domain():
 
     def generate_new_particles(self):
         self.particle_sources.generate_each_step()
-        self.shift_velocities_half_time_step_back()
+        self.shift_new_particles_velocities_half_time_step_back()
 
 
 #
@@ -342,13 +227,12 @@ class Domain():
             self.output_filename_prefix, self.time_grid.current_node,
             self.output_filename_suffix)
         h5file = h5py.File(file_name_to_write, mode="w")
-        # todo: add exception
-        # if not h5file:
-        #     print("Error: can't open file " + file_name_to_write + \
-        #            "to save results of initial field calculation!")
-        #     print("Recheck \'output_filename_prefix\' key in config file.")
-        #     print("Make sure the directory you want to save to exists.")
-        #     print("Writing initial fields to file " + file_name_to_write)
+        if not h5file:
+            print("Error: can't open file " + file_name_to_write + \
+                   "to save results of initial field calculation!")
+            print("Recheck \'output_filename_prefix\' key in config file.")
+            print("Make sure the directory you want to save to exists.")
+            print("Writing initial fields to file " + file_name_to_write)
         print("Writing step {} to file {}".format(
             self.time_grid.current_node, file_name_to_write))
         self.time_grid.write_to_file(h5file)
@@ -390,13 +274,12 @@ class Domain():
                              "fieldsWithoutParticles" + \
                              self.output_filename_suffix
         h5file = h5py.File(file_name_to_write, mode="w")
-        # todo: add exception
-        # if not h5file:
-        #     print("Error: can't open file " + file_name_to_write + \
-        #            "to save results of initial field calculation!")
-        #     print("Recheck \'output_filename_prefix\' key in config file.")
-        #     print("Make sure the directory you want to save to exists.")
-        #     print("Writing initial fields to file " + file_name_to_write)
+        if not h5file:
+            print("Error: can't open file " + file_name_to_write + \
+                   "to save results of initial field calculation!")
+            print("Recheck \'output_filename_prefix\' key in config file.")
+            print("Make sure the directory you want to save to exists.")
+            print("Writing initial fields to file " + file_name_to_write)
         self.spat_mesh.write_to_file(h5file)
         self.external_fields.write_to_file(h5file)
         self.inner_regions.write_to_file(h5file)

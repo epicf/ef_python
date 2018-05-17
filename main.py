@@ -41,9 +41,9 @@ def construct_domain(config_or_h5_file):
 
 def echo_config(config_or_h5_file, conf):
     print("Config file is: ", config_or_h5_file)
-    for s in list(conf.sections()):
+    for s in conf.sections():
         print("[", s, "]")
-        for k, v in list(conf[s]):
+        for k, v in conf[s].items():
             print("{} = {}".format(k, v))
         print()
 

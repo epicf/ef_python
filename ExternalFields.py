@@ -25,7 +25,11 @@ class ExternalField:
         current_field_group = h5_fields_group.create_group( "./" + self.name )
         self.write_hdf5_field_parameters( current_field_group )
 
-    
+
+    def field_at_particle_position(self, particle, current_time):
+        # virtual method
+        raise NotImplementedError()
+
 
 # Uniform magnetic
 

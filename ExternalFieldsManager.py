@@ -1,5 +1,6 @@
 import sys
 
+from Vec3d import Vec3d
 from ExternalFields import ExternalField
 from ExternalFields import ExternalFieldMagneticUniform, ExternalFieldElectricUniform
 
@@ -24,6 +25,7 @@ class ExternalFieldsManager():
                     ExternalFieldElectricUniform.init_from_config(conf[sec_name], sec_name))
         return new_obj
 
+
     @classmethod
     def init_from_h5(cls, h5_external_fields_group):
         new_obj = cls()
@@ -46,6 +48,22 @@ class ExternalFieldsManager():
             print("In External_field_manager constructor-from-h5: ")
             print("Unknown external_field type. Aborting")
             sys.exit(-1)
+
+
+    def total_electric_field_at_particle_position(self, particle, current_time):
+        total_el_field = Vec3d.zero()
+        for f in self.electric:
+            el_field = f.field_at_particle_position(particle, current_time)
+            total_el_field = total_el_field.add(el_field)
+        return total_el_field
+
+
+    def total_magnetic_field_at_particle_position(self, particle, current_time):
+        total_mgn_field = Vec3d.zero()
+        for f in self.magnetic:
+            mgn_field = f.field_at_particle_position(particle, current_time)
+            total_mgn_field = total_mgn_field.add(mgn_field)
+        return total_mgn_field
 
 
     def write_to_file(self, hdf5_file_id):
