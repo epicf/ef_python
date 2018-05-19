@@ -45,7 +45,6 @@ def echo_config(config_or_h5_file, conf):
         print("[", s, "]")
         for k, v in conf[s].items():
             print("{} = {}".format(k, v))
-        print()
 
 
 def extract_filename_prefix_and_suffix_from_h5filename(h5_file):

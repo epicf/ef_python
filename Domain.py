@@ -129,6 +129,7 @@ class Domain():
         self.apply_domain_boundary_conditions()
         self.remove_particles_inside_inner_regions()
 
+
 #
 # Push particles
 #
