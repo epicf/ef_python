@@ -26,7 +26,8 @@ print( "t_e_times_wider = {:.3e} [s]".format( t_e_times_wider ) )
 print( "z_e_times_wider = {:.3e} [cm]".format( z_e_times_wider ) )
 
 sim_time = 3.0e-9
-n_of_steps = 100
+#n_of_steps = 100
+n_of_steps = 30 # bin
 dt = sim_time / n_of_steps
 print( "simulation_time = {:.3e} [s]".format( sim_time ) )
 print( "number_of_time_steps = {:d}".format( n_of_steps ) )
@@ -35,7 +36,8 @@ print( "time_step_size = {:.3e} [s]".format( dt ) )
 num_of_real_particles = I * dt / q
 print( "num_of_real_particles = {:.3e}".format( num_of_real_particles ) )
 
-num_of_macro_particles = 5000
+#num_of_macro_particles = 5000
+num_of_macro_particles = 100 # bin
 macro_q = I * dt / num_of_macro_particles
 macro_m = macro_q / q * m
 macro_mean_momentum = macro_m * v

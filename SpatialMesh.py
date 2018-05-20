@@ -160,7 +160,17 @@ class SpatialMesh():
                 self.potential[i][j][0] = phi_near
                 self.potential[i][j][nz-1] = phi_far
 
+
+    def is_potential_equal_on_boundaries( self ):
+        nx = self.x_n_nodes
+        ny = self.y_n_nodes
+        nz = self.z_n_nodes
+        return \
+            ( self.potential[0][2][2] == self.potential[nx-1][2][2] == \
+              self.potential[2][0][2] == self.potential[2][ny-1][2] == \
+              self.potential[2][2][0] == self.potential[2][2][nz-1] )
                 
+
     def print( self ):
         self.print_grid()
         self.print_ongrid_values()
@@ -330,3 +340,4 @@ class SpatialMesh():
         j = j_and_k_part // nz
         k = j_and_k_part % nz
         return (i, j, k)
+
