@@ -4,3 +4,7 @@ __pycache__
 \#*\#
 *.h5
 *.png
+.idea/
+venv/
+.ipynb_checkpoints/
+
