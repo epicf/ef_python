@@ -1,15 +1,13 @@
-import os
-import shlex
-import tempfile
-import subprocess
 import configparser
 import io
+import os
+import shlex
+import subprocess
+import tempfile
 
-import numpy as np
-import matplotlib as mpl
-from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
-from matplotlib import cm
+import numpy as np
+from mpl_toolkits.mplot3d.art3d import Line3DCollection, Poly3DCollection
 
 
 class EfConf:
@@ -168,41 +166,20 @@ class TimeGrid:
 class SpatialMesh:
 
     def __init__(self,
-                 grid_x_size=10, grid_x_step=1,
-                 grid_y_size=10, grid_y_step=1,
-                 grid_z_size=10, grid_z_step=1):
-        self.grid_x_size = grid_x_size
-        self.grid_x_step = grid_x_step
-        self.grid_y_size = grid_y_size
-        self.grid_y_step = grid_y_step
-        self.grid_z_size = grid_z_size
-        self.grid_z_step = grid_z_step
+                 grid_size=np.array((10.0, 10.0, 10.0)), grid_step=np.array((1,1,1))):
+        self.grid_size = grid_size
+        self.grid_step = grid_step
 
-    def visualize(self, ax):
-        self.draw_cube(ax)
+    def visualize(self, ax, **kwargs):
+        self.draw_box(ax, self.grid_size)
 
-    def draw_cube(self, ax):
-        vertices = []
-        vertices.append([0, 0, 0])
-        vertices.append([self.grid_x_size, 0, 0])
-        vertices.append([self.grid_x_size, self.grid_y_size, 0])
-        vertices.append([0, self.grid_y_size, 0])
-        vertices.append([0, 0, 0])
-        vertices.append([0, 0, self.grid_z_size])
-        vertices.append([self.grid_x_size, 0, self.grid_z_size])
-        vertices.append([self.grid_x_size, 0, 0])
-        vertices.append([self.grid_x_size, 0, self.grid_z_size])
-        vertices.append([self.grid_x_size, self.grid_y_size, self.grid_z_size])
-        vertices.append([self.grid_x_size, self.grid_y_size, 0])
-        vertices.append([self.grid_x_size, self.grid_y_size, self.grid_z_size])
-        vertices.append([0, self.grid_y_size, self.grid_z_size])
-        vertices.append([0, self.grid_y_size, 0])
-        vertices.append([0, self.grid_y_size, self.grid_z_size])
-        vertices.append([0, 0, self.grid_z_size])
-        x = [v[0] for v in vertices]
-        y = [v[1] for v in vertices]
-        z = [v[2] for v in vertices]
-        ax.plot(x, y, z, label='volume')
+    def draw_box(self, ax, size, position=np.zeros(3)):
+        cube = np.mgrid[0:2, 0:2, 0:2].reshape(3, 8).T
+        vertices = size*cube + position
+        ax.scatter3D(*[vertices[:, i] for i in (0, 1, 2)])
+        face_masks = [cube[:, i] == v for v in (0, 1) for i in (0, 1, 2)]
+        polygons = [vertices[face, :][(0, 1, 3, 2), :] for face in face_masks]
+        ax.add_collection(Poly3DCollection(polygons, facecolors = (0, 0, 0, 0), edgecolors='k', linewidths = 1))
 
     def export(self):
         as_dict = {}
