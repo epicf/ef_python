@@ -10,6 +10,90 @@ import numpy as np
 from mpl_toolkits.mplot3d.art3d import Line3DCollection, Poly3DCollection
 
 
+class Visualizer3d:
+    def __init__(self, equal_aspect=True):
+        fig = plt.figure()
+        self.ax = fig.add_subplot(111, projection='3d')
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Y')
+        self.ax.set_zlabel('Z')
+        self.equal_aspect = equal_aspect
+        plt.rcParams["figure.figsize"] = [9, 8]
+
+    def visualize(self, config_objects):
+        for conf in config_objects:
+            conf.visualize(self)
+        if self.equal_aspect:
+            self.axis_equal_3d()
+        self.ax.legend()
+        plt.show()
+
+    def axis_equal_3d(self):
+        # https://stackoverflow.com/questions/8130823/set-matplotlib-3d-plot-aspect-ratio
+        extents = np.array([getattr(self.ax, 'get_{}lim'.format(dim))() for dim in 'xyz'])
+        sz = extents[:, 1] - extents[:, 0]
+        centers = np.mean(extents, axis=1)
+        maxsize = max(abs(sz))
+        r = maxsize / 2
+        for ctr, dim in zip(centers, 'xyz'):
+            getattr(self.ax, 'set_{}lim'.format(dim))(ctr - r, ctr + r)
+
+    def draw_box_rlbtnf(self, r, l, b, t, n, f, **kwargs):
+        # left > right: x, bottom < top: y, near < far: z
+        origin = np.array((r, b, n))
+        far = np.array((l, t, f))
+        self.draw_box_size_origin(far - origin, origin, **kwargs)
+
+    def draw_box_size_origin(self, size, position=np.zeros(3), wireframe=False, **kwargs):
+        cube = np.mgrid[0:2, 0:2, 0:2].reshape(3, 8).T
+        vertices = size * cube + position
+        self.ax.scatter(*[vertices[:, i] for i in (0, 1, 2)], alpha=0.0)
+        if wireframe:
+            edge_masks = [np.logical_and(cube[:, i] == v, cube[:, j] == w)
+                          for w in (0, 1) for v in (0, 1) for i in (0, 1) for j in range(i + 1, 3)]
+            edges = [vertices[edge, :] for edge in edge_masks]
+            self.ax.add_collection(
+                Line3DCollection(edges, **kwargs))
+        else:
+            face_masks = [cube[:, i] == v for v in (0, 1) for i in (0, 1, 2)]
+            polygons = [vertices[face, :][(0, 1, 3, 2), :] for face in face_masks]
+            self.ax.add_collection(
+                Poly3DCollection(polygons, **kwargs))
+
+    def draw_cylinder(self, a, b, r, wireframe=False, **kwargs):
+        phi = np.radians(np.linspace(0, 360, 32, endpoint=wireframe))
+        circle = np.stack((np.cos(phi), np.sin(phi), np.zeros_like(phi))).T
+        if wireframe:
+            lines = (a + circle * r, b + circle * r)
+            self.ax.add_collection(Line3DCollection(lines, **kwargs))
+        else:
+            # cap = np.stack((np.zeros_like(circle), r * np.roll(circle, 1, axis=0), r * circle), axis=1)
+            sides = np.stack((a + r * circle, a + r * np.roll(circle, 1, axis=0),
+                              b + r * np.roll(circle, 1, axis=0), b + r * circle), axis=1)
+            # caps = np.concatenate((a + cap, b + cap))
+            self.ax.add_collection(Poly3DCollection(sides, **kwargs))
+            # self.ax.add_collection(Poly3DCollection(caps, **kwargs))
+
+
+    def draw_cylinder_xyz(self, x, y, z, X, Y, Z, r, **kwargs):
+        self.draw_cylinder(np.array((x, y, z)), np.array((X, Y, Z)), r, **kwargs)
+
+    def draw_tube(self, a, b, r, R, wireframe=False, **kwargs):
+        phi = np.radians(np.linspace(0, 360, 32, endpoint=wireframe))
+        circle = np.stack((np.cos(phi), np.sin(phi), np.zeros_like(phi))).T
+        if wireframe:
+            lines = (a + circle * r, a + circle * R, b + circle * r, b + circle * R)
+            self.ax.add_collection(Line3DCollection(lines, **kwargs))
+        else:
+            ring = np.stack((r * circle, r * np.roll(circle, 1, axis=0), R * np.roll(circle, 1, axis=0), R * circle),
+                            axis=1)
+            rings = np.concatenate((a + ring, b + ring))
+            self.ax.add_collection(Poly3DCollection(rings, **kwargs))
+
+    def draw_tube_xyz(self, x, y, z, X, Y, Z, r, R, **kwargs):
+        self.draw_tube(np.array((x, y, z)), np.array((X, Y, Z)), r, R, **kwargs)
+
+
 class EfConf:
 
     def __init__(self):
@@ -31,38 +115,8 @@ class EfConf:
     def add_ex_field(self, ef):
         self.ex_fields.append(ef)
 
-    def visualize(self, equal_aspect=True):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        self.time_grid.visualize(ax)
-        self.spatial_mesh.visualize(ax)
-        for src in self.sources:
-            src.visualize(ax)
-        for ir in self.inner_regions:
-            ir.visualize(ax)
-        for ef in self.ex_fields:
-            ef.visualize(ax)
-        #
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.legend()
-        #
-        if equal_aspect:
-            self.axis_equal_3d(ax)
-        plt.rcParams["figure.figsize"] = [9, 8]
-        #
-        plt.show()
-
-    def axis_equal_3d(self, ax):
-        # https://stackoverflow.com/questions/8130823/set-matplotlib-3d-plot-aspect-ratio
-        extents = np.array([getattr(ax, 'get_{}lim'.format(dim))() for dim in 'xyz'])
-        sz = extents[:, 1] - extents[:, 0]
-        centers = np.mean(extents, axis=1)
-        maxsize = max(abs(sz))
-        r = maxsize / 2
-        for ctr, dim in zip(centers, 'xyz'):
-            getattr(ax, 'set_{}lim'.format(dim))(ctr - r, ctr + r)
+    def visualize_all(self, visualizer):
+        visualizer.visualize([self.time_grid, self.spatial_mesh] + self.sources + self.inner_regions + self.ex_fields)
 
     def export_to_file(self, filename):
         with open(filename, 'w') as f:
@@ -153,44 +207,16 @@ class TimeGrid:
     def visualize(self, ax):
         pass
 
-    def export(self):
-        # todo: use representation of class as dict
-        as_dict = {}
-        as_dict["Time grid"] = {}
-        as_dict["Time grid"]["total_time"] = self.total_time
-        as_dict["Time grid"]["time_save_step"] = self.time_save_step
-        as_dict["Time grid"]["time_step_size"] = self.time_step_size
-        return as_dict
-
 
 class SpatialMesh:
 
     def __init__(self,
-                 grid_size=np.array((10.0, 10.0, 10.0)), grid_step=np.array((1,1,1))):
+                 grid_size=np.array((10.0, 10.0, 10.0)), grid_step=np.array((1, 1, 1))):
         self.grid_size = grid_size
         self.grid_step = grid_step
 
-    def visualize(self, ax, **kwargs):
-        self.draw_box(ax, self.grid_size)
-
-    def draw_box(self, ax, size, position=np.zeros(3)):
-        cube = np.mgrid[0:2, 0:2, 0:2].reshape(3, 8).T
-        vertices = size*cube + position
-        ax.scatter3D(*[vertices[:, i] for i in (0, 1, 2)])
-        face_masks = [cube[:, i] == v for v in (0, 1) for i in (0, 1, 2)]
-        polygons = [vertices[face, :][(0, 1, 3, 2), :] for face in face_masks]
-        ax.add_collection(Poly3DCollection(polygons, facecolors = (0, 0, 0, 0), edgecolors='k', linewidths = 1))
-
-    def export(self):
-        as_dict = {}
-        as_dict["Spatial mesh"] = {}
-        as_dict["Spatial mesh"]["grid_x_size"] = self.grid_x_size
-        as_dict["Spatial mesh"]["grid_x_step"] = self.grid_x_step
-        as_dict["Spatial mesh"]["grid_y_size"] = self.grid_y_size
-        as_dict["Spatial mesh"]["grid_y_step"] = self.grid_y_step
-        as_dict["Spatial mesh"]["grid_z_size"] = self.grid_z_size
-        as_dict["Spatial mesh"]["grid_z_step"] = self.grid_z_step
-        return as_dict
+    def visualize(self, visualizer):
+        visualizer.draw_box_size_origin(self.grid_size, wireframe=True, label='volume', colors='k', linewidths=1)
 
 
 class BoundaryConditions:
@@ -206,19 +232,8 @@ class BoundaryConditions:
         self.boundary_phi_near = boundary_phi_near
         self.boundary_phi_far = boundary_phi_far
 
-    def visualize(self, ax):
+    def visualize(self, visualizer):
         pass
-
-    def export(self):
-        as_dict = {}
-        as_dict["Boundary conditions"] = {}
-        as_dict["Boundary conditions"]["boundary_phi_right"] = self.boundary_phi_right
-        as_dict["Boundary conditions"]["boundary_phi_left"] = self.boundary_phi_left
-        as_dict["Boundary conditions"]["boundary_phi_bottom"] = self.boundary_phi_bottom
-        as_dict["Boundary conditions"]["boundary_phi_top"] = self.boundary_phi_top
-        as_dict["Boundary conditions"]["boundary_phi_near"] = self.boundary_phi_near
-        as_dict["Boundary conditions"]["boundary_phi_far"] = self.boundary_phi_far
-        return as_dict
 
 
 class ParticleSourceBox():
@@ -250,57 +265,15 @@ class ParticleSourceBox():
         self.charge = charge
         self.mass = mass
 
-    def visualize(self, ax):
-        self.draw_cube(ax)
-
-    def draw_cube(self, ax):
-        vertices = []
-        vertices.append([self.box_x_left, self.box_y_bottom, self.box_z_near])
-        vertices.append([self.box_x_right, self.box_y_bottom, self.box_z_near])
-        vertices.append([self.box_x_right, self.box_y_top, self.box_z_near])
-        vertices.append([self.box_x_left, self.box_y_top, self.box_z_near])
-        vertices.append([self.box_x_left, self.box_y_bottom, self.box_z_near])
-        vertices.append([self.box_x_left, self.box_y_bottom, self.box_z_far])
-        vertices.append([self.box_x_left, self.box_y_top, self.box_z_far])
-        vertices.append([self.box_x_left, self.box_y_top, self.box_z_near])
-        vertices.append([self.box_x_left, self.box_y_top, self.box_z_far])
-        vertices.append([self.box_x_right, self.box_y_top, self.box_z_far])
-        vertices.append([self.box_x_right, self.box_y_top, self.box_z_near])
-        vertices.append([self.box_x_right, self.box_y_top, self.box_z_far])
-        vertices.append([self.box_x_right, self.box_y_bottom, self.box_z_far])
-        vertices.append([self.box_x_right, self.box_y_bottom, self.box_z_near])
-        vertices.append([self.box_x_right, self.box_y_bottom, self.box_z_far])
-        vertices.append([self.box_x_left, self.box_y_bottom, self.box_z_far])
-        x = [v[0] for v in vertices]
-        y = [v[1] for v in vertices]
-        z = [v[2] for v in vertices]
-        ax.plot(x, y, z, label=self.name)
-
-    def export(self):
-        as_dict = {}
-        sec_name = "Particle_source_box" + "." + self.name
-        as_dict[sec_name] = {}
-        as_dict[sec_name]["box_x_left"] = self.box_x_left
-        as_dict[sec_name]["box_x_right"] = self.box_x_right
-        as_dict[sec_name]["box_y_bottom"] = self.box_y_bottom
-        as_dict[sec_name]["box_y_top"] = self.box_y_top
-        as_dict[sec_name]["box_z_near"] = self.box_z_near
-        as_dict[sec_name]["box_z_far"] = self.box_z_far
-        as_dict[sec_name]["initial_number_of_particles"] = \
-            self.initial_number_of_particles
-        as_dict[sec_name]["particles_to_generate_each_step"] = \
-            self.particles_to_generate_each_step
-        as_dict[sec_name]["mean_momentum_x"] = self.mean_momentum_x
-        as_dict[sec_name]["mean_momentum_y"] = self.mean_momentum_y
-        as_dict[sec_name]["mean_momentum_z"] = self.mean_momentum_z
-        as_dict[sec_name]["temperature"] = self.temperature
-        as_dict[sec_name]["charge"] = self.charge
-        as_dict[sec_name]["mass"] = self.mass
-        return as_dict
+    def visualize(self, visualizer):
+        visualizer.draw_box_rlbtnf(self.box_x_left, self.box_x_right,
+                                   self.box_y_bottom, self.box_y_top,
+                                   self.box_z_near, self.box_z_far,
+                                   wireframe=True, label=self.name, colors='c', linewidths=1)
 
 
-class ParticleSourceCylinder():
-    def __init__(self, name='cyl_source',
+class ParticleSourceTube():
+    def __init__(self, name='tube_source',
                  initial_number_of_particles=500,
                  particles_to_generate_each_step=500,
                  cylinder_axis_start_x=2.5, cylinder_axis_start_y=2.5,
@@ -331,60 +304,12 @@ class ParticleSourceCylinder():
         self.charge = charge
         self.mass = mass
 
-    def visualize(self, ax):
-        self.draw_cyl(ax)
-
-    def draw_cyl(self, ax):
-        vertices = []
-        shift_x = self.cylinder_axis_start_x
-        shift_y = self.cylinder_axis_start_y
-        arc_step = 5.0 / 180.0 * np.pi
-        r1 = self.cylinder_in_radius
-        r2 = self.cylinder_out_radius
-        z1 = self.cylinder_axis_start_z
-        z2 = self.cylinder_axis_end_z
-        vertices.append([shift_x + r1, shift_y, z1])
-        for phi in np.arange(0, 360, arc_step):
-            vertices.append([shift_x + r1 * np.cos(phi), shift_y + r1 * np.sin(phi), z1])
-        vertices.append([shift_x + r2, shift_y, z1])
-        for phi in np.arange(360, 0, -arc_step):
-            vertices.append([shift_x + r2 * np.cos(phi), shift_y + r2 * np.sin(phi), z1])
-        vertices.append([shift_x + r1, shift_y, z1])
-        vertices.append([shift_x + r1, shift_y, z2])
-        for phi in np.arange(0, 360, arc_step):
-            vertices.append([shift_x + r1 * np.cos(phi), shift_y + r1 * np.sin(phi), z2])
-        vertices.append([shift_x + r2, shift_y, z2])
-        for phi in np.arange(360, 0, -arc_step):
-            vertices.append([shift_x + r2 * np.cos(phi), shift_y + r2 * np.sin(phi), z2])
-        vertices.append([shift_x + r2, shift_y, z1])
-        x = [v[0] for v in vertices]
-        y = [v[1] for v in vertices]
-        z = [v[2] for v in vertices]
-        ax.plot(x, y, z, label=self.name)
-
-    def export(self):
-        as_dict = {}
-        sec_name = "Particle_source_cylinder" + "." + self.name
-        as_dict[sec_name] = {}
-        as_dict[sec_name]["cylinder_axis_start_x"] = self.cylinder_axis_start_x
-        as_dict[sec_name]["cylinder_axis_start_y"] = self.cylinder_axis_start_y
-        as_dict[sec_name]["cylinder_axis_start_z"] = self.cylinder_axis_start_z
-        as_dict[sec_name]["cylinder_axis_end_x"] = self.cylinder_axis_end_x
-        as_dict[sec_name]["cylinder_axis_end_y"] = self.cylinder_axis_end_y
-        as_dict[sec_name]["cylinder_axis_end_z"] = self.cylinder_axis_end_z
-        as_dict[sec_name]["cylinder_out_radius"] = self.cylinder_out_radius
-        as_dict[sec_name]["cylinder_in_radius"] = self.cylinder_in_radius
-        as_dict[sec_name]["initial_number_of_particles"] = \
-            self.initial_number_of_particles
-        as_dict[sec_name]["particles_to_generate_each_step"] = \
-            self.particles_to_generate_each_step
-        as_dict[sec_name]["mean_momentum_x"] = self.mean_momentum_x
-        as_dict[sec_name]["mean_momentum_y"] = self.mean_momentum_y
-        as_dict[sec_name]["mean_momentum_z"] = self.mean_momentum_z
-        as_dict[sec_name]["temperature"] = self.temperature
-        as_dict[sec_name]["charge"] = self.charge
-        as_dict[sec_name]["mass"] = self.mass
-        return as_dict
+    def visualize(self, visualizer):
+        visualizer.draw_tube_xyz(self.cylinder_axis_start_x, self.cylinder_axis_start_y,
+                                 self.cylinder_axis_start_z,
+                                 self.cylinder_axis_end_x, self.cylinder_axis_end_y, self.cylinder_axis_end_z,
+                                 self.cylinder_in_radius, self.cylinder_out_radius,
+                                 wireframe=True, label=self.name, colors='c', linewidths=1)
 
 
 class InnerRegionTubeAlongZSegment():
@@ -405,65 +330,12 @@ class InnerRegionTubeAlongZSegment():
         self.tube_segment_start_angle_deg = tube_segment_start_angle_deg
         self.tube_segment_end_angle_deg = tube_segment_end_angle_deg
 
-    def visualize(self, ax):
-        self.draw_segment(ax)
-
-    def draw_segment(self, ax):
-        vertices = []
-        shift_x = self.tube_segment_axis_x
-        shift_y = self.tube_segment_axis_y
-        phi1 = self.tube_segment_start_angle_deg / 180.0 * np.pi
-        phi2 = self.tube_segment_end_angle_deg / 180.0 * np.pi
-        arc_step = 5.0 / 180.0 * np.pi
-        r1 = self.tube_segment_inner_radius
-        r2 = self.tube_segment_outer_radius
-        z1 = self.tube_segment_axis_start_z
-        z2 = self.tube_segment_axis_end_z
-        vertices.append([shift_x + r1 * np.cos(phi1), shift_y + r1 * np.sin(phi1), z1])
-        for phi in np.arange(phi1, phi2, arc_step):
-            vertices.append([shift_x + r1 * np.cos(phi), shift_y + r1 * np.sin(phi), z1])
-        vertices.append([shift_x + r1 * np.cos(phi2), shift_y + r1 * np.sin(phi2), z1])
-        vertices.append([shift_x + r2 * np.cos(phi2), shift_y + r2 * np.sin(phi2), z1])
-        for phi in np.arange(phi2, phi1, -arc_step):
-            vertices.append([shift_x + r2 * np.cos(phi), shift_y + r2 * np.sin(phi), z1])
-        vertices.append([shift_x + r2 * np.cos(phi1), shift_y + r2 * np.sin(phi1), z1])
-        vertices.append([shift_x + r1 * np.cos(phi1), shift_y + r1 * np.sin(phi1), z1])
-        vertices.append([shift_x + r1 * np.cos(phi1), shift_y + r1 * np.sin(phi1), z2])
-        for phi in np.arange(phi1, phi2, arc_step):
-            vertices.append([shift_x + r1 * np.cos(phi), shift_y + r1 * np.sin(phi), z2])
-        vertices.append([shift_x + r1 * np.cos(phi2), shift_y + r1 * np.sin(phi2), z2])
-        vertices.append([shift_x + r1 * np.cos(phi2), shift_y + r1 * np.sin(phi2), z1])
-        vertices.append([shift_x + r1 * np.cos(phi2), shift_y + r1 * np.sin(phi2), z2])
-        vertices.append([shift_x + r2 * np.cos(phi2), shift_y + r2 * np.sin(phi2), z2])
-        vertices.append([shift_x + r2 * np.cos(phi2), shift_y + r2 * np.sin(phi2), z1])
-        vertices.append([shift_x + r2 * np.cos(phi2), shift_y + r2 * np.sin(phi2), z2])
-        for phi in np.arange(phi2, phi1, -arc_step):
-            vertices.append([shift_x + r2 * np.cos(phi), shift_y + r2 * np.sin(phi), z2])
-        vertices.append([shift_x + r2 * np.cos(phi1), shift_y + r2 * np.sin(phi1), z2])
-        vertices.append([shift_x + r2 * np.cos(phi1), shift_y + r2 * np.sin(phi1), z1])
-        vertices.append([shift_x + r2 * np.cos(phi1), shift_y + r2 * np.sin(phi1), z2])
-        vertices.append([shift_x + r1 * np.cos(phi1), shift_y + r1 * np.sin(phi1), z2])
-        x = [v[0] for v in vertices]
-        y = [v[1] for v in vertices]
-        z = [v[2] for v in vertices]
-        ax.plot(x, y, z, label=self.name)
-
-    def export(self):
-        as_dict = {}
-        sec_name = "Inner_region_tube_along_z_segment" + "." + self.name
-        as_dict[sec_name] = {}
-        as_dict[sec_name]["potential"] = self.potential
-        as_dict[sec_name]["tube_segment_axis_x"] = self.tube_segment_axis_x
-        as_dict[sec_name]["tube_segment_axis_y"] = self.tube_segment_axis_y
-        as_dict[sec_name]["tube_segment_axis_start_z"] = self.tube_segment_axis_start_z
-        as_dict[sec_name]["tube_segment_axis_end_z"] = self.tube_segment_axis_end_z
-        as_dict[sec_name]["tube_segment_inner_radius"] = self.tube_segment_inner_radius
-        as_dict[sec_name]["tube_segment_outer_radius"] = self.tube_segment_outer_radius
-        as_dict[sec_name]["tube_segment_start_angle_deg"] = \
-            self.tube_segment_start_angle_deg
-        as_dict[sec_name]["tube_segment_end_angle_deg"] = \
-            self.tube_segment_end_angle_deg
-        return as_dict
+    def visualize(self, visualizer):
+        visualizer.draw_tube_xyz(self.tube_segment_axis_x, self.tube_segment_axis_y,
+                                 self.tube_segment_axis_start_z,
+                                 self.tube_segment_axis_x, self.tube_segment_axis_y, self.tube_segment_axis_end_z,
+                                 self.tube_segment_inner_radius, self.tube_segment_outer_radius,
+                                 wireframe=False, edgecolors='r', facecolors='c', linewidths=1)
 
 
 class OutputFile:
@@ -474,14 +346,6 @@ class OutputFile:
     def visualize(self, ax):
         pass
 
-    def export(self):
-        # todo: use representation of class as dict
-        as_dict = {}
-        as_dict["Output filename"] = {}
-        as_dict["Output filename"]["output_filename_prefix"] = self.output_filename_prefix
-        as_dict["Output filename"]["output_filename_suffix"] = self.output_filename_suffix
-        return as_dict
-
 
 class ParticleInteractionModel:
 
@@ -490,14 +354,6 @@ class ParticleInteractionModel:
 
     def visualize(self, ax):
         pass
-
-    def export(self):
-        # todo: use representation of class as dict
-        as_dict = {}
-        as_dict["Particle interaction model"] = {}
-        as_dict["Particle interaction model"]["particle_interaction_model"] = \
-            self.particle_interaction_model
-        return as_dict
 
 
 class ExternalFieldElectricOnRegularGridFromH5File():
@@ -509,9 +365,18 @@ class ExternalFieldElectricOnRegularGridFromH5File():
     def visualize(self, ax):
         pass
 
-    def export(self):
-        as_dict = {}
-        sec_name = "ExternalFieldElectricOnRegularGridFromH5File" + "." + self.name
-        as_dict[sec_name] = {}
-        as_dict[sec_name]["filename"] = self.filename
-        return as_dict
+
+def main():
+    conf = EfConf()
+    box = ParticleSourceBox()
+    tube = ParticleSourceTube()
+    segment = InnerRegionTubeAlongZSegment()
+    conf.add_source(box)
+    conf.add_source(tube)
+    conf.add_inner_region(segment)
+    vis = Visualizer3d()
+    conf.visualize_all(vis)
+
+
+if __name__ == "__main__":
+    main()
