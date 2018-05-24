@@ -1,12 +1,14 @@
+from collections import namedtuple
+
+import abc
 import configparser
 import io
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 import shlex
 import subprocess
 import tempfile
-
-import matplotlib.pyplot as plt
-import numpy as np
 from mpl_toolkits.mplot3d.art3d import Line3DCollection, Poly3DCollection
 
 
@@ -55,7 +57,7 @@ class Visualizer3d:
     @staticmethod
     def rotate_vectors_from_z_axis_towards_vector(arr, v):
         length = np.linalg.norm(v)
-        if length==0:
+        if length == 0:
             return arr
         projection = v[:2]
         shadow = np.linalg.norm(projection)
@@ -65,13 +67,13 @@ class Visualizer3d:
         arr = arr.dot(np.array([[cos_alpha, 0, -sin_alpha],
                                 [0, 1, 0],
                                 [sin_alpha, 0, cos_alpha]]))
-        if shadow==0:
+        if shadow == 0:
             return arr
         cos_beta = v[0] / shadow
         sin_beta = v[1] / shadow
         return arr.dot(np.array([[cos_beta, sin_beta, 0],
-                                [-sin_beta, cos_beta, 0],
-                                [0, 0, 1]]))
+                                 [-sin_beta, cos_beta, 0],
+                                 [0, 0, 1]]))
 
     def draw_cylinder(self, a, b, r, wireframe=False, **kwargs):
         phi = np.radians(np.linspace(0, 360, 32, endpoint=wireframe))
@@ -205,26 +207,151 @@ class EfConf:
     # https://stackoverflow.com/questions/4417546/constantly-print-subprocess-output-while-process-is-running
 
 
-class TimeGrid:
+class ConfigComponent(abc.ABC):
+    def __init__(self, *args, **kwargs):
+        self.content = self.ContentTuple(*args, **kwargs)
 
+    def as_dict(self):
+        return {self.config_section: dict(self.content)}
+
+    def make(self):
+        pass
+
+
+class NamedConfigComponent(ConfigComponent):
+    def __init__(self, name, *args, **kwargs):
+        self.name = name
+        self.config_section = self.config_section + '.' + name
+        super().__init__(*args, **kwargs)
+
+
+class TimeGridConf(ConfigComponent):
+    section = "Time grid"
+    ContentTuple = namedtuple("TimeGridTuple", ('total_time', 'time_save_step', 'time_step_size'))
+
+    def make(self):
+        return TimeGrid(**self.content)
+
+
+class SpatialMeshConf(ConfigComponent):
+    section = "Spatial mesh"
+    ContentTuple = namedtuple("SpatialMeshTuple", ('grid_x_size', 'grid_x_step', 'grid_y_size',
+                                                   'grid_y_step', 'grid_z_size', 'grid_z_step'))
+
+    def make(self):
+        return SpatialMesh(self.content[::2], self.content[1::2])
+
+
+class BoundaryConditionsConf(ConfigComponent):
+    section = "Boundary Conditions"
+    ContentTuple = namedtuple("BoundaryConditionsTuple",
+                              ('boundary_phi_right', 'boundary_phi_left', 'boundary_phi_bottom',
+                               'boundary_phi_top', 'boundary_phi_near', 'boundary_phi_far'))
+
+    def make(self):
+        return BoundaryConditionsConf(**self.content)
+
+
+class ParticleSourceBoxConf(NamedConfigComponent):
+    section = "Particle_source_box"
+    ContentTuple = namedtuple("ParticleSourceBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
+                                                         'box_y_top', 'box_z_near', 'box_z_far',
+                                                         'initial_number_fo_particles',
+                                                         'particles_to_generate_each_step',
+                                                         'mean_momentum_x', 'mean_momentum_y', 'mean_momentum_z',
+                                                         'temperature', 'charge', 'mass'))
+
+    def make(self):
+        box = Box.init_rlbtnf(*self.content[:6])
+        return ParticleSource(box, self.name, *self.content[6:])
+
+
+class ParticleSourceCylinderConf(NamedConfigComponent):
+    section = "Particle_source_cylinder"
+    ContentTuple = namedtuple("ParticleSourceCylinderTuple", ('cylinder_axis_start_x', 'cylinder_axis_start_y',
+                                                              'cylinder_axis_start_z', 'cylinder_axis_end_x',
+                                                              'cylinder_axis_end_y', 'cylinder_axis_end_z',
+                                                              'cylinder_radius',
+                                                              'initial_number_fo_particles',
+                                                              'particles_to_generate_each_step',
+                                                              'mean_momentum_x', 'mean_momentum_y', 'mean_momentum_z',
+                                                              'temperature', 'charge', 'mass'))
+
+    def make(self):
+        cylinder = Cylinder(self.content[:3], self.content[3:6], self.content.cylinder_radius)
+        return ParticleSource(cylinder, self.name, *self.content[7:])
+
+
+class ParticleSourceTubeConf(NamedConfigComponent):
+    section = "Particle_source_tube"
+    ContentTuple = namedtuple("ParticleSourceTubeTuple", ('tube_axis_start_x', 'tube_axis_start_y',
+                                                          'tube_axis_start_z', 'tube_axis_end_x',
+                                                          'tube_axis_end_y', 'tube_axis_end_z',
+                                                          'tube_inner_radius', 'tube_outer_radius',
+                                                          'initial_number_fo_particles',
+                                                          'particles_to_generate_each_step',
+                                                          'mean_momentum_x', 'mean_momentum_y', 'mean_momentum_z',
+                                                          'temperature', 'charge', 'mass'))
+
+    def make(self):
+        tube = Tube(self.content[:3], self.content[3:6], self.content.tube_inner_radius, self.content.tube_outer_radius)
+        return ParticleSource(tube, self.name, *self.content[8:])
+
+
+class InnerRegionBoxConf(NamedConfigComponent):
+    section = "Inner_region_box"
+    ContentTuple = namedtuple("InnerRegionBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
+                                                      'box_y_top', 'box_z_near', 'box_z_far',
+                                                      'potential'))
+
+    def make(self):
+        box = Box.init_rlbtnf(*self.content[:6])
+        return InnerRegion(box, self.name, self.content.potential)
+
+
+class InnerRegionCylinderConf(NamedConfigComponent):
+    section = "Inner_region_cylinder"
+    ContentTuple = namedtuple("InnerRegionCylinderTuple", ('cylinder_axis_start_x', 'cylinder_axis_start_y',
+                                                           'cylinder_axis_start_z', 'cylinder_axis_end_x',
+                                                           'cylinder_axis_end_y', 'cylinder_axis_end_z',
+                                                           'cylinder_radius', 'potential'))
+
+    def make(self):
+        cylinder = Cylinder(self.content[:3], self.content[3:6], self.content.cylinder_radius)
+        return ParticleSource(cylinder, self.name, self.content.potential)
+
+
+class InnerRegionTubeConf(NamedConfigComponent):
+    section = "Inner_region_tube"
+    ContentTuple = namedtuple("InnerRegionTubeTuple", ('tube_axis_start_x', 'tube_axis_start_y',
+                                                       'tube_axis_start_z', 'tube_axis_end_x',
+                                                       'tube_axis_end_y', 'tube_axis_end_z',
+                                                       'tube_inner_radius', 'tube_outer_radius',
+                                                       'potential'))
+
+    def make(self):
+        tube = Tube(self.content[:3], self.content[3:6], self.content.tube_inner_radius, self.content.tube_outer_radius)
+        return InnerRegion(tube, self.name, self.content.potential)
+
+
+class TimeGrid:
     def __init__(self, total_time=100.0, time_save_step=10.0, time_step_size=1.0):
         self.total_time = total_time
         self.time_save_step = time_save_step
         self.time_step_size = time_step_size
 
-    def visualize(self, ax):
+    def visualize(self, visualizer):
         pass
 
 
 class SpatialMesh:
-
-    def __init__(self,
-                 grid_size=np.array((10.0, 10.0, 10.0)), grid_step=np.array((1, 1, 1))):
-        self.grid_size = grid_size
-        self.grid_step = grid_step
+    def __init__(self, grid_size=(10.0, 10.0, 10.0), grid_step=(1, 1, 1)):
+        self.grid_size = np.array(grid_size)
+        self.grid_step = np.array(grid_step)
+        self.plotting_args = {'wireframe': True, 'label': 'volume', 'colors': 'k', 'linewidths': 1}
 
     def visualize(self, visualizer):
-        visualizer.draw_box(self.grid_size, wireframe=True, label='volume', colors='k', linewidths=1)
+        visualizer.draw_box(self.grid_size, **self.plotting_args)
 
 
 class BoundaryConditions:
@@ -244,21 +371,21 @@ class BoundaryConditions:
         pass
 
 
-class Box():
+class Box:
     def __init__(self, origin=(0, 0, 0), size=(1, 1, 1)):
         self.origin = np.array(origin)
         self.size = np.array(size)
 
     @classmethod
     def init_rlbtnf(cls, r=5, l=6, b=2, t=5, n=1, f=3):
-        return cls((r, b, n), (l-r, t-b, f-n))
+        return cls((r, b, n), (l - r, t - b, f - n))
 
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_box(self.size, self.origin, **kwargs)
 
 
-class Cylinder():
-    def __init__(self, a=(0,0,0), b=(0, 0, 1), radius=1):
+class Cylinder:
+    def __init__(self, a=(0, 0, 0), b=(0, 0, 1), radius=1):
         self.a = np.array(a)
         self.b = np.array(b)
         self.r = radius
@@ -271,7 +398,7 @@ class Cylinder():
         visualizer.draw_cylinder(self.a, self.b, self.r, **kwargs)
 
 
-class Tube():
+class Tube:
     def __init__(self, a=(0, 0, 0,), b=(0, 0, 1), inner_radius=1, outer_radius=2):
         self.a = np.array(a)
         self.b = np.array(b)
@@ -286,7 +413,7 @@ class Tube():
         visualizer.draw_tube(self.a, self.b, self.r, self.R, **kwargs)
 
 
-class ParticleSource():
+class ParticleSource:
     def __init__(self, shape,
                  name='particle_source',
                  initial_number_of_particles=500,
@@ -312,7 +439,7 @@ class ParticleSource():
         self.shape.visualize(visualizer, wireframe=True, label=self.name, colors='c', linewidths=1)
 
 
-class InnerRegion():
+class InnerRegion:
     def __init__(self, shape, name='region', potential=0):
         self.shape = shape
         self.name = name
@@ -340,7 +467,7 @@ class ParticleInteractionModel:
         pass
 
 
-class ExternalFieldElectricOnRegularGridFromH5File():
+class ExternalFieldElectricOnRegularGridFromH5File:
 
     def __init__(self, name="elec_file", filename="field.h5"):
         self.name = name
@@ -353,7 +480,7 @@ class ExternalFieldElectricOnRegularGridFromH5File():
 def main():
     conf = EfConf()
     box = ParticleSource(Box.init_rlbtnf())
-    tube = ParticleSource(Tube((5,5,5), (7,5,7), 1, 2))
+    tube = ParticleSource(Tube((5, 5, 5), (7, 5, 7), 1, 2))
     segment = InnerRegion(Cylinder((2, 2, 2), (1, 1, 1), 1))
     c1 = InnerRegion(Tube.init_aligned_z(8, 3, 2, 5, 2, 3))
     conf.add_source(box)
