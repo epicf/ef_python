@@ -89,7 +89,7 @@ class TimeGridConf(ConfigComponent):
     convert = ContentTuple(float, float, float)
 
     def make(self):
-        return TimeGrid(*self.content)
+        return TimeGrid(**self.content._asdict())
 
 
 @register
@@ -112,13 +112,13 @@ class BoundaryConditionsConf(ConfigComponent):
     convert = ContentTuple(*[float] * 6)
 
     def make(self):
-        return BoundaryConditionsConf(*self.content)
+        return BoundaryConditionsConf(**self.content._asdict())
 
 
 @register
 class ParticleSourceBoxConf(NamedConfigComponent):
     section = "Particle_source_box"
-    ContentTuple = namedtuple("ParticleSourceBoxTuple", ('box_x_right', 'box_x_left', 'box_y_bottom',
+    ContentTuple = namedtuple("ParticleSourceBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
                                                          'box_y_top', 'box_z_near', 'box_z_far',
                                                          'initial_number_of_particles',
                                                          'particles_to_generate_each_step',
@@ -127,8 +127,9 @@ class ParticleSourceBoxConf(NamedConfigComponent):
     convert = ContentTuple(*([float] * 6 + [int] * 2 + [float] * 6))
 
     def make(self):
-        box = Box.init_rlbtnf(*self.content[:6])
-        return ParticleSource(box, self.name, *self.content[6:])
+        l, r, b, t, n, f = self.content[:6]
+        box = Box((r, b, n), (l - r, t - b, f - n))
+        return ParticleSource(box, self.name, **self.content[6:]._asdict())
 
 
 @register
@@ -146,7 +147,7 @@ class ParticleSourceCylinderConf(NamedConfigComponent):
 
     def make(self):
         cylinder = Cylinder(self.content[:3], self.content[3:6], self.content.cylinder_radius)
-        return ParticleSource(cylinder, self.name, *self.content[7:])
+        return ParticleSource(cylinder, self.name, **self.content[7:]._asdict())
 
 
 @register
@@ -164,19 +165,20 @@ class ParticleSourceTubeConf(NamedConfigComponent):
 
     def make(self):
         tube = Tube(self.content[:3], self.content[3:6], self.content.tube_inner_radius, self.content.tube_outer_radius)
-        return ParticleSource(tube, self.name, *self.content[8:])
+        return ParticleSource(tube, self.name, **self.content[8:]._asdict())
 
 
 @register
 class InnerRegionBoxConf(NamedConfigComponent):
     section = "Inner_region_box"
-    ContentTuple = namedtuple("InnerRegionBoxTuple", ('box_x_right', 'box_x_left', 'box_y_bottom',
+    ContentTuple = namedtuple("InnerRegionBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
                                                       'box_y_top', 'box_z_near', 'box_z_far',
                                                       'potential'))
     convert = ContentTuple(*[float] * 7)
 
     def make(self):
-        box = Box.init_rlbtnf(*self.content[:6])
+        l, r, b, t, n, f = self.content[:6]
+        box = Box((r, b, n), (l - r, t - b, f - n))
         return InnerRegion(box, self.name, self.content.potential)
 
 
