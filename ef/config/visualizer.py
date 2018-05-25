@@ -16,6 +16,9 @@ class Visualizer3d:
     def visualize(self, config_objects):
         for conf in config_objects:
             conf.visualize(self)
+        self.show()
+
+    def show(self):
         if self.equal_aspect:
             self.axis_equal_3d()
         self.ax.legend()
@@ -34,6 +37,7 @@ class Visualizer3d:
     def draw_box(self, size, position=np.zeros(3), wireframe=False, **kwargs):
         cube = np.mgrid[0:2, 0:2, 0:2].reshape(3, 8).T
         vertices = size * cube + position
+        # tell ax our extents, so that xyz limits are set correctly
         self.ax.scatter(*[vertices[:, i] for i in (0, 1, 2)], alpha=0.0)
         if wireframe:
             edge_masks = [np.logical_and(cube[:, i] == v, cube[:, j] == w)
@@ -70,6 +74,9 @@ class Visualizer3d:
         phi = np.radians(np.linspace(0, 360, 32, endpoint=wireframe))
         circle = np.stack((np.cos(phi), np.sin(phi), np.zeros_like(phi))).T
         circle = self.rotate_vectors_from_z_axis_towards_vector(circle, b - a)
+        # tell ax our extents, so that xyz limits are set correctly
+        self.ax.scatter(*(a + circle * r).T, alpha=0.0)
+        self.ax.scatter(*(b + circle * r).T, alpha=0.0)
         if wireframe:
             lines = (a + circle * r, b + circle * r)
             self.ax.add_collection(Line3DCollection(lines, **kwargs))
@@ -85,11 +92,28 @@ class Visualizer3d:
         phi = np.radians(np.linspace(0, 360, 32, endpoint=wireframe))
         circle = np.stack((np.cos(phi), np.sin(phi), np.zeros_like(phi))).T
         circle = self.rotate_vectors_from_z_axis_towards_vector(circle, b - a)
+        # tell ax our extents, so that xyz limits are set correctly
+        self.ax.scatter(*(b + circle * R).T, alpha=0.0)
         if wireframe:
             lines = (a + circle * r, a + circle * R, b + circle * r, b + circle * R)
             self.ax.add_collection(Line3DCollection(lines, **kwargs))
         else:
             ring = np.stack((r * circle, r * np.roll(circle, 1, axis=0), R * np.roll(circle, 1, axis=0), R * circle),
                             axis=1)
-            rings = np.concatenate((a + ring, b + ring))
-            self.ax.add_collection(Poly3DCollection(rings, **kwargs))
+            self.ax.add_collection(Poly3DCollection(a + ring, **kwargs))
+            self.ax.add_collection(Poly3DCollection(b + ring, **kwargs))
+
+
+def main():
+    v = Visualizer3d()
+    v.draw_tube(np.array((1, 1, 1)), np.array((5, 8, 7)), 2, 3, facecolors='r')
+    v.draw_cylinder(np.array((1, 7, 7)), np.array((5, 3, 2)), 1, facecolors='y')
+    v.draw_box(np.array((5, 2, 2)), np.array((3, 3, 5)), facecolors='g')
+    v.draw_tube(np.array((3, 1, 2)), np.array((7, 8, 7)), 1, 3, colors='cyan', wireframe=True)
+    v.draw_cylinder(np.array((8, 7, 7)), np.array((5, 3, 8)), 4, wireframe=True)
+    v.draw_box(np.array((10, 10, 10)), np.array((0, 0, 0)), colors='k', wireframe=True)
+    v.show()
+
+
+if __name__ == "__main__":
+    main()
