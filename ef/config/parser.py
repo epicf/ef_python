@@ -23,7 +23,17 @@ class ConfigComponent(abc.ABC):
     @classmethod
     def from_section(cls, section):
         if section.name != cls.section:
-            raise ValueError("Unexpected config section name")
+            raise ValueError("Unexpected config section name: {}".format(section.name))
+        if set(section.keys()) != set(cls.ContentTuple._fields):
+            unexpected = set(section.keys()) - set(cls.ContentTuple._fields)
+            if unexpected:
+                raise ValueError("Unexpected config variables {} in section {}".
+                                 format(tuple(unexpected), section.name))
+            missing = set(cls.ContentTuple._fields) - set(section.keys())
+            if missing:
+                raise ValueError("Missing config variables {} in section {}".
+                                 format(tuple(missing), section.name))
+
         data = {arg: cls.convert._asdict()[arg](section[arg]) for arg in cls.convert._fields}
         return cls(**data)
 
@@ -57,7 +67,17 @@ class NamedConfigComponent(ConfigComponent):
     def from_section(cls, section):
         category, name = section.name.split('.', 1)
         if category != cls.section:
-            raise ValueError("Unexpected config section name", category)
+            raise ValueError("Unexpected config section name: {}".format(section.name))
+        if set(section.keys()) != set(cls.ContentTuple._fields):
+            unexpected = set(section.keys()) - set(cls.ContentTuple._fields)
+            if unexpected:
+                raise ValueError("Unexpected config variables {} in section {}".
+                                 format(tuple(unexpected), section.name))
+            missing = set(cls.ContentTuple._fields) - set(section.keys())
+            if missing:
+                raise ValueError("Missing config variables {} in section {}".
+                                 format(tuple(missing), section.name))
+
         data = {arg: cls.convert._asdict()[arg](section[arg]) for arg in cls.convert._fields}
         return cls(name, **data)
 
@@ -240,11 +260,10 @@ def main():
         print(f)
         conf = ConfigParser()
         conf.read(f)
-        c = ConfigComponent.config_to_components(conf)
-        for x in c:
-            print(x)
-        for x in c:
-            print(x.make())
+        try:
+            c = ConfigComponent.config_to_components(conf)
+        except Exception as e:
+            raise Exception("Error parsing {}".format(f)) from e
 
         conf = ConfigParser()
         for x in c:
