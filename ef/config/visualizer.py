@@ -103,15 +103,36 @@ class Visualizer3d:
             self.ax.add_collection(Poly3DCollection(a + ring, **kwargs))
             self.ax.add_collection(Poly3DCollection(b + ring, **kwargs))
 
+    def draw_sphere(self, origin, radius, wireframe=False, **kwargs):
+        longitude = np.radians(np.linspace(0, 360, 16, endpoint=False))[:, np.newaxis]
+        latitude = np.radians(np.linspace(-90, 90, 8, endpoint=True))[np.newaxis, :]
+        z = np.sin(latitude)
+        r = np.cos(latitude)
+        x = r*np.cos(longitude)
+        y = r*np.sin(longitude)
+        unit_sphere = np.stack((x, y, np.broadcast_to(z, x.shape)), axis=-1)
+        sphere = unit_sphere * radius + origin
+        if wireframe:
+            parallels = np.reshape(np.stack((sphere[:, 1:-1], np.roll(sphere[:, 1:-1], 1, axis=0)), axis=2), (-1, 2, 3))
+            meridians = np.reshape(np.stack((sphere, np.roll(sphere, 1, axis=1)), axis=-2)[:, 1:], (-1, 2, 3))
+            self.ax.add_collection(Line3DCollection(parallels, **kwargs))
+            self.ax.add_collection(Line3DCollection(meridians, **kwargs))
+        else:
+            axis = ((), (0,), (0,1), (1,))
+            quads = np.reshape(np.stack([np.roll(sphere, 1, axis=ax) for ax in axis], axis=2), (-1, 4, 3))
+            self.ax.add_collection(Poly3DCollection(quads, **kwargs))
+
 
 def main():
     v = Visualizer3d()
-    v.draw_tube(np.array((1, 1, 1)), np.array((5, 8, 7)), 2, 3, facecolors='r')
-    v.draw_cylinder(np.array((1, 7, 7)), np.array((5, 3, 2)), 1, facecolors='y')
-    v.draw_box(np.array((5, 2, 2)), np.array((3, 3, 5)), facecolors='g')
+    v.draw_tube(np.array((1, 1, 1)), np.array((5, 8, 7)), 2, 3, facecolors='r', edgecolors='k')
+    v.draw_cylinder(np.array((1, 7, 7)), np.array((5, 3, 2)), 1, facecolors='y', edgecolors='k')
+    v.draw_box(np.array((5, 2, 2)), np.array((3, 3, 5)), facecolors='g', edgecolors='k')
+    v.draw_sphere(np.array((8, 8, 3)), 2, facecolors='navy', edgecolors='k')
     v.draw_tube(np.array((3, 1, 2)), np.array((7, 8, 7)), 1, 3, colors='cyan', wireframe=True)
     v.draw_cylinder(np.array((8, 7, 7)), np.array((5, 3, 8)), 4, wireframe=True)
     v.draw_box(np.array((10, 10, 10)), np.array((0, 0, 0)), colors='k', wireframe=True)
+    v.draw_sphere(np.array((8, 3, 3)), 2, colors='purple', wireframe=True)
     v.show()
 
 
