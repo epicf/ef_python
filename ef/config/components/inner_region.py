@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from ef.config.components.shapes import Box, Cylinder, Tube
+from ef.config.components.shapes import Box, Cylinder, Tube, Sphere
 from ef.config.section import register, NamedConfigSection
 from ef.config.component import ConfigComponent
 
@@ -26,6 +26,9 @@ class InnerRegion(ConfigComponent):
         elif type(self.shape) is Tube:
             shape_args = list(self.shape.start) + list(self.shape.end) + [self.shape.r, self.shape.R]
             cls = InnerRegionTubeConf
+        elif type(self.shape) is Sphere:
+            shape_args = list(self.shape.origin) + [self.shape.r]
+            cls = InnerRegionSphereConf
         else:
             raise TypeError("Config can not represent inner region shape", self.shape)
         return cls(self.name, *(shape_args + [self.potential]))
@@ -72,3 +75,15 @@ class InnerRegionTubeConf(NamedConfigSection):
     def make(self):
         tube = Tube(self.content[:3], self.content[3:6], self.content.tube_inner_radius, self.content.tube_outer_radius)
         return InnerRegion(self.name, tube, self.content.potential)
+
+
+@register
+class InnerRegionSphereConf(NamedConfigSection):
+    section = "Inner_region_sphere"
+    ContentTuple = namedtuple("InnerRegionCylinderTuple", ('sphere_origin_x', 'sphere_origin_y',
+                                                           'sphere_origin_z', 'sphere_radius', 'potential'))
+    convert = ContentTuple(*[float] * 5)
+
+    def make(self):
+        sphere = Sphere(self.content[:3], self.content.sphere_radius)
+        return InnerRegion(self.name, sphere, self.content.potential)

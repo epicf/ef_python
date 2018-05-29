@@ -35,3 +35,12 @@ class Tube(Shape):
 
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_tube(self.start, self.end, self.r, self.R, **kwargs)
+
+
+class Sphere(Shape):
+    def __init__(self, origin=(0,0,0), radius=1):
+        self.origin = np.array(origin)
+        self.r = float(radius)
+
+    def visualize(self, visualizer, **kwargs):
+        visualizer.draw_sphere(self.origin, self.r, **kwargs)
