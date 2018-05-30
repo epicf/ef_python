@@ -38,13 +38,7 @@ class Visualizer3d:
         for ctr, dim in zip(centers, 'xyz'):
             getattr(self.ax, 'set_{}lim'.format(dim))(ctr - r, ctr + r)
 
-    def draw_box_rlbtnf(self, r, l, b, t, n, f, **kwargs):
-        # left > right: x, bottom < top: y, near < far: z
-        origin = np.array((r, b, n))
-        far = np.array((l, t, f))
-        self.draw_box_size_origin(far - origin, origin, **kwargs)
-
-    def draw_box_size_origin(self, size, position=np.zeros(3), wireframe=False, **kwargs):
+    def draw_box(self, size, position=np.zeros(3), wireframe=False, **kwargs):
         cube = np.mgrid[0:2, 0:2, 0:2].reshape(3, 8).T
         vertices = size * cube + position
         self.ax.scatter(*[vertices[:, i] for i in (0, 1, 2)], alpha=0.0)
@@ -52,8 +46,7 @@ class Visualizer3d:
             edge_masks = [np.logical_and(cube[:, i] == v, cube[:, j] == w)
                           for w in (0, 1) for v in (0, 1) for i in (0, 1) for j in range(i + 1, 3)]
             edges = [vertices[edge, :] for edge in edge_masks]
-            self.ax.add_collection(
-                Line3DCollection(edges, **kwargs))
+            self.ax.add_collection(Line3DCollection(edges, **kwargs))
         else:
             face_masks = [cube[:, i] == v for v in (0, 1) for i in (0, 1, 2)]
             polygons = [vertices[face, :][(0, 1, 3, 2), :] for face in face_masks]
@@ -74,10 +67,6 @@ class Visualizer3d:
             self.ax.add_collection(Poly3DCollection(sides, **kwargs))
             # self.ax.add_collection(Poly3DCollection(caps, **kwargs))
 
-
-    def draw_cylinder_xyz(self, x, y, z, X, Y, Z, r, **kwargs):
-        self.draw_cylinder(np.array((x, y, z)), np.array((X, Y, Z)), r, **kwargs)
-
     def draw_tube(self, a, b, r, R, wireframe=False, **kwargs):
         phi = np.radians(np.linspace(0, 360, 32, endpoint=wireframe))
         circle = np.stack((np.cos(phi), np.sin(phi), np.zeros_like(phi))).T
@@ -89,9 +78,6 @@ class Visualizer3d:
                             axis=1)
             rings = np.concatenate((a + ring, b + ring))
             self.ax.add_collection(Poly3DCollection(rings, **kwargs))
-
-    def draw_tube_xyz(self, x, y, z, X, Y, Z, r, R, **kwargs):
-        self.draw_tube(np.array((x, y, z)), np.array((X, Y, Z)), r, R, **kwargs)
 
 
 class EfConf:
@@ -216,7 +202,7 @@ class SpatialMesh:
         self.grid_step = grid_step
 
     def visualize(self, visualizer):
-        visualizer.draw_box_size_origin(self.grid_size, wireframe=True, label='volume', colors='k', linewidths=1)
+        visualizer.draw_box(self.grid_size, wireframe=True, label='volume', colors='k', linewidths=1)
 
 
 class BoundaryConditions:
@@ -236,13 +222,53 @@ class BoundaryConditions:
         pass
 
 
-class ParticleSourceBox():
-    def __init__(self, name='box_source',
+class Box():
+    def __init__(self, origin=(0, 0, 0), size=(1, 1, 1)):
+        self.origin = np.array(origin)
+        self.size = np.array(size)
+
+    @classmethod
+    def init_rlbtnf(cls, r=5, l=6, b=2, t=5, n=1, f=3):
+        return cls((r, b, n), (l-r, t-b, f-n))
+
+    def visualize(self, visualizer, **kwargs):
+        visualizer.draw_box(self.size, self.origin, **kwargs)
+
+
+class Cylinder():
+    def __init__(self, a=(0,0,0), b=(0, 0, 1), radius=1):
+        self.a = np.array(a)
+        self.b = np.array(b)
+        self.r = radius
+
+    @classmethod
+    def init_aligned_z(cls, x=6, y=5, z1=2, z2=5, r=2):
+        return cls((x, y, z1), (x, y, z2), r)
+
+    def visualize(self, visualizer, **kwargs):
+        visualizer.draw_cylinder(self.a, self.b, self.r, **kwargs)
+
+
+class Tube():
+    def __init__(self, a=(0, 0, 0,), b=(0, 0, 1), inner_radius=1, outer_radius=2):
+        self.a = np.array(a)
+        self.b = np.array(b)
+        self.r = inner_radius
+        self.R = outer_radius
+
+    @classmethod
+    def init_aligned_z(cls, x=3, y=4, z1=3, z2=7, r=1, R=3):
+        return cls((x, y, z1), (x, y, z2), r, R)
+
+    def visualize(self, visualizer, **kwargs):
+        visualizer.draw_tube(self.a, self.b, self.r, self.R, **kwargs)
+
+
+class ParticleSource():
+    def __init__(self, shape,
+                 name='particle_source',
                  initial_number_of_particles=500,
                  particles_to_generate_each_step=500,
-                 box_x_left=6, box_x_right=5,
-                 box_y_bottom=2, box_y_top=5,
-                 box_z_near=1, box_z_far=3,
                  mean_momentum_x=0,
                  mean_momentum_y=0,
                  mean_momentum_z=6.641e-15,
@@ -250,12 +276,7 @@ class ParticleSourceBox():
                  charge=-1.799e-6,
                  mass=3.672e-24):
         self.name = name
-        self.box_x_left = box_x_left
-        self.box_x_right = box_x_right
-        self.box_y_bottom = box_y_bottom
-        self.box_y_top = box_y_top
-        self.box_z_near = box_z_near
-        self.box_z_far = box_z_far
+        self.shape = shape
         self.initial_number_of_particles = initial_number_of_particles
         self.particles_to_generate_each_step = particles_to_generate_each_step
         self.mean_momentum_x = mean_momentum_x
@@ -266,76 +287,17 @@ class ParticleSourceBox():
         self.mass = mass
 
     def visualize(self, visualizer):
-        visualizer.draw_box_rlbtnf(self.box_x_left, self.box_x_right,
-                                   self.box_y_bottom, self.box_y_top,
-                                   self.box_z_near, self.box_z_far,
-                                   wireframe=True, label=self.name, colors='c', linewidths=1)
+        self.shape.visualize(visualizer, wireframe=True, label=self.name, colors='c', linewidths=1)
 
 
-class ParticleSourceTube():
-    def __init__(self, name='tube_source',
-                 initial_number_of_particles=500,
-                 particles_to_generate_each_step=500,
-                 cylinder_axis_start_x=2.5, cylinder_axis_start_y=2.5,
-                 cylinder_axis_start_z=4, cylinder_axis_end_x=2.5,
-                 cylinder_axis_end_y=2.5, cylinder_axis_end_z=7,
-                 cylinder_out_radius=1, cylinder_in_radius=0.5,
-                 mean_momentum_x=0,
-                 mean_momentum_y=0,
-                 mean_momentum_z=6.641e-15,
-                 temperature=0.0,
-                 charge=-1.799e-6,
-                 mass=3.672e-24):
-        self.name = name
-        self.cylinder_axis_start_x = cylinder_axis_start_x
-        self.cylinder_axis_start_y = cylinder_axis_start_y
-        self.cylinder_axis_start_z = cylinder_axis_start_z
-        self.cylinder_axis_end_x = cylinder_axis_end_x
-        self.cylinder_axis_end_y = cylinder_axis_end_y
-        self.cylinder_axis_end_z = cylinder_axis_end_z
-        self.cylinder_out_radius = cylinder_out_radius
-        self.cylinder_in_radius = cylinder_in_radius
-        self.initial_number_of_particles = initial_number_of_particles
-        self.particles_to_generate_each_step = particles_to_generate_each_step
-        self.mean_momentum_x = mean_momentum_x
-        self.mean_momentum_y = mean_momentum_y
-        self.mean_momentum_z = mean_momentum_z
-        self.temperature = temperature
-        self.charge = charge
-        self.mass = mass
-
-    def visualize(self, visualizer):
-        visualizer.draw_tube_xyz(self.cylinder_axis_start_x, self.cylinder_axis_start_y,
-                                 self.cylinder_axis_start_z,
-                                 self.cylinder_axis_end_x, self.cylinder_axis_end_y, self.cylinder_axis_end_z,
-                                 self.cylinder_in_radius, self.cylinder_out_radius,
-                                 wireframe=True, label=self.name, colors='c', linewidths=1)
-
-
-class InnerRegionTubeAlongZSegment():
-    def __init__(self, name='segment',
-                 potential=0,
-                 tube_segment_axis_x=6, tube_segment_axis_y=5,
-                 tube_segment_axis_start_z=2, tube_segment_axis_end_z=5,
-                 tube_segment_inner_radius=1, tube_segment_outer_radius=3,
-                 tube_segment_start_angle_deg=0, tube_segment_end_angle_deg=45):
+class InnerRegion():
+    def __init__(self, shape, name='region', potential=0):
+        self.shape = shape
         self.name = name
         self.potential = potential
-        self.tube_segment_axis_x = tube_segment_axis_x
-        self.tube_segment_axis_y = tube_segment_axis_y
-        self.tube_segment_axis_start_z = tube_segment_axis_start_z
-        self.tube_segment_axis_end_z = tube_segment_axis_end_z
-        self.tube_segment_inner_radius = tube_segment_inner_radius
-        self.tube_segment_outer_radius = tube_segment_outer_radius
-        self.tube_segment_start_angle_deg = tube_segment_start_angle_deg
-        self.tube_segment_end_angle_deg = tube_segment_end_angle_deg
 
     def visualize(self, visualizer):
-        visualizer.draw_tube_xyz(self.tube_segment_axis_x, self.tube_segment_axis_y,
-                                 self.tube_segment_axis_start_z,
-                                 self.tube_segment_axis_x, self.tube_segment_axis_y, self.tube_segment_axis_end_z,
-                                 self.tube_segment_inner_radius, self.tube_segment_outer_radius,
-                                 wireframe=False, edgecolors='r', facecolors='c', linewidths=1)
+        self.shape.visualize(visualizer, wireframe=False, edgecolors='r', facecolors='c', linewidths=1)
 
 
 class OutputFile:
@@ -368,9 +330,9 @@ class ExternalFieldElectricOnRegularGridFromH5File():
 
 def main():
     conf = EfConf()
-    box = ParticleSourceBox()
-    tube = ParticleSourceTube()
-    segment = InnerRegionTubeAlongZSegment()
+    box = ParticleSource(Box.init_rlbtnf())
+    tube = ParticleSource(Tube((5,5,5), (7,5,7), 1, 2))
+    segment = InnerRegion(Cylinder((2, 2, 2), (1, 1, 1), 1))
     conf.add_source(box)
     conf.add_source(tube)
     conf.add_inner_region(segment)
