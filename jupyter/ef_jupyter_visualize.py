@@ -50,12 +50,33 @@ class Visualizer3d:
         else:
             face_masks = [cube[:, i] == v for v in (0, 1) for i in (0, 1, 2)]
             polygons = [vertices[face, :][(0, 1, 3, 2), :] for face in face_masks]
-            self.ax.add_collection(
-                Poly3DCollection(polygons, **kwargs))
+            self.ax.add_collection(Poly3DCollection(polygons, **kwargs))
+
+    @staticmethod
+    def rotate_vectors_from_z_axis_towards_vector(arr, v):
+        length = np.linalg.norm(v)
+        if length==0:
+            return arr
+        projection = v[:2]
+        shadow = np.linalg.norm(projection)
+        height = v[2]
+        cos_alpha = height / length
+        sin_alpha = shadow / length
+        arr = arr.dot(np.array([[cos_alpha, 0, -sin_alpha],
+                                [0, 1, 0],
+                                [sin_alpha, 0, cos_alpha]]))
+        if shadow==0:
+            return arr
+        cos_beta = v[0] / shadow
+        sin_beta = v[1] / shadow
+        return arr.dot(np.array([[cos_beta, sin_beta, 0],
+                                [-sin_beta, cos_beta, 0],
+                                [0, 0, 1]]))
 
     def draw_cylinder(self, a, b, r, wireframe=False, **kwargs):
         phi = np.radians(np.linspace(0, 360, 32, endpoint=wireframe))
         circle = np.stack((np.cos(phi), np.sin(phi), np.zeros_like(phi))).T
+        circle = self.rotate_vectors_from_z_axis_towards_vector(circle, b - a)
         if wireframe:
             lines = (a + circle * r, b + circle * r)
             self.ax.add_collection(Line3DCollection(lines, **kwargs))
@@ -70,6 +91,7 @@ class Visualizer3d:
     def draw_tube(self, a, b, r, R, wireframe=False, **kwargs):
         phi = np.radians(np.linspace(0, 360, 32, endpoint=wireframe))
         circle = np.stack((np.cos(phi), np.sin(phi), np.zeros_like(phi))).T
+        circle = self.rotate_vectors_from_z_axis_towards_vector(circle, b - a)
         if wireframe:
             lines = (a + circle * r, a + circle * R, b + circle * r, b + circle * R)
             self.ax.add_collection(Line3DCollection(lines, **kwargs))
@@ -333,9 +355,11 @@ def main():
     box = ParticleSource(Box.init_rlbtnf())
     tube = ParticleSource(Tube((5,5,5), (7,5,7), 1, 2))
     segment = InnerRegion(Cylinder((2, 2, 2), (1, 1, 1), 1))
+    c1 = InnerRegion(Tube.init_aligned_z(8, 3, 2, 5, 2, 3))
     conf.add_source(box)
     conf.add_source(tube)
     conf.add_inner_region(segment)
+    conf.add_inner_region(c1)
     vis = Visualizer3d()
     conf.visualize_all(vis)
 
