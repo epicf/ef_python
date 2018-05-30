@@ -23,9 +23,7 @@ class ConfigComponent(abc.ABC):
     @classmethod
     def from_section(cls, section):
         if section.name != cls.section:
-            raise ValueError()
-        if set(section.keys()) != set(cls.ContentTuple._fields):
-            raise ValueError()
+            raise ValueError("Unexpected config section name")
         data = {arg: cls.convert._asdict()[arg](section[arg]) for arg in cls.convert._fields}
         return cls(**data)
 
@@ -59,9 +57,7 @@ class NamedConfigComponent(ConfigComponent):
     def from_section(cls, section):
         category, name = section.name.split('.', 1)
         if category != cls.section:
-            raise ValueError()
-        if set(section.keys()) != set(cls.ContentTuple._fields):
-            raise ValueError()
+            raise ValueError("Unexpected config section name", category)
         data = {arg: cls.convert._asdict()[arg](section[arg]) for arg in cls.convert._fields}
         return cls(name, **data)
 
@@ -102,9 +98,9 @@ class BoundaryConditionsConf(ConfigComponent):
 @register
 class ParticleSourceBoxConf(NamedConfigComponent):
     section = "Particle_source_box"
-    ContentTuple = namedtuple("ParticleSourceBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
+    ContentTuple = namedtuple("ParticleSourceBoxTuple", ('box_x_right', 'box_x_left', 'box_y_bottom',
                                                          'box_y_top', 'box_z_near', 'box_z_far',
-                                                         'initial_number_fo_particles',
+                                                         'initial_number_of_particles',
                                                          'particles_to_generate_each_step',
                                                          'mean_momentum_x', 'mean_momentum_y', 'mean_momentum_z',
                                                          'temperature', 'charge', 'mass'))
@@ -122,7 +118,7 @@ class ParticleSourceCylinderConf(NamedConfigComponent):
                                                               'cylinder_axis_start_z', 'cylinder_axis_end_x',
                                                               'cylinder_axis_end_y', 'cylinder_axis_end_z',
                                                               'cylinder_radius',
-                                                              'initial_number_fo_particles',
+                                                              'initial_number_of_particles',
                                                               'particles_to_generate_each_step',
                                                               'mean_momentum_x', 'mean_momentum_y', 'mean_momentum_z',
                                                               'temperature', 'charge', 'mass'))
@@ -140,7 +136,7 @@ class ParticleSourceTubeConf(NamedConfigComponent):
                                                           'tube_axis_start_z', 'tube_axis_end_x',
                                                           'tube_axis_end_y', 'tube_axis_end_z',
                                                           'tube_inner_radius', 'tube_outer_radius',
-                                                          'initial_number_fo_particles',
+                                                          'initial_number_of_particles',
                                                           'particles_to_generate_each_step',
                                                           'mean_momentum_x', 'mean_momentum_y', 'mean_momentum_z',
                                                           'temperature', 'charge', 'mass'))
@@ -154,7 +150,7 @@ class ParticleSourceTubeConf(NamedConfigComponent):
 @register
 class InnerRegionBoxConf(NamedConfigComponent):
     section = "Inner_region_box"
-    ContentTuple = namedtuple("InnerRegionBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
+    ContentTuple = namedtuple("InnerRegionBoxTuple", ('box_x_right', 'box_x_left', 'box_y_bottom',
                                                       'box_y_top', 'box_z_near', 'box_z_far',
                                                       'potential'))
     convert = ContentTuple(*[float] * 7)
@@ -196,7 +192,7 @@ class InnerRegionTubeConf(NamedConfigComponent):
 @register
 class ParticleInteractionModel(ConfigComponent):
     section = "Particle interaction model"
-    ContentTuple = namedtuple("ParticleInteractionModelTuple", ('particle_interaction_model'))
+    ContentTuple = namedtuple("ParticleInteractionModelTuple", ('particle_interaction_model',))
     convert = ContentTuple(str)
 
     def make(self):
@@ -240,10 +236,10 @@ def main():
     import io
     from glob import glob
 
-    for f in glob('../../examples/minimal_working_example/*.conf'):
+    for f in glob('../../examples/*/*.conf'):
+        print(f)
         conf = ConfigParser()
         conf.read(f)
-        [print(conf.items(section)) for section in conf if section != 'DEFAULT']
         c = ConfigComponent.config_to_components(conf)
         for x in c:
             print(x)
