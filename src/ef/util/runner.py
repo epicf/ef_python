@@ -7,7 +7,7 @@ from ef.config.efconf import EfConf
 
 
 class EfRunner:
-    def __init__(self, conf=EfConf(), ef_command="python3 ../../ef_main.py"):
+    def __init__(self, conf=EfConf(), ef_command="python3 ../../main.py"):
         self.conf = conf
         self.command = ef_command
 
@@ -48,7 +48,7 @@ class EfRunner:
 
 
 def main():
-    runner = EfRunner(EfConf(), 'python3 ../ef_main.py')
+    runner = EfRunner(EfConf(), 'python3 ../main.py')
     runner.run()
 
 

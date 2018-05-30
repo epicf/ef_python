@@ -7,14 +7,14 @@ import pytest
 
 from ef.config.components import TimeGridConf
 from ef.config.efconf import EfConf
-from ef_main import main
+from ef.main import main
 
 
 def test_main(mocker, capsys, tmpdir, monkeypatch):
     monkeypatch.chdir(tmpdir)
     config = tmpdir.join("test_main.conf")
     EfConf(time_grid=TimeGridConf(10, 5, 1)).export_to_fname("test_main.conf")
-    mocker.patch("sys.argv", ["ef_main.py", str(config)])
+    mocker.patch("sys.argv", ["main.py", str(config)])
     main()
     out, err = capsys.readouterr()
     assert err == ""
@@ -80,7 +80,7 @@ Writing step 10 to file out_0000010.h5
 def test_example(fname, mocker, capsys, tmpdir, monkeypatch):
     copyfile(fname, tmpdir.join(basename(fname)))
     monkeypatch.chdir(tmpdir)
-    mocker.patch("sys.argv", ["ef_main.py", str(basename(fname))])
+    mocker.patch("sys.argv", ["main.py", str(basename(fname))])
     main()
     out, err = capsys.readouterr()
     assert err == ""
@@ -108,7 +108,7 @@ def test_example(fname, mocker, capsys, tmpdir, monkeypatch):
 def test_main_shell(fname, tmpdir, monkeypatch):
     basedir = os.path.join(os.path.dirname(__file__), '..')
     monkeypatch.chdir(tmpdir)
-    result = subprocess.run([os.path.join(basedir, "src/ef_main.py"), os.path.join(basedir, fname)], check=True,
+    result = subprocess.run([os.path.join(basedir, "src/ef/main.py"), os.path.join(basedir, fname)], check=True,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     for line in result.stderr.split("\n"):
         assert line == '' or line.startswith("WARNING:")
