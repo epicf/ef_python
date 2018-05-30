@@ -3,3 +3,4 @@ matplotlib
 sympy
 pytest
 scipy
+jupyter
