@@ -200,9 +200,9 @@ class ParticleInteractionModel(ConfigComponent):
 
 
 @register
-class ExternalFieldMagneticUniformConf(NamedConfigComponent):
-    section = "ExternalFieldMagneticUniform"
-    ContentTuple = namedtuple("ExternalFieldMagneticUniform",
+class ExternalMagneticFieldUniformConf(NamedConfigComponent):
+    section = "External_magnetic_field_uniform"
+    ContentTuple = namedtuple("ExternalMagneticFieldUniform",
                               ('magnetic_field_x', 'magnetic_field_y', 'magnetic_field_z'))
     convert = ContentTuple(float, float, float)
 
@@ -211,9 +211,9 @@ class ExternalFieldMagneticUniformConf(NamedConfigComponent):
 
 
 @register
-class ExternalFieldElectricUniformConf(NamedConfigComponent):
-    section = "ExternalFieldElectricUniform"
-    ContentTuple = namedtuple("ExternalFieldElectricUniform",
+class ExternalElectricFieldUniformConf(NamedConfigComponent):
+    section = "External_electric_field_uniform"
+    ContentTuple = namedtuple("ExternalElectricFieldUniform",
                               ('electric_field_x', 'electric_field_y', 'electric_field_z'))
     convert = ContentTuple(float, float, float)
 
