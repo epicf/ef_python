@@ -1,9 +1,10 @@
 from collections import namedtuple
 
-from ef.config.parser import register, ConfigComponent, DataClass
+from ef.config.section import register, ConfigSection
+from ef.config.component import ConfigComponent
 
 
-class BoundaryConditions(DataClass):
+class BoundaryConditions(ConfigComponent):
 
     def __init__(self, potential=0):
         self.potential = float(potential)
@@ -13,7 +14,7 @@ class BoundaryConditions(DataClass):
 
 
 @register
-class BoundaryConditionsConf(ConfigComponent):
+class BoundaryConditionsConf(ConfigSection):
     section = "Boundary conditions"
     ContentTuple = namedtuple("BoundaryConditionsTuple",
                               ('boundary_phi_right', 'boundary_phi_left', 'boundary_phi_bottom',

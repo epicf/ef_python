@@ -2,10 +2,11 @@ from collections import namedtuple
 
 import numpy as np
 
-from ef.config.parser import register, ConfigComponent, DataClass
+from ef.config.section import register, ConfigSection
+from ef.config.component import ConfigComponent
 
 
-class SpatialMesh(DataClass):
+class SpatialMesh(ConfigComponent):
     def __init__(self, size=(10, 10, 10), step=(1, 1, 1)):
         self.size = np.array(size, np.float)
         self.step = np.array(step, np.float)
@@ -20,7 +21,7 @@ class SpatialMesh(DataClass):
 
 
 @register
-class SpatialMeshConf(ConfigComponent):
+class SpatialMeshConf(ConfigSection):
     section = "Spatial mesh"
     ContentTuple = namedtuple("SpatialMeshTuple", ('grid_x_size', 'grid_x_step', 'grid_y_size',
                                                    'grid_y_step', 'grid_z_size', 'grid_z_step'))

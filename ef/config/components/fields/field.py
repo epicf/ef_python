@@ -1,6 +1,6 @@
-from ef.config.parser import DataClass
+from ef.config.component import ConfigComponent
 
 
-class Field(DataClass):
+class Field(ConfigComponent):
     pass
 

@@ -1,9 +1,9 @@
 import numpy as np
 
-from ef.config.parser import DataClass
+from ef.config.component import ConfigComponent
 
 
-class Shape(DataClass):
+class Shape(ConfigComponent):
     pass
 
 

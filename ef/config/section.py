@@ -1,25 +1,17 @@
-import abc
-from magic_repr import make_repr
+from collections import namedtuple
+
+from ef.config.data_class import DataClass
 
 
-class DataClass:
-    __repr__ = make_repr()
-
-    def __eq__(self, other):
-        if isinstance(self, other.__class__):
-            return repr(self) == repr(other)
-        return NotImplemented
-
-    def __hash__(self):
-        return hash(tuple(sorted(self.__dict__.items())))
-
-
-class ConfigComponent(abc.ABC, DataClass):
+class ConfigSection(DataClass):
     section_map = {}
+    section = "Section header string goes here"
+    ContentTuple = namedtuple("ConfigSectionTuple", ())  # expected content of the config section as a namedtuple
+    convert = ContentTuple()  # tuple of types to convert config strings into
 
     @staticmethod
     def parser_to_confs(conf):
-        return [ConfigComponent.section_map[section.split('.')[0]].from_section(conf[section]) for section in
+        return [ConfigSection.section_map[section.split('.')[0]].from_section(conf[section]) for section in
                 conf.sections()]
 
     @classmethod
@@ -56,11 +48,11 @@ class ConfigComponent(abc.ABC, DataClass):
 
 
 def register(cls):
-    ConfigComponent.section_map[cls.section] = cls
+    ConfigSection.section_map[cls.section] = cls
     return cls
 
 
-class NamedConfigComponent(ConfigComponent):
+class NamedConfigSection(ConfigSection):
     def __init__(self, name, *args, **kwargs):
         self.name = name
         self.section = self.section + '.' + name
@@ -83,4 +75,3 @@ class NamedConfigComponent(ConfigComponent):
 
         data = {arg: cls.convert._asdict()[arg](section[arg]) for arg in cls.convert._fields}
         return cls(name, **data)
-

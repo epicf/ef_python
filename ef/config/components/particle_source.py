@@ -3,10 +3,11 @@ from collections import namedtuple
 import numpy as np
 
 from ef.config.components.shapes import Box, Cylinder, Tube
-from ef.config.parser import register, NamedConfigComponent, DataClass
+from ef.config.section import register, NamedConfigSection
+from ef.config.component import ConfigComponent
 
 
-class ParticleSource(DataClass):
+class ParticleSource(ConfigComponent):
     def __init__(self, name='ParticleSource1', shape=Box(),
                  initial_particles=500,
                  particles_to_generate_each_step=500,
@@ -51,7 +52,7 @@ class ParticleSource(DataClass):
 
 
 @register
-class ParticleSourceBoxConf(NamedConfigComponent):
+class ParticleSourceBoxConf(NamedConfigSection):
     section = "Particle_source_box"
     ContentTuple = namedtuple("ParticleSourceBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
                                                          'box_y_top', 'box_z_near', 'box_z_far',
@@ -68,7 +69,7 @@ class ParticleSourceBoxConf(NamedConfigComponent):
 
 
 @register
-class ParticleSourceCylinderConf(NamedConfigComponent):
+class ParticleSourceCylinderConf(NamedConfigSection):
     section = "Particle_source_cylinder"
     ContentTuple = namedtuple("ParticleSourceCylinderTuple", ('cylinder_axis_start_x', 'cylinder_axis_start_y',
                                                               'cylinder_axis_start_z', 'cylinder_axis_end_x',
@@ -86,7 +87,7 @@ class ParticleSourceCylinderConf(NamedConfigComponent):
 
 
 @register
-class ParticleSourceTubeConf(NamedConfigComponent):
+class ParticleSourceTubeConf(NamedConfigSection):
     section = "Particle_source_tube"
     ContentTuple = namedtuple("ParticleSourceTubeTuple", ('tube_axis_start_x', 'tube_axis_start_y',
                                                           'tube_axis_start_z', 'tube_axis_end_x',

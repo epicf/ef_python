@@ -1,10 +1,11 @@
 from collections import namedtuple
 
 from ef.config.components.shapes import Box, Cylinder, Tube
-from ef.config.parser import register, NamedConfigComponent, DataClass
+from ef.config.section import register, NamedConfigSection
+from ef.config.component import ConfigComponent
 
 
-class InnerRegion(DataClass):
+class InnerRegion(ConfigComponent):
     def __init__(self, name="InnerRegion1", shape=Box(), potential=0):
         self.name = name
         self.shape = shape
@@ -31,7 +32,7 @@ class InnerRegion(DataClass):
 
 
 @register
-class InnerRegionBoxConf(NamedConfigComponent):
+class InnerRegionBoxConf(NamedConfigSection):
     section = "Inner_region_box"
     ContentTuple = namedtuple("InnerRegionBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
                                                       'box_y_top', 'box_z_near', 'box_z_far',
@@ -45,7 +46,7 @@ class InnerRegionBoxConf(NamedConfigComponent):
 
 
 @register
-class InnerRegionCylinderConf(NamedConfigComponent):
+class InnerRegionCylinderConf(NamedConfigSection):
     section = "Inner_region_cylinder"
     ContentTuple = namedtuple("InnerRegionCylinderTuple", ('cylinder_axis_start_x', 'cylinder_axis_start_y',
                                                            'cylinder_axis_start_z', 'cylinder_axis_end_x',
@@ -59,7 +60,7 @@ class InnerRegionCylinderConf(NamedConfigComponent):
 
 
 @register
-class InnerRegionTubeConf(NamedConfigComponent):
+class InnerRegionTubeConf(NamedConfigSection):
     section = "Inner_region_tube"
     ContentTuple = namedtuple("InnerRegionTubeTuple", ('tube_axis_start_x', 'tube_axis_start_y',
                                                        'tube_axis_start_z', 'tube_axis_end_x',

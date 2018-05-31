@@ -1,9 +1,10 @@
 from collections import namedtuple
 
-from ef.config.parser import register, ConfigComponent, DataClass
+from ef.config.section import register, ConfigSection
+from ef.config.component import ConfigComponent
 
 
-class OutputFile(DataClass):
+class OutputFile(ConfigComponent):
     def __init__(self, prefix="out_", suffix=".h5"):
         self.prefix = prefix
         self.suffix = suffix
@@ -13,7 +14,7 @@ class OutputFile(DataClass):
 
 
 @register
-class OutputFilenameConf(ConfigComponent):
+class OutputFilenameConf(ConfigSection):
     section = "Output filename"
     ContentTuple = namedtuple("OutputFileNameTuple", ('output_filename_prefix', 'output_filename_suffix'))
     convert = ContentTuple(str, str)
