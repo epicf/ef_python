@@ -1,3 +1,4 @@
+import io
 from configparser import ConfigParser
 
 from ef.config.components.boundary_conditions import BoundaryConditions
@@ -9,6 +10,7 @@ from ef.config.components.particle_interaction_model import ParticleInteractionM
 from ef.config.components.particle_source import ParticleSource
 from ef.config.components.spatial_mesh import SpatialMesh
 from ef.config.components.time_grid import TimeGrid
+from ef.config.efconf import EfConf
 from ef.config.section import ConfigSection
 
 comp_list = [BoundaryConditions, InnerRegion, OutputFile, ParticleInteractionModel,
@@ -39,3 +41,19 @@ def test_minimal_example():
                           ParticleInteractionModel('noninteracting'), BoundaryConditions(0),
                           ExternalMagneticFieldUniform('mgn_uni'),  ExternalElectricFieldUniform('el_uni'),
                           OutputFile('example_', '.h5')]
+
+
+class TestEfConf:
+    def test_conf_export(self):
+        conf = EfConf(sources=[ParticleSource()], inner_regions=(InnerRegion(),))
+        s = conf.export_to_string()
+        c1 = EfConf.from_string(s)
+        assert c1 == conf
+
+    def test_conf_repr(self):
+        from numpy import array
+        from ef.config.components.shapes import Box
+        conf = EfConf(sources=[ParticleSource()], inner_regions=(InnerRegion(),))
+        s = repr(conf)
+        c1 = eval(s)
+        assert c1 == conf
