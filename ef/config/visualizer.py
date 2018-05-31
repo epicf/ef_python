@@ -1,10 +1,11 @@
+import matplotlib.cm
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d.art3d import Line3DCollection, Poly3DCollection
 
 
 class Visualizer3d:
-    def __init__(self, equal_aspect=True):
+    def __init__(self, equal_aspect=True, potential_colormap='seismic'):
         fig = plt.figure()
         self.ax = fig.add_subplot(111, projection='3d')
         self.ax.set_xlabel('X')
@@ -12,11 +13,14 @@ class Visualizer3d:
         self.ax.set_zlabel('Z')
         self.equal_aspect = equal_aspect
         plt.rcParams["figure.figsize"] = [9, 8]
+        self.potential_mapper = matplotlib.cm.ScalarMappable(cmap=potential_colormap)
+
+    def set_potential_lim(self, p_min, p_max):
+        self.potential_mapper.set_clim(p_min, p_max)
 
     def visualize(self, config_objects):
         for conf in config_objects:
             conf.visualize(self)
-        self.show()
 
     def show(self):
         if self.equal_aspect:

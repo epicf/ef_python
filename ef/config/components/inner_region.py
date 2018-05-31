@@ -15,7 +15,8 @@ class InnerRegion(ConfigComponent):
         self.potential = float(potential)
 
     def visualize(self, visualizer):
-        self.shape.visualize(visualizer, wireframe=False, edgecolors='r', facecolors='y', linewidths=1)
+        self.shape.visualize(visualizer, facecolors=visualizer.potential_mapper.to_rgba(self.potential),
+                             wireframe=False, linewidths=0)
 
     def to_conf(self):
         if type(self.shape) is Box:
