@@ -1,5 +1,14 @@
-# import this file to make sure all config section names are registered in ef.config.section:ConfigSection to be parsed
-from ef.config.components import boundary_conditions, inner_region, output_file, particle_interaction_model,\
-    particle_source, shapes, spatial_mesh, time_grid
-import ef.config.components.fields.magnetic.uniform
-from ef.config.components.fields.electric import uniform, h5
+"""This package contains all supported configuration components
+
+use "from components import *" before turning a configparser object into components
+to make sure all config section names are registered in ef.config.section:ConfigSection"""
+
+from ef.config.components.fields import *
+from ef.config.components.boundary_conditions import *
+from ef.config.components.inner_region import *
+from ef.config.components.output_file import *
+from ef.config.components.particle_interaction_model import *
+from ef.config.components.particle_source import *
+from ef.config.components.shapes import *
+from ef.config.components.spatial_mesh import *
+from ef.config.components.time_grid import *

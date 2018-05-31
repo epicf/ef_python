@@ -1,3 +1,5 @@
+__all__ = ["ParticleInteractionModel", "ParticleInteractionModelConf"]
+
 from collections import namedtuple
 
 from ef.config.section import register, ConfigSection

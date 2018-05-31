@@ -1,3 +1,5 @@
+__all__ = ['Shape', 'Box', 'Cylinder', 'Tube', 'Sphere']
+
 import numpy as np
 
 from ef.config.component import ConfigComponent

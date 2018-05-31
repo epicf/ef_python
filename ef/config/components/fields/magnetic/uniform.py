@@ -1,3 +1,5 @@
+__all__ = ["ExternalMagneticFieldUniform", "ExternalMagneticFieldUniformConf"]
+
 from collections import namedtuple
 
 import numpy as np

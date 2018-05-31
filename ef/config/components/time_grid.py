@@ -1,3 +1,5 @@
+__all__ = ['TimeGrid', 'TimeGridConf']
+
 from collections import namedtuple
 
 from ef.config.section import ConfigSection, register

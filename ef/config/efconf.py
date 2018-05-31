@@ -1,14 +1,7 @@
 import io
 from configparser import ConfigParser
 
-from ef.config.components.boundary_conditions import BoundaryConditions
-from ef.config.components.fields.field import Field
-from ef.config.components.inner_region import InnerRegion
-from ef.config.components.output_file import OutputFile
-from ef.config.components.particle_interaction_model import ParticleInteractionModel
-from ef.config.components.particle_source import ParticleSource
-from ef.config.components.spatial_mesh import SpatialMesh
-from ef.config.components.time_grid import TimeGrid
+from ef.config.components import *
 from ef.config.data_class import DataClass
 from ef.config.section import ConfigSection
 

@@ -1,3 +1,6 @@
+__all__ = ["InnerRegion", "InnerRegionBoxConf", "InnerRegionCylinderConf",
+           "InnerRegionTubeConf", "InnerRegionSphereConf"]
+
 from collections import namedtuple
 
 from ef.config.components.shapes import Box, Cylinder, Tube, Sphere

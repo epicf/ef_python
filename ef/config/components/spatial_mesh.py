@@ -1,3 +1,5 @@
+__all__ = ['SpatialMesh', 'SpatialMeshConf']
+
 from collections import namedtuple
 
 import numpy as np

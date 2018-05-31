@@ -1,20 +1,11 @@
-import io
 from configparser import ConfigParser
 
-from ef.config.components.boundary_conditions import BoundaryConditions
-from ef.config.components.fields.electric.uniform import ExternalElectricFieldUniform
-from ef.config.components.fields.magnetic.uniform import ExternalMagneticFieldUniform
-from ef.config.components.inner_region import InnerRegion
-from ef.config.components.output_file import OutputFile
-from ef.config.components.particle_interaction_model import ParticleInteractionModel
-from ef.config.components.particle_source import ParticleSource
-from ef.config.components.spatial_mesh import SpatialMesh
-from ef.config.components.time_grid import TimeGrid
+from ef.config.components import *
 from ef.config.efconf import EfConf
 from ef.config.section import ConfigSection
 
 comp_list = [BoundaryConditions, InnerRegion, OutputFile, ParticleInteractionModel,
-             ParticleSource, SpatialMesh, TimeGrid]
+             ParticleSource, SpatialMesh, TimeGrid, ExternalMagneticFieldUniform, ExternalElectricFieldUniform]
 
 
 def test_components_to_conf_and_back():
@@ -51,8 +42,7 @@ class TestEfConf:
         assert c1 == conf
 
     def test_conf_repr(self):
-        from numpy import array
-        from ef.config.components.shapes import Box
+        from numpy import array  # for use in eval
         conf = EfConf(sources=[ParticleSource()], inner_regions=(InnerRegion(),))
         s = repr(conf)
         c1 = eval(s)
