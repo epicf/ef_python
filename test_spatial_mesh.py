@@ -11,10 +11,7 @@ from ef.config.components import spatial_mesh, boundary_conditions
 
 class TestDefaultSpatialMesh:
     def test_print(self, capsys):
-        parser = ConfigParser()
-        spatial_mesh.SpatialMesh((10, 20, 30), (2, 1, 3)).to_conf().add_section_to_parser(parser)
-        boundary_conditions.BoundaryConditions(3.14).to_conf().add_section_to_parser(parser)
-        mesh = SpatialMesh.init_from_config(parser)
+        mesh = SpatialMesh.do_init((10, 20, 30), (2, 1, 3), boundary_conditions.BoundaryConditions(3.14))
         mesh.print()
         assert capsys.readouterr().out == ("Grid:\n"
                                            "Length: x = 10.000, y = 20.000, z = 30.000\n"
@@ -55,33 +52,6 @@ class TestDefaultSpatialMesh:
         assert capsys.readouterr().out == ""
         assert capsys.readouterr().err == ""
 
-    def test_init_potential(self):
-        parser = ConfigParser()
-        spatial_mesh.SpatialMesh((12, 12, 12), (4, 4, 6)).to_conf().add_section_to_parser(parser)
-        boundary_conditions.BoundaryConditions(1, 2, 3, 4, 5, 6).to_conf().add_section_to_parser(parser)
-        mesh = SpatialMesh.init_from_config(parser)
-        potential = np.array([[[5., 1., 6.], [5., 1., 6.], [5., 1., 6.], [5., 1., 6.]],
-                              [[5., 3., 6.], [5., 0., 6.], [5., 0., 6.], [5., 4., 6.]],
-                              [[5., 3., 6.], [5., 0., 6.], [5., 0., 6.], [5., 4., 6.]],
-                              [[5., 2., 6.], [5., 2., 6.], [5., 2., 6.], [5., 2., 6.]]])
-        assert_array_equal(mesh.potential, potential)
-
-    def test_init_warnings(self, capsys, caplog):
-        parser = ConfigParser()
-        spatial_mesh.SpatialMesh((12, 12, 12), (5, 5, 7)).to_conf().add_section_to_parser(parser)
-        boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
-        mesh = SpatialMesh.init_from_config(parser)
-        assert capsys.readouterr().out == ""
-        assert capsys.readouterr().err == ""
-        assert caplog.record_tuples == [
-            ('root', logging.WARNING,
-             "X step on spatial grid was reduced to 4.000 from 5.000 to fit in a round number of cells."),
-            ('root', logging.WARNING,
-             "Y step on spatial grid was reduced to 4.000 from 5.000 to fit in a round number of cells."),
-            ('root', logging.WARNING,
-             "Z step on spatial grid was reduced to 6.000 from 7.000 to fit in a round number of cells."),
-        ]
-
     def test_do_init_warnings(self, capsys, caplog):
         mesh = SpatialMesh.do_init((12, 12, 12), (5, 5, 7), boundary_conditions.BoundaryConditions(0))
         assert capsys.readouterr().out == ""
@@ -95,7 +65,7 @@ class TestDefaultSpatialMesh:
              "Z step on spatial grid was reduced to 6.000 from 7.000 to fit in a round number of cells."),
         ]
 
-    def test_do_init(self, capsys):
+    def test_do_init(self):
         mesh = SpatialMesh.do_init((4, 2, 3), (2, 1, 3), boundary_conditions.BoundaryConditions(3.14))
         assert mesh.x_volume_size == 4.
         assert mesh.y_volume_size == 2.
@@ -121,10 +91,8 @@ class TestDefaultSpatialMesh:
         potential = np.full((3, 3, 2), 3.14)
         assert_array_equal(mesh.potential, potential)
         assert_array_equal(mesh.electric_field, np.full((3, 3, 2), Vec3d.zero()))
-        assert capsys.readouterr().out == ""
-        assert capsys.readouterr().err == ""
 
-    def test_do_init_potential(self, capsys):
+    def test_do_init_potential(self):
         mesh = SpatialMesh.do_init((12, 12, 12), (4, 4, 6),
                                    boundary_conditions.BoundaryConditions(1, 2, 3, 4, 5, 6))
         potential = np.array([[[5., 1., 6.], [5., 1., 6.], [5., 1., 6.], [5., 1., 6.]],
@@ -132,37 +100,6 @@ class TestDefaultSpatialMesh:
                               [[5., 3., 6.], [5., 0., 6.], [5., 0., 6.], [5., 4., 6.]],
                               [[5., 2., 6.], [5., 2., 6.], [5., 2., 6.], [5., 2., 6.]]])
         assert_array_equal(mesh.potential, potential)
-        assert capsys.readouterr().out == ""
-        assert capsys.readouterr().err == ""
-
-    def test_init_ranges(self):
-        with pytest.raises(ValueError) as excinfo:
-            parser = ConfigParser()
-            spatial_mesh.SpatialMesh((-1, 10, 10), (1, 1, 1)).to_conf().add_section_to_parser(parser)
-            boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
-            SpatialMesh.init_from_config(parser)
-        assert excinfo.value.args[0] == 'grid_size must be positive'
-
-        with pytest.raises(ValueError) as excinfo:
-            parser = ConfigParser()
-            spatial_mesh.SpatialMesh((10, -5, 10), (1, 1, 1)).to_conf().add_section_to_parser(parser)
-            boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
-            SpatialMesh.init_from_config(parser)
-        assert excinfo.value.args[0] == 'grid_size must be positive'
-
-        with pytest.raises(ValueError) as excinfo:
-            parser = ConfigParser()
-            spatial_mesh.SpatialMesh((10, 10, 10), (1, 1, -1)).to_conf().add_section_to_parser(parser)
-            boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
-            SpatialMesh.init_from_config(parser)
-        assert excinfo.value.args[0] == 'step_size must be positive'
-
-        with pytest.raises(ValueError) as excinfo:
-            parser = ConfigParser()
-            spatial_mesh.SpatialMesh((10, 10, 10), (1, 12, 1)).to_conf().add_section_to_parser(parser)
-            boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
-            SpatialMesh.init_from_config(parser)
-        assert excinfo.value.args == ('step_size cannot be bigger than grid_size',)
 
     def test_do_init_ranges(self):
         with pytest.raises(ValueError) as excinfo:
