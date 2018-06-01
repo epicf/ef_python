@@ -4,20 +4,30 @@ from collections import namedtuple
 
 import numpy as np
 
-from ef.config.section import ConfigSection
 from ef.config.component import ConfigComponent
+from ef.config.section import ConfigSection
 
 
 class BoundaryConditions(ConfigComponent):
-    def __init__(self, potential=0):
-        self.potential = float(potential)
+    def __init__(self, right=None, left=None, bottom=None, top=None, near=None, far=None):
+        args = [right, left, bottom, top, near, far]
+        provided_args = [float(x) for x in args if x is not None]
+        if len(provided_args) == 0:
+            provided_args = [0.]
+        if len(provided_args) == 1:
+            self.right = self.left = self.bottom = self.top = self.near = self.far = provided_args[0]
+        elif len(provided_args) == 6:
+            self.right, self.left, self.bottom, self.top, self.near, self.far = provided_args
+        else:
+            raise ValueError("Wrong number of arguments to BoundaryConditions.__init__()", len(provided_args))
 
     def to_conf(self):
-        return BoundaryConditionsConf(*[self.potential] * 6)
+        return BoundaryConditionsConf(self.right, self.left, self.bottom, self.top, self.near, self.far)
 
     def visualize(self, visualizer, volume_size=(1, 1, 1)):
         visualizer.draw_box(np.array(volume_size, np.float), wireframe=True,
-                            colors=visualizer.potential_mapper.to_rgba(self.potential))
+                            colors=visualizer.potential_mapper.to_rgba(self.right))
+        # TODO: visualize non-uniform conditions
 
 
 class BoundaryConditionsConf(ConfigSection):
@@ -28,6 +38,4 @@ class BoundaryConditionsConf(ConfigSection):
     convert = ContentTuple(*[float] * 6)
 
     def make(self):
-        if any(v != self.content[0] for v in self.content):
-            raise ValueError("Expecting all boundary_phi to be the same.")
-        return BoundaryConditions(self.content.boundary_phi_right)
+        return BoundaryConditions(*self.content)
