@@ -5,23 +5,49 @@ import numpy as np
 
 from Vec3d import Vec3d
 from ef.config.components import spatial_mesh, boundary_conditions
+from ef.util.data_class import DataClass
 
 
-class SpatialMesh:
-    def __init__(self):
-        self.x_volume_size = None
-        self.y_volume_size = None
-        self.z_volume_size = None
-        self.x_cell_size = None
-        self.y_cell_size = None
-        self.z_cell_size = None
-        self.x_n_nodes = None
-        self.y_n_nodes = None
-        self.z_n_nodes = None
-        self.node_coordinates = None
-        self.charge_density = None
-        self.potential = None
-        self.electric_field = None
+class SpatialMesh(DataClass):
+    @property
+    def x_volume_size(self):
+        return self.size[0]
+
+    @property
+    def y_volume_size(self):
+        return self.size[1]
+
+    @property
+    def z_volume_size(self):
+        return self.size[2]
+
+    @property
+    def x_n_nodes(self):
+        return self.n_nodes[0]
+
+    @property
+    def y_n_nodes(self):
+        return self.n_nodes[1]
+
+    @property
+    def z_n_nodes(self):
+        return self.n_nodes[2]
+
+    @property
+    def shape(self):
+        return self.n_nodes
+
+    @property
+    def x_cell_size(self):
+        return self.cell[0]
+
+    @property
+    def y_cell_size(self):
+        return self.cell[1]
+
+    @property
+    def z_cell_size(self):
+        return self.cell[2]
 
     @classmethod
     def do_init(cls, grid_size, step_size, boundary_conditions):
@@ -47,17 +73,14 @@ class SpatialMesh:
         if np.any(step > size):
             raise ValueError("step_size cannot be bigger than grid_size")
 
-        self.x_volume_size, self.y_volume_size, self.z_volume_size = size
-        n_nodes = np.ceil(size / step).astype(int) + 1
-        self.x_n_nodes, self.y_n_nodes, self.z_n_nodes = n_nodes
-        cell = size / (n_nodes - 1)
-        nz = np.nonzero(cell != step_size)[0]
-        for i in nz:
+        self.size = size
+        self.n_nodes = np.ceil(size / step).astype(int) + 1
+        self.cell = size / (self.n_nodes - 1)
+        for i in np.nonzero(self.cell != step_size)[0]:
             logging.warning(f"{('X', 'Y', 'Z')[i]} step on spatial grid was reduced to "
-                            f"{cell[i]:.3f} from {step_size[i]:.3f} "
+                            f"{self.cell[i]:.3f} from {step_size[i]:.3f} "
                             f"to fit in a round number of cells.")
 
-        self.x_cell_size, self.y_cell_size, self.z_cell_size = cell
         self.allocate_ongrid_values()
         self.fill_node_coordinates()
         self.potential[:, 0, :] = boundary_conditions.bottom
@@ -77,15 +100,9 @@ class SpatialMesh:
     @classmethod
     def init_from_h5(cls, h5group):
         new_obj = cls()
-        new_obj.x_volume_size = h5group.attrs["x_volume_size"]
-        new_obj.y_volume_size = h5group.attrs["y_volume_size"]
-        new_obj.z_volume_size = h5group.attrs["z_volume_size"]
-        new_obj.x_cell_size = h5group.attrs["x_cell_size"]
-        new_obj.y_cell_size = h5group.attrs["y_cell_size"]
-        new_obj.z_cell_size = h5group.attrs["z_cell_size"]
-        new_obj.x_n_nodes = h5group.attrs["x_n_nodes"]
-        new_obj.y_n_nodes = h5group.attrs["y_n_nodes"]
-        new_obj.z_n_nodes = h5group.attrs["z_n_nodes"]
+        new_obj.size = np.array([h5group.attrs[f"{i}_volume_size"] for i in 'xyz'])
+        new_obj.n_nodes = np.array([h5group.attrs[f"{i}_n_nodes"] for i in 'xyz'])
+        new_obj.cell = np.array([h5group.attrs[f"{i}_cell_size"] for i in 'xyz'])
         #
         # todo: don't allocate. read into flat arrays. then reshape
         new_obj.allocate_ongrid_values()
