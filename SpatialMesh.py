@@ -1,14 +1,13 @@
 import logging
 import sys
-from math import ceil
 
 import numpy as np
 
 from Vec3d import Vec3d
+from ef.config.components import spatial_mesh, boundary_conditions
 
 
 class SpatialMesh:
-
     def __init__(self):
         self.x_volume_size = None
         self.y_volume_size = None
@@ -36,7 +35,6 @@ class SpatialMesh:
             step = np.array(step_size, np.float)
         except ValueError as exception:
             raise ValueError("step_size must be a flat triple", step_size) from exception
-
         # Check argument ranges
         if size.shape != (3,):
             raise ValueError("grid_size must be a flat triple", grid_size)
@@ -72,22 +70,9 @@ class SpatialMesh:
 
     @classmethod
     def init_from_config(cls, conf):
-        new_obj = cls()
-        new_obj.check_correctness_of_related_config_fields(conf)
-        new_obj.init_x_grid(conf)
-        new_obj.init_y_grid(conf)
-        new_obj.init_z_grid(conf)
-        new_obj.allocate_ongrid_values()
-        new_obj.fill_node_coordinates()
-        new_obj.set_boundary_conditions(conf)
-        SpatialMesh.mark_spatmesh_sec_as_used(conf)
-        return new_obj
-
-    @staticmethod
-    def mark_spatmesh_sec_as_used(conf):
-        # For now simply mark sections as 'used' instead of removing them.
-        conf["SpatialMesh"]["used"] = "True"
-        conf["BoundaryConditions"]["used"] = "True"
+        mesh_config = spatial_mesh.SpatialMeshConf.from_section(conf["SpatialMesh"]).make()
+        boundary_config = boundary_conditions.BoundaryConditionsConf.from_section(conf["BoundaryConditions"]).make()
+        return cls.do_init(mesh_config.size, mesh_config.step, boundary_config)
 
     @classmethod
     def init_from_h5(cls, h5group):
@@ -143,47 +128,6 @@ class SpatialMesh:
         self.potential = np.zeros((nx, ny, nz), dtype='f8')
         self.electric_field = np.full((nx, ny, nz), Vec3d.zero(), dtype=object)
 
-    def check_correctness_of_related_config_fields(self, conf):
-        self.grid_x_size_gt_zero(conf)
-        self.grid_x_step_gt_zero_le_grid_x_size(conf)
-        self.grid_y_size_gt_zero(conf)
-        self.grid_y_step_gt_zero_le_grid_y_size(conf)
-        self.grid_z_size_gt_zero(conf)
-        self.grid_z_step_gt_zero_le_grid_z_size(conf)
-
-    def init_x_grid(self, conf):
-        spat_mesh_conf = conf["SpatialMesh"]
-        self.x_volume_size = spat_mesh_conf.getfloat("grid_x_size")
-        self.x_n_nodes = ceil(spat_mesh_conf.getfloat("grid_x_size") /
-                              spat_mesh_conf.getfloat("grid_x_step")) + 1
-        self.x_cell_size = self.x_volume_size / (self.x_n_nodes - 1)
-        if self.x_cell_size != spat_mesh_conf.getfloat("grid_x_step"):
-            print("X_step was shrinked to {:.3f} from {:.3f} "
-                  "to fit round number of cells".format(
-                self.x_cell_size, spat_mesh_conf.getfloat("grid_x_step")))
-
-    def init_y_grid(self, conf):
-        spat_mesh_conf = conf["SpatialMesh"]
-        self.y_volume_size = spat_mesh_conf.getfloat("grid_y_size")
-        self.y_n_nodes = ceil(spat_mesh_conf.getfloat("grid_y_size") /
-                              spat_mesh_conf.getfloat("grid_y_step")) + 1
-        self.y_cell_size = self.y_volume_size / (self.y_n_nodes - 1)
-        if self.y_cell_size != spat_mesh_conf.getfloat("grid_y_step"):
-            print("Y_step was shrinked to {:.3f} from {:.3f} "
-                  "to fit round number of cells".format(
-                self.y_cell_size, spat_mesh_conf.getfloat("grid_y_step")))
-
-    def init_z_grid(self, conf):
-        spat_mesh_conf = conf["SpatialMesh"]
-        self.z_volume_size = spat_mesh_conf.getfloat("grid_z_size")
-        self.z_n_nodes = ceil(spat_mesh_conf.getfloat("grid_z_size") /
-                              spat_mesh_conf.getfloat("grid_z_step")) + 1
-        self.z_cell_size = self.z_volume_size / (self.z_n_nodes - 1)
-        if self.z_cell_size != spat_mesh_conf.getfloat("grid_z_step"):
-            print("Z_step was shrinked to {:.3f} from {:.3f} "
-                  "to fit round number of cells".format(
-                self.z_cell_size, spat_mesh_conf.getfloat("grid_z_step")))
-
     def fill_node_coordinates(self):
         for i in range(self.x_n_nodes):
             for j in range(self.y_n_nodes):
@@ -193,30 +137,6 @@ class SpatialMesh:
 
     def clear_old_density_values(self):
         self.charge_density.fill(0)
-
-    def set_boundary_conditions(self, conf):
-        phi_left = conf["BoundaryConditions"].getfloat("boundary_phi_left")
-        phi_right = conf["BoundaryConditions"].getfloat("boundary_phi_right")
-        phi_top = conf["BoundaryConditions"].getfloat("boundary_phi_top")
-        phi_bottom = conf["BoundaryConditions"].getfloat("boundary_phi_bottom")
-        phi_near = conf["BoundaryConditions"].getfloat("boundary_phi_near")
-        phi_far = conf["BoundaryConditions"].getfloat("boundary_phi_far")
-        #
-        nx = self.x_n_nodes
-        ny = self.y_n_nodes
-        nz = self.z_n_nodes
-        for i in range(nx):
-            for k in range(nz):
-                self.potential[i][0][k] = phi_bottom
-                self.potential[i][ny - 1][k] = phi_top
-        for j in range(ny):
-            for k in range(nz):
-                self.potential[0][j][k] = phi_right
-                self.potential[nx - 1][j][k] = phi_left
-        for i in range(nx):
-            for j in range(ny):
-                self.potential[i][j][0] = phi_near
-                self.potential[i][j][nz - 1] = phi_far
 
     def is_potential_equal_on_boundaries(self):
         nx = self.x_n_nodes
@@ -307,36 +227,6 @@ class SpatialMesh:
         h5group.create_dataset("./electric_field_x", data=tmp_x)
         h5group.create_dataset("./electric_field_y", data=tmp_y)
         h5group.create_dataset("./electric_field_z", data=tmp_z)
-
-    def grid_x_size_gt_zero(self, conf):
-        if conf["SpatialMesh"].getfloat("grid_x_size") <= 0:
-            raise ValueError("Expect grid_x_size > 0")
-
-    def grid_x_step_gt_zero_le_grid_x_size(self, conf):
-        if (conf["SpatialMesh"].getfloat("grid_x_step") <= 0) or \
-                (conf["SpatialMesh"].getfloat("grid_x_step") > \
-                 conf["SpatialMesh"].getfloat("grid_x_size")):
-            raise ValueError("Expect grid_x_step > 0 and grid_x_step <= grid_x_size")
-
-    def grid_y_size_gt_zero(self, conf):
-        if conf["SpatialMesh"].getfloat("grid_y_size") <= 0:
-            raise ValueError("Expect grid_y_size > 0")
-
-    def grid_y_step_gt_zero_le_grid_y_size(self, conf):
-        if (conf["SpatialMesh"].getfloat("grid_y_step") <= 0) or \
-                (conf["SpatialMesh"].getfloat("grid_y_step") > \
-                 conf["SpatialMesh"].getfloat("grid_y_size")):
-            raise ValueError("Expect grid_y_step > 0 and grid_y_step <= grid_y_size")
-
-    def grid_z_size_gt_zero(self, conf):
-        if conf["SpatialMesh"].getfloat("grid_z_size") <= 0:
-            raise ValueError("Expect grid_z_size > 0")
-
-    def grid_z_step_gt_zero_le_grid_z_size(self, conf):
-        if (conf["SpatialMesh"].getfloat("grid_z_step") <= 0) or \
-                (conf["SpatialMesh"].getfloat("grid_z_step") > \
-                 conf["SpatialMesh"].getfloat("grid_z_size")):
-            raise ValueError("Expect grid_z_step > 0 and grid_z_step <= grid_z_size")
 
     def node_number_to_coordinate_x(self, i):
         if i >= 0 and i < self.x_n_nodes:

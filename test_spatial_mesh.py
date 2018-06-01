@@ -66,15 +66,21 @@ class TestDefaultSpatialMesh:
                               [[5., 2., 6.], [5., 2., 6.], [5., 2., 6.], [5., 2., 6.]]])
         assert_array_equal(mesh.potential, potential)
 
-    def test_init_warnings(self, capsys):
+    def test_init_warnings(self, capsys, caplog):
         parser = ConfigParser()
         spatial_mesh.SpatialMesh((12, 12, 12), (5, 5, 7)).to_conf().add_section_to_parser(parser)
         boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
         mesh = SpatialMesh.init_from_config(parser)
-        assert capsys.readouterr().out == ("X_step was shrinked to 4.000 from 5.000 to fit round number of cells\n"
-                                           "Y_step was shrinked to 4.000 from 5.000 to fit round number of cells\n"
-                                           "Z_step was shrinked to 6.000 from 7.000 to fit round number of cells\n")
+        assert capsys.readouterr().out == ""
         assert capsys.readouterr().err == ""
+        assert caplog.record_tuples == [
+            ('root', logging.WARNING,
+             "X step on spatial grid was reduced to 4.000 from 5.000 to fit in a round number of cells."),
+            ('root', logging.WARNING,
+             "Y step on spatial grid was reduced to 4.000 from 5.000 to fit in a round number of cells."),
+            ('root', logging.WARNING,
+             "Z step on spatial grid was reduced to 6.000 from 7.000 to fit in a round number of cells."),
+        ]
 
     def test_do_init_warnings(self, capsys, caplog):
         mesh = SpatialMesh.do_init((12, 12, 12), (5, 5, 7), boundary_conditions.BoundaryConditions(0))
@@ -129,34 +135,34 @@ class TestDefaultSpatialMesh:
         assert capsys.readouterr().out == ""
         assert capsys.readouterr().err == ""
 
-    def test_init_ranges(self, capsys):
+    def test_init_ranges(self):
         with pytest.raises(ValueError) as excinfo:
             parser = ConfigParser()
             spatial_mesh.SpatialMesh((-1, 10, 10), (1, 1, 1)).to_conf().add_section_to_parser(parser)
             boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
-            mesh = SpatialMesh.init_from_config(parser)
-        assert excinfo.value.args == ("Expect grid_x_size > 0",)
+            SpatialMesh.init_from_config(parser)
+        assert excinfo.value.args[0] == 'grid_size must be positive'
 
         with pytest.raises(ValueError) as excinfo:
             parser = ConfigParser()
             spatial_mesh.SpatialMesh((10, -5, 10), (1, 1, 1)).to_conf().add_section_to_parser(parser)
             boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
-            mesh = SpatialMesh.init_from_config(parser)
-        assert excinfo.value.args == ("Expect grid_y_size > 0",)
+            SpatialMesh.init_from_config(parser)
+        assert excinfo.value.args[0] == 'grid_size must be positive'
 
         with pytest.raises(ValueError) as excinfo:
             parser = ConfigParser()
             spatial_mesh.SpatialMesh((10, 10, 10), (1, 1, -1)).to_conf().add_section_to_parser(parser)
             boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
-            mesh = SpatialMesh.init_from_config(parser)
-        assert excinfo.value.args == ("Expect grid_z_step > 0 and grid_z_step <= grid_z_size",)
+            SpatialMesh.init_from_config(parser)
+        assert excinfo.value.args[0] == 'step_size must be positive'
 
         with pytest.raises(ValueError) as excinfo:
             parser = ConfigParser()
             spatial_mesh.SpatialMesh((10, 10, 10), (1, 12, 1)).to_conf().add_section_to_parser(parser)
             boundary_conditions.BoundaryConditions().to_conf().add_section_to_parser(parser)
-            mesh = SpatialMesh.init_from_config(parser)
-        assert excinfo.value.args == ("Expect grid_y_step > 0 and grid_y_step <= grid_y_size",)
+            SpatialMesh.init_from_config(parser)
+        assert excinfo.value.args == ('step_size cannot be bigger than grid_size',)
 
     def test_do_init_ranges(self):
         with pytest.raises(ValueError) as excinfo:
