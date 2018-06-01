@@ -1,3 +1,4 @@
+import logging
 import sys
 from math import ceil
 
@@ -22,6 +23,52 @@ class SpatialMesh:
         self.charge_density = None
         self.potential = None
         self.electric_field = None
+
+    @classmethod
+    def do_init(cls, grid_size, step_size, boundary_conditions):
+        self = cls()
+
+        try:
+            size = np.array(grid_size, np.float)
+        except ValueError as exception:
+            raise ValueError("grid_size must be a flat triple", grid_size) from exception
+        try:
+            step = np.array(step_size, np.float)
+        except ValueError as exception:
+            raise ValueError("step_size must be a flat triple", step_size) from exception
+
+        # Check argument ranges
+        if size.shape != (3,):
+            raise ValueError("grid_size must be a flat triple", grid_size)
+        if step.shape != (3,):
+            raise ValueError("step_size must be a flat triple", step_size)
+        if np.any(size <= 0):
+            raise ValueError("grid_size must be positive", grid_size)
+        if np.any(step <= 0):
+            raise ValueError("step_size must be positive", step_size)
+        if np.any(step > size):
+            raise ValueError("step_size cannot be bigger than grid_size")
+
+        self.x_volume_size, self.y_volume_size, self.z_volume_size = size
+        n_nodes = np.ceil(size / step).astype(int) + 1
+        self.x_n_nodes, self.y_n_nodes, self.z_n_nodes = n_nodes
+        cell = size / (n_nodes - 1)
+        nz = np.nonzero(cell != step_size)[0]
+        for i in nz:
+            logging.warning(f"{('X', 'Y', 'Z')[i]} step on spatial grid was reduced to "
+                            f"{cell[i]:.3f} from {step_size[i]:.3f} "
+                            f"to fit in a round number of cells.")
+
+        self.x_cell_size, self.y_cell_size, self.z_cell_size = cell
+        self.allocate_ongrid_values()
+        self.fill_node_coordinates()
+        self.potential[:, 0, :] = boundary_conditions.bottom
+        self.potential[:, -1, :] = boundary_conditions.top
+        self.potential[0, :, :] = boundary_conditions.right
+        self.potential[-1, :, :] = boundary_conditions.left
+        self.potential[:, :, 0] = boundary_conditions.near
+        self.potential[:, :, -1] = boundary_conditions.far
+        return self
 
     @classmethod
     def init_from_config(cls, conf):
@@ -263,7 +310,7 @@ class SpatialMesh:
 
     def grid_x_size_gt_zero(self, conf):
         if conf["SpatialMesh"].getfloat("grid_x_size") <= 0:
-            raise ValueError("expect grid_x_size > 0")
+            raise ValueError("Expect grid_x_size > 0")
 
     def grid_x_step_gt_zero_le_grid_x_size(self, conf):
         if (conf["SpatialMesh"].getfloat("grid_x_step") <= 0) or \

@@ -80,3 +80,6 @@ class Vec3d():
 
     def __str__(self):
         return "{:.13f}, {:.13f}, {:.13f}".format(self.x, self.y, self.z)
+
+    def __eq__(self, b):
+        return self.x == b.x and self.y == b.y and self.z == b.z
