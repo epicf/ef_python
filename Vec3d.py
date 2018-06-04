@@ -1,7 +1,9 @@
 from math import sqrt
 
+from ef.util.data_class import DataClass
 
-class Vec3d():
+
+class Vec3d(DataClass):
     def __init__(self, x, y, z):
         self.x = x
         self.y = y

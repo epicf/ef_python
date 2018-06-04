@@ -49,6 +49,10 @@ class SpatialMesh(DataClass):
     def z_cell_size(self):
         return self.cell[2]
 
+    @property
+    def node_coordinates(self):
+        return np.apply_along_axis(lambda v: Vec3d(*v), -1, self._node_coordinates)
+
     @classmethod
     def do_init(cls, grid_size, step_size, boundary_conditions):
         self = cls()
@@ -106,20 +110,15 @@ class SpatialMesh(DataClass):
         #
         # todo: don't allocate. read into flat arrays. then reshape
         new_obj.allocate_ongrid_values()
-        #
-        dim = new_obj.node_coordinates.size
-        tmp_x = np.empty(dim, dtype='f8')
-        tmp_y = np.empty_like(tmp_x)
-        tmp_z = np.empty_like(tmp_x)
-        #
-        tmp_x = h5group["./node_coordinates_x"]
-        tmp_y = h5group["./node_coordinates_y"]
-        tmp_z = h5group["./node_coordinates_z"]
-        for global_idx, (vx, vy, vz) in enumerate(zip(tmp_x, tmp_y, tmp_z)):
-            # todo: highly nonoptimal; make view or reshape?
-            i, j, k = new_obj.global_idx_to_node_ijk(global_idx)
-            new_obj.node_coordinates[i][j][k] = Vec3d(vx, vy, vz)
-        #
+        new_obj.fill_node_coordinates()
+
+        if (new_obj._node_coordinates[:, :, :, 0].ravel(order='C') != h5group[f"./node_coordinates_x"]).any():
+            raise ValueError("Node coordinates read from hdf5 are incorrect")
+        if (new_obj._node_coordinates[:, :, :, 1].ravel(order='C') != h5group[f"./node_coordinates_y"]).any():
+            raise ValueError("Node coordinates read from hdf5 are incorrect")
+        if (new_obj._node_coordinates[:, :, :, 2].ravel(order='C') != h5group[f"./node_coordinates_z"]).any():
+            raise ValueError("Node coordinates read from hdf5 are incorrect")
+
         tmp_rho = h5group["./charge_density"]
         tmp_phi = h5group["./potential"]
         for global_idx, (rho, phi) in enumerate(zip(tmp_rho, tmp_phi)):
@@ -140,17 +139,14 @@ class SpatialMesh(DataClass):
         nx = self.x_n_nodes
         ny = self.y_n_nodes
         nz = self.z_n_nodes
-        self.node_coordinates = np.empty((nx, ny, nz), dtype=object)
+        self._node_coordinates = np.empty((nx, ny, nz, 3), dtype='f8')
         self.charge_density = np.zeros((nx, ny, nz), dtype='f8')
         self.potential = np.zeros((nx, ny, nz), dtype='f8')
         self.electric_field = np.full((nx, ny, nz), Vec3d.zero(), dtype=object)
 
     def fill_node_coordinates(self):
-        for i in range(self.x_n_nodes):
-            for j in range(self.y_n_nodes):
-                for k in range(self.z_n_nodes):
-                    self.node_coordinates[i][j][k] = Vec3d(
-                        i * self.x_cell_size, j * self.y_cell_size, k * self.z_cell_size)
+        self._node_coordinates = np.moveaxis(np.mgrid[0:self.x_n_nodes, 0:self.y_n_nodes, 0:self.z_n_nodes], 0, -1) \
+                                 * self.cell
 
     def clear_old_density_values(self):
         self.charge_density.fill(0)
@@ -216,27 +212,18 @@ class SpatialMesh(DataClass):
     def write_hdf5_ongrid_values(self, h5group):
         # todo: without compound datasets
         # there is this copying problem.
-        dim = self.node_coordinates.size
+        h5group.create_dataset("./node_coordinates_x", data=self._node_coordinates[:, :, :, 0].ravel(order='C'))
+        h5group.create_dataset("./node_coordinates_y", data=self._node_coordinates[:, :, :, 1].ravel(order='C'))
+        h5group.create_dataset("./node_coordinates_z", data=self._node_coordinates[:, :, :, 2].ravel(order='C'))
+        # C (C-order): index along the first axis varies slowest
+        # in self.node_coordinates.flat above default order is C
+        h5group.create_dataset("./potential", data=self.potential.ravel(order='C'))
+        h5group.create_dataset("./charge_density", data=self.charge_density.ravel(order='C'))
+        flat_field = self.electric_field.ravel(order='C')
+        dim = self.electric_field.size
         tmp_x = np.empty(dim, dtype='f8')
         tmp_y = np.empty_like(tmp_x)
         tmp_z = np.empty_like(tmp_x)
-        # todo: make view instead of copy
-        flat_node_coords = self.node_coordinates.ravel(order='C')
-        for i, v in enumerate(flat_node_coords):
-            tmp_x[i] = v.x
-            tmp_y[i] = v.y
-            tmp_z[i] = v.z
-        h5group.create_dataset("./node_coordinates_x", data=tmp_x)
-        h5group.create_dataset("./node_coordinates_y", data=tmp_y)
-        h5group.create_dataset("./node_coordinates_z", data=tmp_z)
-        # C (C-order): index along the first axis varies slowest
-        # in self.node_coordinates.flat above default order is C
-        flat_phi = self.potential.ravel(order='C')
-        h5group.create_dataset("./potential", data=flat_phi)
-        flat_rho = self.charge_density.ravel(order='C')
-        h5group.create_dataset("./charge_density", data=flat_rho)
-        #
-        flat_field = self.electric_field.ravel(order='C')
         for i, v in enumerate(flat_field):
             tmp_x[i] = v.x
             tmp_y[i] = v.y
