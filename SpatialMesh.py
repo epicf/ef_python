@@ -60,7 +60,7 @@ class SpatialMesh(DataClass):
         return d
 
     @classmethod
-    def do_init(cls, grid_size, step_size, boundary_conditions):
+    def do_init(cls, grid_size, step_size, boundary_conditions=None):
         self = cls()
 
         try:
@@ -93,12 +93,13 @@ class SpatialMesh(DataClass):
 
         self.allocate_ongrid_values()
         self.fill_node_coordinates()
-        self.potential[:, 0, :] = boundary_conditions.bottom
-        self.potential[:, -1, :] = boundary_conditions.top
-        self.potential[0, :, :] = boundary_conditions.right
-        self.potential[-1, :, :] = boundary_conditions.left
-        self.potential[:, :, 0] = boundary_conditions.near
-        self.potential[:, :, -1] = boundary_conditions.far
+        if boundary_conditions is not None:
+            self.potential[:, 0, :] = boundary_conditions.bottom
+            self.potential[:, -1, :] = boundary_conditions.top
+            self.potential[0, :, :] = boundary_conditions.right
+            self.potential[-1, :, :] = boundary_conditions.left
+            self.potential[:, :, 0] = boundary_conditions.near
+            self.potential[:, :, -1] = boundary_conditions.far
         return self
 
     @classmethod
@@ -109,28 +110,23 @@ class SpatialMesh(DataClass):
 
     @classmethod
     def init_from_h5(cls, h5group):
-        new_obj = cls()
-        new_obj.size = np.array([h5group.attrs[f"{i}_volume_size"] for i in 'xyz'])
-        new_obj.n_nodes = np.array([h5group.attrs[f"{i}_n_nodes"] for i in 'xyz'])
-        new_obj.cell = np.array([h5group.attrs[f"{i}_cell_size"] for i in 'xyz'])
-        #
-        # todo: don't allocate. read into flat arrays. then reshape
-        new_obj.allocate_ongrid_values()
-        new_obj.fill_node_coordinates()
+        size = np.array([h5group.attrs[f"{i}_volume_size"] for i in 'xyz'])
+        cell = np.array([h5group.attrs[f"{i}_cell_size"] for i in 'xyz'])
+        new_obj = cls.do_init(size, cell, None)
+        new_obj.charge_density = np.reshape(h5group["./charge_density"], new_obj.shape)
+        new_obj.potential = np.reshape(h5group["./potential"], new_obj.shape)
+        new_obj._electric_field[:, :, :, 0] = np.reshape(h5group["./electric_field_x"], new_obj.shape)
+        new_obj._electric_field[:, :, :, 1] = np.reshape(h5group["./electric_field_y"], new_obj.shape)
+        new_obj._electric_field[:, :, :, 2] = np.reshape(h5group["./electric_field_z"], new_obj.shape)
 
+        if (new_obj.n_nodes != np.array([h5group.attrs[f"{i}_n_nodes"] for i in 'xyz'])).any():
+            raise ValueError("SpatialMesh n_nodes read from hdf5 is incorrect")
         if (new_obj._node_coordinates[:, :, :, 0].ravel(order='C') != h5group[f"./node_coordinates_x"]).any():
             raise ValueError("Node coordinates read from hdf5 are incorrect")
         if (new_obj._node_coordinates[:, :, :, 1].ravel(order='C') != h5group[f"./node_coordinates_y"]).any():
             raise ValueError("Node coordinates read from hdf5 are incorrect")
         if (new_obj._node_coordinates[:, :, :, 2].ravel(order='C') != h5group[f"./node_coordinates_z"]).any():
             raise ValueError("Node coordinates read from hdf5 are incorrect")
-
-        new_obj.charge_density = np.reshape(h5group["./charge_density"], new_obj.shape)
-        new_obj.potential = np.reshape(h5group["./potential"], new_obj.shape)
-
-        new_obj._electric_field[:, :, :, 0] = np.reshape(h5group["./electric_field_x"], new_obj.shape)
-        new_obj._electric_field[:, :, :, 1] = np.reshape(h5group["./electric_field_y"], new_obj.shape)
-        new_obj._electric_field[:, :, :, 2] = np.reshape(h5group["./electric_field_z"], new_obj.shape)
         return new_obj
 
     def allocate_ongrid_values(self):
