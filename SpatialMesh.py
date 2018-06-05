@@ -20,6 +20,10 @@ class SpatialMesh(DataClass):
         self._electric_field = electric_field
 
     @property
+    def node_coordinates(self):
+        return self._node_coordinates
+
+    @property
     def x_volume_size(self):
         return self.size[0]
 
