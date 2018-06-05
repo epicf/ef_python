@@ -91,8 +91,12 @@ class SpatialMesh(DataClass):
                             f"{self.cell[i]:.3f} from {step_size[i]:.3f} "
                             f"to fit in a round number of cells.")
 
-        self.allocate_ongrid_values()
-        self.fill_node_coordinates()
+        self.charge_density = np.zeros(self.n_nodes, dtype='f8')
+        self.potential = np.zeros(self.n_nodes, dtype='f8')
+        self._electric_field = np.zeros(list(self.n_nodes) + [3], dtype='f8')
+        self._node_coordinates = np.moveaxis(np.mgrid[0:self.x_n_nodes, 0:self.y_n_nodes, 0:self.z_n_nodes], 0, -1) \
+                                 * self.cell
+
         if boundary_conditions is not None:
             self.potential[:, 0, :] = boundary_conditions.bottom
             self.potential[:, -1, :] = boundary_conditions.top
@@ -128,19 +132,6 @@ class SpatialMesh(DataClass):
         if (new_obj._node_coordinates[:, :, :, 2].ravel(order='C') != h5group[f"./node_coordinates_z"]).any():
             raise ValueError("Node coordinates read from hdf5 are incorrect")
         return new_obj
-
-    def allocate_ongrid_values(self):
-        nx = self.x_n_nodes
-        ny = self.y_n_nodes
-        nz = self.z_n_nodes
-        self._node_coordinates = np.empty((nx, ny, nz, 3), dtype='f8')
-        self.charge_density = np.zeros((nx, ny, nz), dtype='f8')
-        self.potential = np.zeros((nx, ny, nz), dtype='f8')
-        self._electric_field = np.zeros((nx, ny, nz, 3), dtype='f8')
-
-    def fill_node_coordinates(self):
-        self._node_coordinates = np.moveaxis(np.mgrid[0:self.x_n_nodes, 0:self.y_n_nodes, 0:self.z_n_nodes], 0, -1) \
-                                 * self.cell
 
     def clear_old_density_values(self):
         self.charge_density.fill(0)
