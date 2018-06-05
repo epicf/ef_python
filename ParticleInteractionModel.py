@@ -1,18 +1,21 @@
 import sys
 
 
-class ParticleInteractionModel():
+class ParticleInteractionModel:
+    @property
+    def noninteracting(self):
+        return self.particle_interaction_model == "noninteracting"
 
-    def __init__(self):
-        self.noninteracting = self.binary = self.pic = False
-        self.particle_interaction_model = None
+    @property
+    def binary(self):
+        return self.particle_interaction_model == "binary"
 
-    @staticmethod
-    def do_init():
-        m = ParticleInteractionModel()
-        m.pic = True
-        m.particle_interaction_model = 'PIC'
-        return m
+    @property
+    def pic(self):
+        return self.particle_interaction_model == "PIC"
+
+    def __init__(self, model=None):
+        self.particle_interaction_model = model
 
     @classmethod
     def init_from_config(cls, conf):
@@ -40,23 +43,11 @@ class ParticleInteractionModel():
     def get_values_from_config(self, conf):
         conf_part = conf["ParticleInteractionModel"]
         self.particle_interaction_model = conf_part["particle_interaction_model"]
-        if self.particle_interaction_model == "noninteracting":
-            self.noninteracting = True
-        elif self.particle_interaction_model == "binary":
-            self.binary = True
-        elif self.particle_interaction_model == "PIC":
-            self.pic = True
 
     @classmethod
     def init_from_h5(cls, h5group):
         new_obj = cls()
         new_obj.particle_interaction_model = h5group.attrs["particle_interaction_model"]
-        if new_obj.particle_interaction_model == "noninteracting":
-            new_obj.noninteracting = True
-        elif new_obj.particle_interaction_model == "binary":
-            new_obj.binary = True
-        elif new_obj.particle_interaction_model == "PIC":
-            new_obj.pic = True
         return new_obj
 
     def __str__(self):
