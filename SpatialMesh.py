@@ -125,22 +125,12 @@ class SpatialMesh(DataClass):
         if (new_obj._node_coordinates[:, :, :, 2].ravel(order='C') != h5group[f"./node_coordinates_z"]).any():
             raise ValueError("Node coordinates read from hdf5 are incorrect")
 
-        tmp_rho = h5group["./charge_density"]
-        tmp_phi = h5group["./potential"]
-        for global_idx, (rho, phi) in enumerate(zip(tmp_rho, tmp_phi)):
-            i, j, k = new_obj.global_idx_to_node_ijk(global_idx)
-            new_obj.charge_density[i][j][k] = rho
-            new_obj.potential[i][j][k] = phi
-        #
-        tmp_x = h5group["./electric_field_x"]
-        tmp_y = h5group["./electric_field_y"]
-        tmp_z = h5group["./electric_field_z"]
-        for global_idx, (vx, vy, vz) in enumerate(zip(tmp_x, tmp_y, tmp_z)):
-            i, j, k = new_obj.global_idx_to_node_ijk(global_idx)
-            new_obj._electric_field[i][j][k][0] = vx
-            new_obj._electric_field[i][j][k][1] = vy
-            new_obj._electric_field[i][j][k][2] = vz
-        #
+        new_obj.charge_density = np.reshape(h5group["./charge_density"], new_obj.shape)
+        new_obj.potential = np.reshape(h5group["./potential"], new_obj.shape)
+
+        new_obj._electric_field[:, :, :, 0] = np.reshape(h5group["./electric_field_x"], new_obj.shape)
+        new_obj._electric_field[:, :, :, 1] = np.reshape(h5group["./electric_field_y"], new_obj.shape)
+        new_obj._electric_field[:, :, :, 2] = np.reshape(h5group["./electric_field_z"], new_obj.shape)
         return new_obj
 
     def allocate_ongrid_values(self):
@@ -250,17 +240,3 @@ class SpatialMesh(DataClass):
             print("invalid node number k={:d} "
                   "at node_number_to_coordinate_z".format(k))
             sys.exit(-1)
-
-    def global_idx_to_node_ijk(self, global_idx):
-        # In row-major order: (used to save on disk)
-        # global_index = i * nz * ny +
-        #                j * nz +
-        #                k
-        #
-        ny = self.y_n_nodes
-        nz = self.z_n_nodes
-        i = global_idx // (nz * ny)
-        j_and_k_part = global_idx % (nz * ny)
-        j = j_and_k_part // nz
-        k = j_and_k_part % nz
-        return (i, j, k)
