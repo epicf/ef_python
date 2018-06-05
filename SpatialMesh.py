@@ -49,6 +49,16 @@ class SpatialMesh(DataClass):
     def z_cell_size(self):
         return self.cell[2]
 
+    @property
+    def electric_field(self):
+        return np.apply_along_axis(lambda v: Vec3d(*v), -1, self._electric_field)
+
+    @property
+    def dict(self):
+        d = super().dict
+        d['_electric_field'] = self._electric_field
+        return d
+
     @classmethod
     def do_init(cls, grid_size, step_size, boundary_conditions):
         self = cls()
@@ -127,7 +137,9 @@ class SpatialMesh(DataClass):
         tmp_z = h5group["./electric_field_z"]
         for global_idx, (vx, vy, vz) in enumerate(zip(tmp_x, tmp_y, tmp_z)):
             i, j, k = new_obj.global_idx_to_node_ijk(global_idx)
-            new_obj.electric_field[i][j][k] = Vec3d(vx, vy, vz)
+            new_obj._electric_field[i][j][k][0] = vx
+            new_obj._electric_field[i][j][k][1] = vy
+            new_obj._electric_field[i][j][k][2] = vz
         #
         return new_obj
 
@@ -138,7 +150,7 @@ class SpatialMesh(DataClass):
         self._node_coordinates = np.empty((nx, ny, nz, 3), dtype='f8')
         self.charge_density = np.zeros((nx, ny, nz), dtype='f8')
         self.potential = np.zeros((nx, ny, nz), dtype='f8')
-        self.electric_field = np.full((nx, ny, nz), Vec3d.zero(), dtype=object)
+        self._electric_field = np.zeros((nx, ny, nz, 3), dtype='f8')
 
     def fill_node_coordinates(self):
         self._node_coordinates = np.moveaxis(np.mgrid[0:self.x_n_nodes, 0:self.y_n_nodes, 0:self.z_n_nodes], 0, -1) \
@@ -184,9 +196,9 @@ class SpatialMesh(DataClass):
                         i, j, k,
                         self.charge_density[i][j][k],
                         self.potential[i][j][k],
-                        self.electric_field[i][j][k].x,
-                        self.electric_field[i][j][k].y,
-                        self.electric_field[i][j][k].z)
+                        self._electric_field[i][j][k][0],
+                        self._electric_field[i][j][k][1],
+                        self._electric_field[i][j][k][2])
 
     def write_to_file(self, h5file):
         groupname = "/SpatialMesh"
@@ -206,27 +218,14 @@ class SpatialMesh(DataClass):
         h5group.attrs.create("z_n_nodes", self.z_n_nodes)
 
     def write_hdf5_ongrid_values(self, h5group):
-        # todo: without compound datasets
-        # there is this copying problem.
         h5group.create_dataset("./node_coordinates_x", data=self._node_coordinates[:, :, :, 0].ravel(order='C'))
         h5group.create_dataset("./node_coordinates_y", data=self._node_coordinates[:, :, :, 1].ravel(order='C'))
         h5group.create_dataset("./node_coordinates_z", data=self._node_coordinates[:, :, :, 2].ravel(order='C'))
-        # C (C-order): index along the first axis varies slowest
-        # in self.node_coordinates.flat above default order is C
         h5group.create_dataset("./potential", data=self.potential.ravel(order='C'))
         h5group.create_dataset("./charge_density", data=self.charge_density.ravel(order='C'))
-        flat_field = self.electric_field.ravel(order='C')
-        dim = self.electric_field.size
-        tmp_x = np.empty(dim, dtype='f8')
-        tmp_y = np.empty_like(tmp_x)
-        tmp_z = np.empty_like(tmp_x)
-        for i, v in enumerate(flat_field):
-            tmp_x[i] = v.x
-            tmp_y[i] = v.y
-            tmp_z[i] = v.z
-        h5group.create_dataset("./electric_field_x", data=tmp_x)
-        h5group.create_dataset("./electric_field_y", data=tmp_y)
-        h5group.create_dataset("./electric_field_z", data=tmp_z)
+        h5group.create_dataset("./electric_field_x", data=self._electric_field[:, :, :, 0].ravel(order='C'))
+        h5group.create_dataset("./electric_field_y", data=self._electric_field[:, :, :, 1].ravel(order='C'))
+        h5group.create_dataset("./electric_field_z", data=self._electric_field[:, :, :, 2].ravel(order='C'))
 
     def node_number_to_coordinate_x(self, i):
         if i >= 0 and i < self.x_n_nodes:
