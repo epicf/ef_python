@@ -136,13 +136,10 @@ class SpatialMesh(DataClass):
         self.charge_density.fill(0)
 
     def is_potential_equal_on_boundaries(self):
-        nx = self.x_n_nodes
-        ny = self.y_n_nodes
-        nz = self.z_n_nodes
-        return \
-            (self.potential[0][2][2] == self.potential[nx - 1][2][2] == \
-             self.potential[2][0][2] == self.potential[2][ny - 1][2] == \
-             self.potential[2][2][0] == self.potential[2][2][nz - 1])
+        p = self.potential[0, 0, 0]
+        return np.all(self.potential[0] == p) and np.all(self.potential[-1] == p) and \
+               np.all(self.potential[:, 0] == p) and np.all(self.potential[:, -1] == p) and \
+               np.all(self.potential[:, :, 0] == p) and np.all(self.potential[:, :, -1] == p)
 
     def print(self):
         self.print_grid()

@@ -106,6 +106,16 @@ class TestDefaultSpatialMesh:
                               [[5., 2., 6.], [5., 2., 6.], [5., 2., 6.], [5., 2., 6.]]])
         assert_array_equal(mesh.potential, potential)
 
+    def test_is_potential_equal_on_boundaries(self):
+        for x, y, z in np.ndindex(4, 4, 3):
+            mesh = SpatialMesh.do_init((12, 12, 12), (4, 4, 6), boundary_conditions.BoundaryConditions(3.14))
+            assert mesh.is_potential_equal_on_boundaries()
+            mesh.potential[x, y, z] = 2.
+            if np.all([x > 0, y > 0, z > 0]) and np.all([x < 3, y < 3, z < 2]):
+                assert mesh.is_potential_equal_on_boundaries()
+            else:
+                assert not mesh.is_potential_equal_on_boundaries()
+
     def test_do_init_ranges(self):
         with pytest.raises(ValueError) as excinfo:
             SpatialMesh.do_init((10, 20), (2, 1, 3), boundary_conditions.BoundaryConditions(3.14))
