@@ -127,7 +127,7 @@ class SpatialMesh(DataClass):
         new_obj = cls(size, n_nodes, charge_density, potential, electric_field)
         if (new_obj.cell != np.array([h5group.attrs[f"{i}_cell_size"] for i in 'xyz'])).any():
             raise ValueError("hdf5 volume_size, cell_size and n_nodes values are incompatible")
-        for i, c in (0, 'x'), (1, 'y'), (2, 'z'):
+        for i, c in enumerate("xyz"):
             if (new_obj._node_coordinates[:, :, :, i].ravel(order='C') != h5group[f"./node_coordinates_{c}"]).any():
                 raise ValueError(f"hdf5 node_coordinates are incorrect")
         return new_obj
@@ -179,29 +179,14 @@ class SpatialMesh(DataClass):
     def write_to_file(self, h5file):
         groupname = "/SpatialMesh"
         h5group = h5file.create_group(groupname)
-        self.write_hdf5_attributes(h5group)
-        self.write_hdf5_ongrid_values(h5group)
-
-    def write_hdf5_attributes(self, h5group):
-        h5group.attrs.create("x_volume_size", self.x_volume_size)
-        h5group.attrs.create("y_volume_size", self.y_volume_size)
-        h5group.attrs.create("z_volume_size", self.z_volume_size)
-        h5group.attrs.create("x_cell_size", self.x_cell_size)
-        h5group.attrs.create("y_cell_size", self.y_cell_size)
-        h5group.attrs.create("z_cell_size", self.z_cell_size)
-        h5group.attrs.create("x_n_nodes", self.x_n_nodes)
-        h5group.attrs.create("y_n_nodes", self.y_n_nodes)
-        h5group.attrs.create("z_n_nodes", self.z_n_nodes)
-
-    def write_hdf5_ongrid_values(self, h5group):
-        h5group.create_dataset("./node_coordinates_x", data=self._node_coordinates[:, :, :, 0].ravel(order='C'))
-        h5group.create_dataset("./node_coordinates_y", data=self._node_coordinates[:, :, :, 1].ravel(order='C'))
-        h5group.create_dataset("./node_coordinates_z", data=self._node_coordinates[:, :, :, 2].ravel(order='C'))
+        for c in "xyz":
+            for attr in f"{c}_volume_size", f"{c}_cell_size", f"{c}_n_nodes":
+                h5group.attrs.create(attr, getattr(self, attr))
         h5group.create_dataset("./potential", data=self.potential.ravel(order='C'))
         h5group.create_dataset("./charge_density", data=self.charge_density.ravel(order='C'))
-        h5group.create_dataset("./electric_field_x", data=self._electric_field[:, :, :, 0].ravel(order='C'))
-        h5group.create_dataset("./electric_field_y", data=self._electric_field[:, :, :, 1].ravel(order='C'))
-        h5group.create_dataset("./electric_field_z", data=self._electric_field[:, :, :, 2].ravel(order='C'))
+        for i, c in enumerate("xyz"):
+            h5group.create_dataset(f"./node_coordinates_{c}", data=self._node_coordinates[:, :, :, i].ravel(order='C'))
+            h5group.create_dataset(f"./electric_field_{c}", data=self._electric_field[:, :, :, i].ravel(order='C'))
 
     def node_number_to_coordinate_x(self, i):
         if i >= 0 and i < self.x_n_nodes:
