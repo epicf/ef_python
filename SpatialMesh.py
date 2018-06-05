@@ -9,6 +9,16 @@ from ef.util.data_class import DataClass
 
 
 class SpatialMesh(DataClass):
+    def __init__(self, size, n_nodes, charge_density, potential, electric_field):
+        self.size = size
+        self.n_nodes = n_nodes
+        self.cell = size / (self.n_nodes - 1)
+        self._node_coordinates = np.moveaxis(np.mgrid[0:self.x_n_nodes, 0:self.y_n_nodes, 0:self.z_n_nodes], 0, -1) \
+                                 * self.cell
+        self.charge_density = charge_density
+        self.potential = potential
+        self._electric_field = electric_field
+
     @property
     def x_volume_size(self):
         return self.size[0]
@@ -60,9 +70,7 @@ class SpatialMesh(DataClass):
         return d
 
     @classmethod
-    def do_init(cls, grid_size, step_size, boundary_conditions=None):
-        self = cls()
-
+    def do_init(cls, grid_size, step_size, boundary_conditions):
         try:
             size = np.array(grid_size, np.float)
         except ValueError as exception:
@@ -83,27 +91,23 @@ class SpatialMesh(DataClass):
         if np.any(step > size):
             raise ValueError("step_size cannot be bigger than grid_size")
 
-        self.size = size
-        self.n_nodes = np.ceil(size / step).astype(int) + 1
-        self.cell = size / (self.n_nodes - 1)
+        n_nodes = np.ceil(size / step).astype(int) + 1
+        charge_density = np.zeros(n_nodes, dtype='f8')
+        potential = np.zeros(n_nodes, dtype='f8')
+        potential[:, 0, :] = boundary_conditions.bottom
+        potential[:, -1, :] = boundary_conditions.top
+        potential[0, :, :] = boundary_conditions.right
+        potential[-1, :, :] = boundary_conditions.left
+        potential[:, :, 0] = boundary_conditions.near
+        potential[:, :, -1] = boundary_conditions.far
+        electric_field = np.zeros(list(n_nodes) + [3], dtype='f8')
+
+        self = cls(size, n_nodes, charge_density, potential, electric_field)
+
         for i in np.nonzero(self.cell != step_size)[0]:
             logging.warning(f"{('X', 'Y', 'Z')[i]} step on spatial grid was reduced to "
                             f"{self.cell[i]:.3f} from {step_size[i]:.3f} "
                             f"to fit in a round number of cells.")
-
-        self.charge_density = np.zeros(self.n_nodes, dtype='f8')
-        self.potential = np.zeros(self.n_nodes, dtype='f8')
-        self._electric_field = np.zeros(list(self.n_nodes) + [3], dtype='f8')
-        self._node_coordinates = np.moveaxis(np.mgrid[0:self.x_n_nodes, 0:self.y_n_nodes, 0:self.z_n_nodes], 0, -1) \
-                                 * self.cell
-
-        if boundary_conditions is not None:
-            self.potential[:, 0, :] = boundary_conditions.bottom
-            self.potential[:, -1, :] = boundary_conditions.top
-            self.potential[0, :, :] = boundary_conditions.right
-            self.potential[-1, :, :] = boundary_conditions.left
-            self.potential[:, :, 0] = boundary_conditions.near
-            self.potential[:, :, -1] = boundary_conditions.far
         return self
 
     @classmethod
@@ -115,22 +119,17 @@ class SpatialMesh(DataClass):
     @classmethod
     def init_from_h5(cls, h5group):
         size = np.array([h5group.attrs[f"{i}_volume_size"] for i in 'xyz'])
-        cell = np.array([h5group.attrs[f"{i}_cell_size"] for i in 'xyz'])
-        new_obj = cls.do_init(size, cell, None)
-        new_obj.charge_density = np.reshape(h5group["./charge_density"], new_obj.shape)
-        new_obj.potential = np.reshape(h5group["./potential"], new_obj.shape)
-        new_obj._electric_field[:, :, :, 0] = np.reshape(h5group["./electric_field_x"], new_obj.shape)
-        new_obj._electric_field[:, :, :, 1] = np.reshape(h5group["./electric_field_y"], new_obj.shape)
-        new_obj._electric_field[:, :, :, 2] = np.reshape(h5group["./electric_field_z"], new_obj.shape)
+        n_nodes = np.array([h5group.attrs[f"{i}_n_nodes"] for i in 'xyz'])
 
-        if (new_obj.n_nodes != np.array([h5group.attrs[f"{i}_n_nodes"] for i in 'xyz'])).any():
-            raise ValueError("SpatialMesh n_nodes read from hdf5 is incorrect")
-        if (new_obj._node_coordinates[:, :, :, 0].ravel(order='C') != h5group[f"./node_coordinates_x"]).any():
-            raise ValueError("Node coordinates read from hdf5 are incorrect")
-        if (new_obj._node_coordinates[:, :, :, 1].ravel(order='C') != h5group[f"./node_coordinates_y"]).any():
-            raise ValueError("Node coordinates read from hdf5 are incorrect")
-        if (new_obj._node_coordinates[:, :, :, 2].ravel(order='C') != h5group[f"./node_coordinates_z"]).any():
-            raise ValueError("Node coordinates read from hdf5 are incorrect")
+        charge_density = np.reshape(h5group["./charge_density"], n_nodes)
+        potential = np.reshape(h5group["./potential"], n_nodes)
+        electric_field = np.stack([np.reshape(h5group[f"./electric_field_{c}"], n_nodes) for c in "xyz"], -1)
+        new_obj = cls(size, n_nodes, charge_density, potential, electric_field)
+        if (new_obj.cell != np.array([h5group.attrs[f"{i}_cell_size"] for i in 'xyz'])).any():
+            raise ValueError("hdf5 volume_size, cell_size and n_nodes values are incompatible")
+        for i, c in (0, 'x'), (1, 'y'), (2, 'z'):
+            if (new_obj._node_coordinates[:, :, :, i].ravel(order='C') != h5group[f"./node_coordinates_{c}"]).any():
+                raise ValueError(f"hdf5 node_coordinates are incorrect")
         return new_obj
 
     def clear_old_density_values(self):
