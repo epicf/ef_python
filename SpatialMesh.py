@@ -49,10 +49,6 @@ class SpatialMesh(DataClass):
     def z_cell_size(self):
         return self.cell[2]
 
-    @property
-    def node_coordinates(self):
-        return np.apply_along_axis(lambda v: Vec3d(*v), -1, self._node_coordinates)
-
     @classmethod
     def do_init(cls, grid_size, step_size, boundary_conditions):
         self = cls()

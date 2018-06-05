@@ -36,17 +36,17 @@ class TestDefaultSpatialMesh:
         assert mesh.x_cell_size == 2.
         assert mesh.y_cell_size == 1.
         assert mesh.z_cell_size == 3.
-        assert mesh.node_coordinates.shape == (3, 3, 2)
+        assert mesh._node_coordinates.shape == (3, 3, 2, 3)
         assert mesh.charge_density.shape == (3, 3, 2)
         assert mesh.potential.shape == (3, 3, 2)
         assert mesh.electric_field.shape == (3, 3, 2)
-        coords = np.array([[[Vec3d(0., 0., 0.), Vec3d(0., 0., 3.)], [Vec3d(0., 1., 0.), Vec3d(0., 1., 3.)],
-                            [Vec3d(0., 2., 0.), Vec3d(0., 2., 3.)]],
-                           [[Vec3d(2., 0., 0.), Vec3d(2., 0., 3.)], [Vec3d(2., 1., 0.), Vec3d(2., 1., 3.)],
-                            [Vec3d(2., 2., 0.), Vec3d(2., 2., 3.)]],
-                           [[Vec3d(4., 0., 0.), Vec3d(4., 0., 3.)], [Vec3d(4., 1., 0.), Vec3d(4., 1., 3.)],
-                            [Vec3d(4., 2., 0.), Vec3d(4., 2., 3.)]]])
-        assert_array_equal(mesh.node_coordinates, coords)
+        coords = np.array([[[[0., 0., 0.], [0., 0., 3.]], [[0., 1., 0.], [0., 1., 3.]],
+                            [[0., 2., 0.], [0., 2., 3.]]],
+                           [[[2., 0., 0.], [2., 0., 3.]], [[2., 1., 0.], [2., 1., 3.]],
+                            [[2., 2., 0.], [2., 2., 3.]]],
+                           [[[4., 0., 0.], [4., 0., 3.]], [[4., 1., 0.], [4., 1., 3.]],
+                            [[4., 2., 0.], [4., 2., 3.]]]])
+        assert_array_equal(mesh._node_coordinates, coords)
         assert_array_equal(mesh.charge_density, np.zeros((3, 3, 2)))
         potential = np.full((3, 3, 2), 3.14)
         assert_array_equal(mesh.potential, potential)
@@ -78,17 +78,17 @@ class TestDefaultSpatialMesh:
         assert mesh.x_cell_size == 2.
         assert mesh.y_cell_size == 1.
         assert mesh.z_cell_size == 3.
-        assert mesh.node_coordinates.shape == (3, 3, 2)
+        assert mesh._node_coordinates.shape == (3, 3, 2, 3)
         assert mesh.charge_density.shape == (3, 3, 2)
         assert mesh.potential.shape == (3, 3, 2)
         assert mesh.electric_field.shape == (3, 3, 2)
-        coords = np.array([[[Vec3d(0., 0., 0.), Vec3d(0., 0., 3.)], [Vec3d(0., 1., 0.), Vec3d(0., 1., 3.)],
-                            [Vec3d(0., 2., 0.), Vec3d(0., 2., 3.)]],
-                           [[Vec3d(2., 0., 0.), Vec3d(2., 0., 3.)], [Vec3d(2., 1., 0.), Vec3d(2., 1., 3.)],
-                            [Vec3d(2., 2., 0.), Vec3d(2., 2., 3.)]],
-                           [[Vec3d(4., 0., 0.), Vec3d(4., 0., 3.)], [Vec3d(4., 1., 0.), Vec3d(4., 1., 3.)],
-                            [Vec3d(4., 2., 0.), Vec3d(4., 2., 3.)]]])
-        assert_array_equal(mesh.node_coordinates, coords)
+        coords = np.array([[[[0., 0., 0.], [0., 0., 3.]], [[0., 1., 0.], [0., 1., 3.]],
+                            [[0., 2., 0.], [0., 2., 3.]]],
+                           [[[2., 0., 0.], [2., 0., 3.]], [[2., 1., 0.], [2., 1., 3.]],
+                            [[2., 2., 0.], [2., 2., 3.]]],
+                           [[[4., 0., 0.], [4., 0., 3.]], [[4., 1., 0.], [4., 1., 3.]],
+                            [[4., 2., 0.], [4., 2., 3.]]]])
+        assert_array_equal(mesh._node_coordinates, coords)
         assert_array_equal(mesh.charge_density, np.zeros((3, 3, 2)))
         potential = np.full((3, 3, 2), 3.14)
         assert_array_equal(mesh.potential, potential)
