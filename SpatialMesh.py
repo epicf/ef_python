@@ -188,27 +188,3 @@ class SpatialMesh(DataClass):
         for i, c in enumerate("xyz"):
             h5group.create_dataset(f"./node_coordinates_{c}", data=self._node_coordinates[:, :, :, i].ravel(order='C'))
             h5group.create_dataset(f"./electric_field_{c}", data=self._electric_field[:, :, :, i].ravel(order='C'))
-
-    def node_number_to_coordinate_x(self, i):
-        if i >= 0 and i < self.x_n_nodes:
-            return i * self.x_cell_size
-        else:
-            print("invalid node number i={:d} "
-                  "at node_number_to_coordinate_x".format(i))
-            sys.exit(-1)
-
-    def node_number_to_coordinate_y(self, j):
-        if j >= 0 and j < self.y_n_nodes:
-            return j * self.y_cell_size
-        else:
-            print("invalid node number j={:d} "
-                  "at node_number_to_coordinate_y".format(j))
-            sys.exit(-1)
-
-    def node_number_to_coordinate_z(self, k):
-        if k >= 0 and k < self.z_n_nodes:
-            return k * self.z_cell_size
-        else:
-            print("invalid node number k={:d} "
-                  "at node_number_to_coordinate_z".format(k))
-            sys.exit(-1)
