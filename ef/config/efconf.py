@@ -7,8 +7,6 @@ from ef.config.section import ConfigSection
 
 
 class EfConf(DataClass):
-    # repr_arg_separator = ',\n'
-
     def __init__(self, time_grid=TimeGrid(), spatial_mesh=SpatialMesh(), sources=(), inner_regions=(),
                  output_file=OutputFile(), boundary_conditions=BoundaryConditions(),
                  particle_interaction_model=ParticleInteractionModel(), external_fields=()):
