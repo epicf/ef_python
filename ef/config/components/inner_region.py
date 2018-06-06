@@ -4,7 +4,7 @@ __all__ = ["InnerRegion", "InnerRegionBoxConf", "InnerRegionCylinderConf",
 from collections import namedtuple
 
 from ef.config.components.shapes import Box, Cylinder, Tube, Sphere, Cone
-from ef.config.section import register, NamedConfigSection
+from ef.config.section import NamedConfigSection
 from ef.config.component import ConfigComponent
 
 
@@ -41,7 +41,6 @@ class InnerRegion(ConfigComponent):
         return cls(self.name, *(shape_args + [self.potential]))
 
 
-@register
 class InnerRegionBoxConf(NamedConfigSection):
     section = "InnerRegionBox"
     ContentTuple = namedtuple("InnerRegionBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
@@ -55,7 +54,6 @@ class InnerRegionBoxConf(NamedConfigSection):
         return InnerRegion(self.name, box, self.content.potential)
 
 
-@register
 class InnerRegionCylinderConf(NamedConfigSection):
     section = "InnerRegionCylinder"
     ContentTuple = namedtuple("InnerRegionCylinderTuple", ('cylinder_axis_start_x', 'cylinder_axis_start_y',
@@ -69,7 +67,6 @@ class InnerRegionCylinderConf(NamedConfigSection):
         return InnerRegion(self.name, cylinder, self.content.potential)
 
 
-@register
 class InnerRegionTubeConf(NamedConfigSection):
     section = "InnerRegionTube"
     ContentTuple = namedtuple("InnerRegionTubeTuple", ('tube_axis_start_x', 'tube_axis_start_y',
@@ -84,7 +81,6 @@ class InnerRegionTubeConf(NamedConfigSection):
         return InnerRegion(self.name, tube, self.content.potential)
 
 
-@register
 class InnerRegionSphereConf(NamedConfigSection):
     section = "Inner_region_sphere"
     ContentTuple = namedtuple("InnerRegionSphereTuple", ('sphere_origin_x', 'sphere_origin_y',
@@ -96,7 +92,6 @@ class InnerRegionSphereConf(NamedConfigSection):
         return InnerRegion(self.name, sphere, self.content.potential)
 
 
-@register
 class InnerRegionConeAlongZConf(NamedConfigSection):
     section = "InnerRegionConeAlongZ"
     ContentTuple = namedtuple("InnerRegionConeAlongZTuple",

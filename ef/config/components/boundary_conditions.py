@@ -4,7 +4,7 @@ from collections import namedtuple
 
 import numpy as np
 
-from ef.config.section import register, ConfigSection
+from ef.config.section import ConfigSection
 from ef.config.component import ConfigComponent
 
 
@@ -20,7 +20,6 @@ class BoundaryConditions(ConfigComponent):
                             colors=visualizer.potential_mapper.to_rgba(self.potential))
 
 
-@register
 class BoundaryConditionsConf(ConfigSection):
     section = "BoundaryConditions"
     ContentTuple = namedtuple("BoundaryConditionsTuple",

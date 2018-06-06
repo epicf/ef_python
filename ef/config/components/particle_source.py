@@ -5,7 +5,7 @@ from collections import namedtuple
 import numpy as np
 
 from ef.config.components.shapes import Box, Cylinder, Tube
-from ef.config.section import register, NamedConfigSection
+from ef.config.section import NamedConfigSection
 from ef.config.component import ConfigComponent
 
 
@@ -53,7 +53,6 @@ class ParticleSource(ConfigComponent):
                                 list(self.momentum) + [self.temperature, self.charge, self.mass]))
 
 
-@register
 class ParticleSourceBoxConf(NamedConfigSection):
     section = "ParticleSourceBox"
     ContentTuple = namedtuple("ParticleSourceBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
@@ -70,7 +69,6 @@ class ParticleSourceBoxConf(NamedConfigSection):
         return ParticleSource._from_content(self.name, box, self.content)
 
 
-@register
 class ParticleSourceCylinderConf(NamedConfigSection):
     section = "ParticleSourceCylinder"
     ContentTuple = namedtuple("ParticleSourceCylinderTuple", ('cylinder_axis_start_x', 'cylinder_axis_start_y',
@@ -88,7 +86,6 @@ class ParticleSourceCylinderConf(NamedConfigSection):
         return ParticleSource(self.name, cylinder, self.content)
 
 
-@register
 class ParticleSourceTubeConf(NamedConfigSection):
     section = "ParticleSourceTube"
     ContentTuple = namedtuple("ParticleSourceTubeTuple", ('tube_axis_start_x', 'tube_axis_start_y',

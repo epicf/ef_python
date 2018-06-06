@@ -2,7 +2,7 @@ __all__ = ["ParticleInteractionModel", "ParticleInteractionModelConf"]
 
 from collections import namedtuple
 
-from ef.config.section import register, ConfigSection
+from ef.config.section import ConfigSection
 from ef.config.component import ConfigComponent
 
 
@@ -16,7 +16,6 @@ class ParticleInteractionModel(ConfigComponent):
         return ParticleInteractionModelConf(self.model)
 
 
-@register
 class ParticleInteractionModelConf(ConfigSection):
     section = "ParticleInteractionModel"
     ContentTuple = namedtuple("ParticleInteractionModelTuple", ('particle_interaction_model',))

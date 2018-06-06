@@ -2,7 +2,7 @@ __all__ = ['TimeGrid', 'TimeGridConf']
 
 from collections import namedtuple
 
-from ef.config.section import ConfigSection, register
+from ef.config.section import ConfigSection
 from ef.config.component import ConfigComponent
 
 
@@ -19,7 +19,6 @@ class TimeGrid(ConfigComponent):
         pass
 
 
-@register
 class TimeGridConf(ConfigSection):
     section = "TimeGrid"
     ContentTuple = namedtuple("TimeGridTuple", ('total_time', 'time_save_step', 'time_step_size'))

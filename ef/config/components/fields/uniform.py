@@ -5,7 +5,7 @@ from collections import namedtuple
 import numpy as np
 
 from ef.config.components.fields.field import Field
-from ef.config.section import register, NamedConfigSection
+from ef.config.section import NamedConfigSection
 
 
 class ExternalFieldUniform(Field):
@@ -20,7 +20,6 @@ class ExternalFieldUniform(Field):
         return ExternalFieldUniformConf(self.name, self.electric_or_magnetic, *self.field)
 
 
-@register
 class ExternalFieldUniformConf(NamedConfigSection):
     section = "ExternalFieldUniform"
     ContentTuple = namedtuple("ExternalFieldUniform",

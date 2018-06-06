@@ -1,22 +1,21 @@
 from collections import namedtuple
 
 from ef.util.data_class import DataClass
+from ef.util.subclasses import get_all_subclasses
 
 
 class ConfigSection(DataClass):
-    section_map = {}
+    _section_map = None  # dictionary of section_header_string: section class
     section = "Section header string goes here"
     ContentTuple = namedtuple("ConfigSectionTuple", ())  # expected content of the config section as a namedtuple
     convert = ContentTuple()  # tuple of types to convert config strings into
 
     @staticmethod
     def parser_to_confs(conf):
-        return [ConfigSection.section_map[section.split('.')[0]].from_section(conf[section]) for section in
+        if ConfigSection._section_map is None:
+            ConfigSection._section_map = {c.section: c for c in get_all_subclasses(ConfigSection)}
+        return [ConfigSection._section_map[section.split('.')[0]].from_section(conf[section]) for section in
                 conf.sections()]
-
-    @classmethod
-    def register(cls):
-        cls.section_map[cls.section] = cls
 
     def __init__(self, *args, **kwargs):
         self.content = self.ContentTuple(*args, **kwargs)
@@ -45,11 +44,6 @@ class ConfigSection(DataClass):
 
     def make(self):
         raise NotImplementedError()
-
-
-def register(cls):
-    ConfigSection.section_map[cls.section] = cls
-    return cls
 
 
 class NamedConfigSection(ConfigSection):

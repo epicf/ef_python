@@ -4,7 +4,7 @@ from collections import namedtuple
 
 import numpy as np
 
-from ef.config.section import register, ConfigSection
+from ef.config.section import ConfigSection
 from ef.config.component import ConfigComponent
 
 
@@ -22,7 +22,6 @@ class SpatialMesh(ConfigComponent):
         return SpatialMeshConf(X, x, Y, y, Z, z)
 
 
-@register
 class SpatialMeshConf(ConfigSection):
     section = "SpatialMesh"
     ContentTuple = namedtuple("SpatialMeshTuple", ('grid_x_size', 'grid_x_step', 'grid_y_size',
