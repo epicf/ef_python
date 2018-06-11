@@ -70,7 +70,8 @@ class SpatialMesh(DataClass):
     @property
     def dict(self):
         d = super().dict
-        d['_electric_field'] = self._electric_field
+        del d["cell"]
+        d['electric_field'] = self._electric_field
         return d
 
     @classmethod

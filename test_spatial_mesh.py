@@ -174,3 +174,13 @@ class TestDefaultSpatialMesh:
         with h5py.File(fname, mode="r") as h5file:
             mesh1 = SpatialMesh.init_from_h5(h5file["/SpatialMesh"])
         assert mesh1 == mesh2
+
+    def test_dict(self):
+        mesh = SpatialMesh.do_init((4, 2, 3), (2, 1, 3), boundary_conditions.BoundaryConditions())
+        d = mesh.dict
+        assert d.keys() == set(("size", "n_nodes", "electric_field", "potential", "charge_density"))
+        assert_array_equal(d["size"], (4, 2, 3))
+        assert_array_equal(d["n_nodes"], (3, 3, 2))
+        assert_array_equal(d["electric_field"], np.zeros((3, 3, 2, 3)))
+        assert_array_equal(d["potential"], np.zeros((3, 3, 2)))
+        assert_array_equal(d["charge_density"], np.zeros((3, 3, 2)))
