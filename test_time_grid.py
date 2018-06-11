@@ -1,3 +1,5 @@
+import h5py
+
 from TimeGrid import TimeGrid
 from ef.config.components import time_grid
 
@@ -23,3 +25,11 @@ class TestTimeGrid:
         assert time_grid.TimeGrid(123, 13, 3) != TimeGrid(123, 3, 13).to_component()
         assert time_grid.TimeGrid(123, 13, 3).make() == TimeGrid(123, 3, 13)
 
+    def test_init_h5(self, tmpdir):
+        fname = tmpdir.join('test_timegrid_init.h5')
+        grid1 = TimeGrid(100, 1, 10)
+        with h5py.File(fname, mode="w") as h5file:
+            grid1.write_to_file(h5file)
+        with h5py.File(fname, mode="r") as h5file:
+            grid2 = TimeGrid.init_from_h5(h5file["/TimeGrid"])
+        assert grid1 == grid2
