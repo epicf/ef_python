@@ -29,6 +29,11 @@ class TestDataClass:
     class ABx(AB):
         def __init__(self, a, b):
             super().__init__(a, b)
+            self.x = a + b
+
+    class AB_x(AB):
+        def __init__(self, a, b):
+            super().__init__(a, b)
             self._x = a + b
 
     def test_dict(self):
@@ -37,7 +42,8 @@ class TestDataClass:
         assert ab.dict == {'a': 1, 'b': 2}
         assert AB(ab, []).dict == {'a': ab, 'b': []}
         assert AB(**ab.dict) == ab
-        assert self.ABx(1, 2).dict == {'a': 1, 'b': 2, '_x': 3}
+        assert self.ABx(1, 2).dict == {'a': 1, 'b': 2, 'x': 3}
+        assert self.AB_x(1, 2).dict == {'a': 1, 'b': 2}
 
     def test_eq(self):
         AB = self.AB
@@ -49,6 +55,7 @@ class TestDataClass:
         assert ab != (1, 2)
         assert ab != self.AB2(1, 2)
         assert ab != self.ABx(1, 2)
+        assert ab != self.AB_x(1, 2)
         assert AB([1, 2, 3], np.array([[4, 5, 6], [7, 8, 9]])) == \
                AB([1, 2, 3], np.array([[4, 5, 6], [7, 8, 9]]))
         assert AB([1, 2, 3], np.array([[4, 5, 6], [7, 8, 9]])) != \
@@ -70,12 +77,12 @@ class TestDataClass:
         y = ABh(2, 3)
         good = ABh((), ())
         bad = ABh([], [])
-        assert len(set((x, xf))) == 1
-        assert len(set((x, y))) == 2
-        assert len(set((x, y, xf))) == 2
-        assert len(set((good, good, x))) == 2
+        assert len({x, xf}) == 1
+        assert len({x, y}) == 2
+        assert len({x, y, xf}) == 2
+        assert len({good, good, x}) == 2
         with pytest.raises(TypeError):
-            set((bad, x))
+            y = {bad, x}
 
     def test_nan(self):
         assert self.AB([1, 2, 3], np.array([[4, 5, np.NaN], [7, 8, 9]])) != \

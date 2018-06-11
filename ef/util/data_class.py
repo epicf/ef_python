@@ -10,7 +10,7 @@ class DataClass:
 
         :return: A dict representation of object attributes that can be used to construct it.
         """
-        return vars(self).copy()
+        return {k: v for k, v in vars(self).items() if not k.startswith("_")}
 
     def __eq__(self, other):
         if self is other:
@@ -37,7 +37,7 @@ class DataClass:
 
     def __str__(self):
         cls = self.__class__.__name__
-        args = '\n'.join(f"{k} = {v}" for k, v in self.dict.items())
+        args = '\n'.join(f"{k} = {v}" for k, v in vars(self).items())
         return f"### {cls}:\n{args}"
 
 
