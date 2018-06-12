@@ -58,3 +58,7 @@ class TestPrint:
                                    "total = 100.0\n"
                                    "save_step = 10.0\n"
                                    "step = 1.0")
+
+
+def test_potentials():
+    assert EfConf().get_potentials() == [0., 0., 0., 0., 0., 0.]

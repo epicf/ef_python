@@ -68,7 +68,8 @@ class EfConf(DataClass):
                [self.output_file, self.boundary_conditions, self.particle_interaction_model] + self.external_fields
 
     def get_potentials(self):
-        return [self.boundary_conditions.potential] + [region.potential for region in self.inner_regions]
+        bc = self.boundary_conditions
+        return [bc.left, bc.right, bc.top, bc.bottom, bc.near, bc.far] + [region.potential for region in self.inner_regions]
 
     def to_sections(self):
         return [c.to_conf() for c in self.components]
