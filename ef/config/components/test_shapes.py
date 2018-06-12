@@ -1,3 +1,5 @@
+import random
+
 from ef.config.components import Cylinder, Tube
 from ef.config.components.shapes import Box, Sphere
 
@@ -130,3 +132,12 @@ def test_tube_point_in():
     assert not t.is_point_inside((0.9, 2, 5))
     assert not t.is_point_inside((1, 1.9, 5))
     assert not t.is_point_inside((1, 2.1, 5))
+
+
+def test_generate_point():
+    for cls in Box, Sphere, Cylinder, Tube:
+        shape = cls()
+        for i in range(1000):
+            v = shape.generate_uniform_random_point(random.uniform)
+            point = (v.x, v.y, v.z)
+            assert shape.is_point_inside(point)
