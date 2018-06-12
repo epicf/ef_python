@@ -41,7 +41,7 @@ class Domain:
         field_solver = FieldSolver(spat_mesh, inner_regions)
         particle_sources = ParticleSourcesManager.init_from_config(conf)
         external_fields = ExternalFieldsManager.init_from_config(conf)
-        particle_interaction_model = ParticleInteractionModel.init_from_config(conf)
+        particle_interaction_model = ef.particle_interaction_model.make()
         output_filename_prefix, output_filename_suffix = \
             Domain.get_output_filename_prefix_and_suffix(conf)
         Domain.check_and_print_unused_conf_sections(conf)
