@@ -6,7 +6,11 @@ from ef.config.component import ConfigComponent
 
 
 class Shape(ConfigComponent):
-    pass
+    def visualize(self, visualizer, **kwargs):
+        raise NotImplementedError()
+
+    def is_point_inside(self, point):
+        raise NotImplementedError()
 
 
 class Box(Shape):
@@ -17,6 +21,9 @@ class Box(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_box(self.size, self.origin, **kwargs)
 
+    def is_point_inside(self, point):
+        return np.all(point >= self.origin) and np.all(point <= self.origin + self.size)
+
 
 class Cylinder(Shape):
     def __init__(self, start=(0, 0, 0), end=(1, 0, 0), radius=1):
@@ -26,6 +33,15 @@ class Cylinder(Shape):
 
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_cylinder(self.start, self.end, self.r, **kwargs)
+
+    def is_point_inside(self, point):
+        pointvec = point - self.start
+        axisvec = self.end - self.start
+        axis = np.linalg.norm(axisvec)
+        unit_axisvec = axisvec / axis
+        projection = np.dot(pointvec, unit_axisvec)
+        perp_to_axis = pointvec - unit_axisvec * projection
+        return 0 <= projection <= axis and np.linalg.norm(perp_to_axis) <= self.r
 
 
 class Tube(Shape):
@@ -38,14 +54,26 @@ class Tube(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_tube(self.start, self.end, self.r, self.R, **kwargs)
 
+    def is_point_inside(self, point):
+        pointvec = point - self.start
+        axisvec = self.end - self.start
+        axis = np.linalg.norm(axisvec)
+        unit_axisvec = axisvec / axis
+        projection = np.dot(pointvec, unit_axisvec)
+        perp_to_axis = pointvec - unit_axisvec * projection
+        return 0 <= projection <= axis and self.r <= np.linalg.norm(perp_to_axis) <= self.R
+
 
 class Sphere(Shape):
-    def __init__(self, origin=(0,0,0), radius=1):
+    def __init__(self, origin=(0, 0, 0), radius=1):
         self.origin = np.array(origin)
         self.r = float(radius)
 
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_sphere(self.origin, self.r, **kwargs)
+
+    def is_point_inside(self, point):
+        return np.linalg.norm(point - self.origin) <= self.r
 
 
 class Cone(Shape):
@@ -58,3 +86,5 @@ class Cone(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_cone(self.start, self.end,
                              self.start_radii, self.end_radii, **kwargs)
+
+# TODO: def is_point_inside(self, point)
