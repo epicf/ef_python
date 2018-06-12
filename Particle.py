@@ -1,15 +1,15 @@
 import physical_constants
+from ef.util.serializable_h5 import SerializableH5
 
 
-class Particle():
-
-    def __init__(self, particle_id, charge, mass, position, momentum):
-        self.id = particle_id
+class Particle(SerializableH5):
+    def __init__(self, id, charge, mass, position, momentum, momentum_is_half_time_step_shifted=False):
+        self.id = id
         self.charge = charge
         self.mass = mass
         self.position = position
         self.momentum = momentum
-        self.momentum_is_half_time_step_shifted = False
+        self.momentum_is_half_time_step_shifted = momentum_is_half_time_step_shifted
 
     def update_position(self, dt):
         pos_shift = self.momentum.times_scalar(dt / self.mass)
