@@ -288,39 +288,8 @@ class FieldSolver:
 
     @staticmethod
     def eval_fields_from_potential(spat_mesh):
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
-        dx = spat_mesh.x_cell_size
-        dy = spat_mesh.y_cell_size
-        dz = spat_mesh.z_cell_size
-        phi = spat_mesh.potential
-        #
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    if i == 0:
-                        ex = - boundary_difference(phi[i][j][k], phi[i + 1][j][k], dx)
-                    elif i == nx - 1:
-                        ex = - boundary_difference(phi[i - 1][j][k], phi[i][j][k], dx)
-                    else:
-                        ex = - central_difference(phi[i - 1][j][k], phi[i + 1][j][k], dx)
-                    #
-                    if j == 0:
-                        ey = - boundary_difference(phi[i][j][k], phi[i][j + 1][k], dy)
-                    elif j == ny - 1:
-                        ey = - boundary_difference(phi[i][j - 1][k], phi[i][j][k], dy)
-                    else:
-                        ey = - central_difference(phi[i][j - 1][k], phi[i][j + 1][k], dy)
-                    #
-                    if k == 0:
-                        ez = - boundary_difference(phi[i][j][k], phi[i][j][k + 1], dz)
-                    elif k == nz - 1:
-                        ez = - boundary_difference(phi[i][j][k - 1], phi[i][j][k], dz)
-                    else:
-                        ez = - central_difference(phi[i][j][k - 1], phi[i][j][k + 1], dz)
-                    #
-                    spat_mesh._electric_field[i, j, k] = (ex, ey, ez)
+        e = -np.stack(np.gradient(spat_mesh.potential, *spat_mesh.cell), -1)
+        spat_mesh._electric_field = e
 
     def clear(self):
         pass
@@ -330,14 +299,6 @@ class FieldSolver:
         # A;
         # precond;
         # monitor;
-
-
-def central_difference(phi1, phi2, dx):
-    return (phi2 - phi1) / (2.0 * dx)
-
-
-def boundary_difference(phi1, phi2, dx):
-    return (phi2 - phi1) / dx
 
 
 def kronecker_delta(i, j):

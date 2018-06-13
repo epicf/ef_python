@@ -1,19 +1,12 @@
 import numpy as np
 
-from FieldSolver import kronecker_delta, boundary_difference, central_difference, FieldSolver
+from FieldSolver import kronecker_delta, FieldSolver
 from ef.config.components import BoundaryConditionsConf, SpatialMeshConf
 
 
 def test_kronecker_delta():
     assert kronecker_delta(1, 1) == 1
     assert kronecker_delta(1, 2) == 0
-
-
-def test_difference():
-    assert boundary_difference(0.0, 1.0, 1.0) == 1.0
-    assert boundary_difference(5, 10, 2) == 2.5
-    assert central_difference(0.0, 1.0, 1.0) == 0.5
-    assert central_difference(5, 10, 2) == 1.25
 
 
 def test_eval_field_from_potential():
