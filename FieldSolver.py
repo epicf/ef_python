@@ -203,38 +203,16 @@ class FieldSolver:
         self.set_rhs_for_nodes_inside_objects(spat_mesh, inner_regions)
 
     def init_rhs_vector_in_full_domain(self, spat_mesh):
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
-        dx = spat_mesh.x_cell_size
-        dy = spat_mesh.y_cell_size
-        dz = spat_mesh.z_cell_size
-        # todo: split into separate functions
-        for k in range(1, nz - 1):
-            for j in range(1, ny - 1):
-                for i in range(1, nx - 1):
-                    # - 4 * pi * rho * dx^2 * dy^2
-                    rhs_at_node = -4.0 * np.pi * spat_mesh.charge_density[i][j][k]
-                    rhs_at_node = rhs_at_node * dx * dx * dy * dy * dz * dz
-                    # left and right boundary
-                    rhs_at_node = rhs_at_node - \
-                                  dy * dy * dz * dz * \
-                                  (kronecker_delta(i, 1) * spat_mesh.potential[0][j][k] + \
-                                   kronecker_delta(i, nx - 2) * spat_mesh.potential[nx - 1][j][k])
-                    # top and bottom boundary
-                    rhs_at_node = rhs_at_node - \
-                                  dx * dx * dz * dz * \
-                                  (kronecker_delta(j, 1) * spat_mesh.potential[i][0][k] + \
-                                   kronecker_delta(j, ny - 2) * spat_mesh.potential[i][ny - 1][k])
-                    # near and far boundary
-                    rhs_at_node = rhs_at_node - \
-                                  dx * dx * dy * dy * \
-                                  (kronecker_delta(k, 1) * spat_mesh.potential[i][j][0] + \
-                                   kronecker_delta(k, nz - 2) * spat_mesh.potential[i][j][nz - 1])
-                    # set rhs vector values
-                    global_idx = self.node_ijk_to_global_index_in_matrix(i, j, k,
-                                                                         nx, ny, nz)
-                    self.rhs[global_idx] = rhs_at_node
+        m = spat_mesh
+        rhs = -4 * np.pi * m.cell.prod() ** 2 * m.charge_density[1:-1, 1:-1, 1:-1]
+        dx, dy, dz = m.cell
+        rhs[0] -= dy * dy * dz * dz * m.potential[0, 1:-1, 1:-1]
+        rhs[-1] -= dy * dy * dz * dz * m.potential[-1, 1:-1, 1:-1]
+        rhs[:, 0] -= dx * dx * dz * dz * m.potential[1:-1, 0, 1:-1]
+        rhs[:, -1] -= dx * dx * dz * dz * m.potential[1:-1, -1, 1:-1]
+        rhs[:, :, 0] -= dx * dx * dy * dy * m.potential[1:-1, 1:-1, 0]
+        rhs[:, :, -1] -= dx * dx * dy * dy * m.potential[1:-1, 1:-1, -1]
+        self.rhs = rhs.ravel('F')
 
     def set_rhs_for_nodes_inside_objects(self, spat_mesh, inner_regions):
         nx = spat_mesh.x_n_nodes
@@ -309,10 +287,3 @@ class FieldSolver:
         # A;
         # precond;
         # monitor;
-
-
-def kronecker_delta(i, j):
-    if i == j:
-        return 1
-    else:
-        return 0

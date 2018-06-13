@@ -1,14 +1,9 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 
-from FieldSolver import kronecker_delta, FieldSolver
+from FieldSolver import FieldSolver
 from InnerRegionsManager import InnerRegionsManager
 from ef.config.components import BoundaryConditionsConf, SpatialMeshConf
-
-
-def test_kronecker_delta():
-    assert kronecker_delta(1, 1) == 1
-    assert kronecker_delta(1, 2) == 0
 
 
 def test_eval_field_from_potential():
