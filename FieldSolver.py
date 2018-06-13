@@ -43,7 +43,8 @@ class FieldSolver:
         # d2dz2 = None
         self.A = self.A.tocsr()
 
-    def construct_d2dx2_in_3d(self, nx, ny, nz):
+    @staticmethod
+    def construct_d2dx2_in_3d(nx, ny, nz):
         nrow = (nx - 2) * (ny - 2) * (nz - 2)
         ncol = nrow
         cols = []
@@ -51,7 +52,7 @@ class FieldSolver:
         vals = []
         #
         for row_idx in range(nrow):
-            i, j, k = self.global_index_in_matrix_to_node_ijk(row_idx, nx, ny, nz)
+            i, j, k = FieldSolver.global_index_in_matrix_to_node_ijk(row_idx, nx, ny, nz)
             if i == 1:
                 # left boundary
                 rows.append(row_idx)
@@ -83,7 +84,8 @@ class FieldSolver:
         d2dx2 = scipy.sparse.coo_matrix((vals, (rows, cols)))
         return d2dx2
 
-    def construct_d2dy2_in_3d(self, nx, ny, nz):
+    @staticmethod
+    def construct_d2dy2_in_3d(nx, ny, nz):
         nrow = (nx - 2) * (ny - 2) * (nz - 2)
         ncol = nrow
         cols = []
@@ -91,7 +93,7 @@ class FieldSolver:
         vals = []
         #
         for row_idx in range(nrow):
-            i, j, k = self.global_index_in_matrix_to_node_ijk(row_idx, nx, ny, nz)
+            i, j, k = FieldSolver.global_index_in_matrix_to_node_ijk(row_idx, nx, ny, nz)
             if j == 1:
                 # bottom boundary
                 rows.append(row_idx)
@@ -123,7 +125,8 @@ class FieldSolver:
         d2dy2 = scipy.sparse.coo_matrix((vals, (rows, cols)))
         return d2dy2
 
-    def construct_d2dz2_in_3d(self, nx, ny, nz):
+    @staticmethod
+    def construct_d2dz2_in_3d(nx, ny, nz):
         nrow = (nx - 2) * (ny - 2) * (nz - 2)
         ncol = nrow
         cols = []
@@ -244,7 +247,8 @@ class FieldSolver:
                     node.x, node.y, node.z, nx, ny, nz)
                 self.rhs[global_idx] = ir.potential
 
-    def node_ijk_to_global_index_in_matrix(self, i, j, k, nx, ny, nz):
+    @staticmethod
+    def node_ijk_to_global_index_in_matrix(i, j, k, nx, ny, nz):
         # numbering of nodes corresponds to axis direction
         # i.e. numbering starts from bottom-left-near corner
         #   then along X axis to the right
@@ -261,7 +265,8 @@ class FieldSolver:
         else:
             return (i - 1) + (j - 1) * (nx - 2) + (k - 1) * (nx - 2) * (ny - 2)
 
-    def global_index_in_matrix_to_node_ijk(self, global_index, nx, ny, nz):
+    @staticmethod
+    def global_index_in_matrix_to_node_ijk(global_index, nx, ny, nz):
         # global_index = (i - 1) +
         #                (j - 1) * (nx - 2) +
         #                (k - 1) * (nx - 2) * (ny - 2)

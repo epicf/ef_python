@@ -21,3 +21,12 @@ def test_eval_field_from_potential():
                          [[[-3, 1, 4], [0, 0, 4]], [[-2, 1, 3], [0, 0, 3]], [[-1, 1, 2], [0, 0, 2]]],
                          [[[0, 0, 4], [0, 0, 4]], [[-2, 0, 4], [0, 0, 4]], [[-4, 0, 4], [0, 0, 4]]]])
     np.testing.assert_array_equal(mesh._electric_field, expected)
+
+
+def test_global_index():
+    for i in range(7):
+        for j in range(8):
+            for k in range(4):
+                n = i + j * 7 + k * 7 * 8
+                assert FieldSolver.global_index_in_matrix_to_node_ijk(n, 9, 10, 6) == (i + 1, j + 1, k + 1)
+                assert FieldSolver.node_ijk_to_global_index_in_matrix(i + 1, j + 1, k + 1, 9, 10, 6) == n
