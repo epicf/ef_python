@@ -286,7 +286,8 @@ class FieldSolver:
             i, j, k = self.global_index_in_matrix_to_node_ijk(global_index, nx, ny, nz)
             spat_mesh.potential[i][j][k] = self.phi_vec[global_index]
 
-    def eval_fields_from_potential(self, spat_mesh):
+    @staticmethod
+    def eval_fields_from_potential(spat_mesh):
         nx = spat_mesh.x_n_nodes
         ny = spat_mesh.y_n_nodes
         nz = spat_mesh.z_n_nodes
