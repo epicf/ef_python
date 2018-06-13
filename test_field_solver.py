@@ -1,6 +1,8 @@
 import numpy as np
+from numpy.testing import assert_array_equal, assert_allclose
 
 from FieldSolver import kronecker_delta, FieldSolver
+from InnerRegionsManager import InnerRegionsManager
 from ef.config.components import BoundaryConditionsConf, SpatialMeshConf
 
 
@@ -20,7 +22,7 @@ def test_eval_field_from_potential():
                          [[[-4, -1, 1], [0, 0, 1]], [[-3, -1, 2], [0, 0, 2]], [[-2, -1, 3], [0, 0, 3]]],
                          [[[-3, 1, 4], [0, 0, 4]], [[-2, 1, 3], [0, 0, 3]], [[-1, 1, 2], [0, 0, 2]]],
                          [[[0, 0, 4], [0, 0, 4]], [[-2, 0, 4], [0, 0, 4]], [[-4, 0, 4], [0, 0, 4]]]])
-    np.testing.assert_array_equal(mesh._electric_field, expected)
+    assert_array_equal(mesh._electric_field, expected)
 
 
 def test_global_index():
@@ -38,3 +40,41 @@ def test_global_index():
                                                                    (3, 2, 2, 1),
                                                                    (4, 1, 3, 1),
                                                                    (5, 2, 3, 1)]
+
+
+def test_init_rhs():
+    mesh = SpatialMeshConf((4, 3, 3)).make(BoundaryConditionsConf())
+    solver = FieldSolver(mesh, InnerRegionsManager())
+    solver.init_rhs_vector_in_full_domain(mesh)
+    assert_array_equal(solver.rhs, np.zeros(3 * 2 * 2))
+
+    mesh = SpatialMeshConf((4, 3, 3)).make(BoundaryConditionsConf(-2))
+    solver = FieldSolver(mesh, InnerRegionsManager())
+    solver.init_rhs_vector_in_full_domain(mesh)
+    assert_array_equal(solver.rhs, [6, 4, 6, 6, 4, 6, 6, 4, 6, 6, 4, 6])  # what
+
+    mesh = SpatialMeshConf((4, 4, 5)).make(BoundaryConditionsConf(-2))
+    solver = FieldSolver(mesh, InnerRegionsManager())
+    solver.init_rhs_vector_in_full_domain(mesh)
+    assert_array_equal(solver.rhs, [6, 4, 6, 4, 2, 4, 6, 4, 6,
+                                    4, 2, 4, 2, 0, 2, 4, 2, 4,
+                                    4, 2, 4, 2, 0, 2, 4, 2, 4,
+                                    6, 4, 6, 4, 2, 4, 6, 4, 6])  # what
+
+    mesh = SpatialMeshConf((8, 12, 5), (2, 3, 1)).make(BoundaryConditionsConf(-1))
+    solver = FieldSolver(mesh, InnerRegionsManager())
+    solver.init_rhs_vector_in_full_domain(mesh)
+    assert_array_equal(solver.rhs, [49, 40, 49, 45, 36, 45, 49, 40, 49,
+                                    13, 4, 13, 9, 0, 9, 13, 4, 13,
+                                    13, 4, 13, 9, 0, 9, 13, 4, 13,
+                                    49, 40, 49, 45, 36, 45, 49, 40, 49])
+
+    mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
+    solver = FieldSolver(mesh, InnerRegionsManager())
+    mesh.charge_density = np.array([[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                                    [[0, 0, 0, 0], [0, 1, 2, 0], [0, -1, 0, 0], [0, 0, 0, 0]],
+                                    [[0, 0, 0, 0], [0, 3, 4, 0], [0, 0, -1, 0], [0, 0, 0, 0]],
+                                    [[0, 0, 0, 0], [0, 5, 6, 0], [0, -1, 0, 0], [0, 0, 0, 0]],
+                                    [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]])
+    solver.init_rhs_vector_in_full_domain(mesh)
+    assert_allclose(solver.rhs, -np.array([1, 3, 5, -1, 0, -1, 2, 4, 6, 0, -1, 0]) * np.pi * 4 * 36)
