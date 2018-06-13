@@ -6,7 +6,6 @@ import scipy.sparse.linalg
 
 
 class FieldSolver:
-
     def __init__(self, spat_mesh, inner_regions):
         if inner_regions.regions:
             print("WARNING: field-solver: inner region support is untested")
@@ -295,6 +294,12 @@ class FieldSolver:
     def eval_fields_from_potential(spat_mesh):
         e = -np.stack(np.gradient(spat_mesh.potential, *spat_mesh.cell), -1)
         spat_mesh._electric_field = e
+
+    @staticmethod
+    def double_index(n_nodes):
+        nx, ny, nz = n_nodes - 2
+        return [(i + j * nx + k * nx * ny, i + 1, j + 1, k + 1)
+                for k in range(nz) for j in range(ny) for i in range(nx)]
 
     def clear(self):
         pass
