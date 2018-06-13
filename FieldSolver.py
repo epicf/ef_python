@@ -219,7 +219,7 @@ class FieldSolver:
         ny = spat_mesh.y_n_nodes
         nz = spat_mesh.z_n_nodes
         for ir in inner_regions.regions:
-            for node in ir.inner_nodes_not_at_domain_edge:
+            for node in ir._inner_nodes_not_at_domain_edge:
                 global_idx = self.node_ijk_to_global_index_in_matrix(
                     node.x, node.y, node.z, nx, ny, nz)
                 self.rhs[global_idx] = ir.potential

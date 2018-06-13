@@ -2,8 +2,10 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 
 from FieldSolver import FieldSolver
+from InnerRegion import InnerRegion
 from InnerRegionsManager import InnerRegionsManager
 from ef.config.components import BoundaryConditionsConf, SpatialMeshConf
+from ef.config.components import Box
 
 
 def test_eval_field_from_potential():
@@ -73,3 +75,11 @@ def test_init_rhs():
                                     [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]])
     solver.init_rhs_vector_in_full_domain(mesh)
     assert_allclose(solver.rhs, -np.array([1, 3, 5, -1, 0, -1, 2, 4, 6, 0, -1, 0]) * np.pi * 4 * 36)
+
+    mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
+    solver = FieldSolver(mesh, InnerRegionsManager())
+    region = InnerRegion('test', Box((1, 2, 3), (1, 2, 3)), 3)
+    region.mark_inner_nodes(mesh)
+    region.select_inner_nodes_not_at_domain_edge(mesh)
+    solver.init_rhs_vector(mesh, InnerRegionsManager([region]))
+    assert_array_equal(solver.rhs, [3, 3, 0, 3, 3, 0, 3, 3, 0, 3, 3, 0])
