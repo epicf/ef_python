@@ -104,7 +104,7 @@ def test_zero_nondiag_inside_objects():
                                             [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
                                             [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
                                             [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]])
-    solver.zero_nondiag_for_nodes_inside_objects(5, 4, 4, InnerRegionsManager([region]))
+    solver.zero_nondiag_for_nodes_inside_objects(mesh, InnerRegionsManager([region]))
     assert_array_equal(solver.A.toarray(), [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                             [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                             [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
@@ -131,7 +131,7 @@ def test_zero_nondiag_inside_objects():
                                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                     [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 6, 0],
                                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
-    solver.zero_nondiag_for_nodes_inside_objects(5, 4, 4, InnerRegionsManager([region]))
+    solver.zero_nondiag_for_nodes_inside_objects(mesh, InnerRegionsManager([region]))
     assert_array_equal(solver.A.toarray(), [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

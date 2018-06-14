@@ -30,7 +30,7 @@ class FieldSolver:
         dy = spat_mesh.y_cell_size
         dz = spat_mesh.z_cell_size
         self.construct_equation_matrix_in_full_domain(nx, ny, nz, dx, dy, dz)
-        self.zero_nondiag_for_nodes_inside_objects(nx, ny, nz, inner_regions)
+        self.zero_nondiag_for_nodes_inside_objects(spat_mesh, inner_regions)
 
     def construct_equation_matrix_in_full_domain(self, nx, ny, nz, dx, dy, dz):
         self.A = self.construct_d2dx2_in_3d(nx, ny, nz)
@@ -166,18 +166,18 @@ class FieldSolver:
         d2dz2 = scipy.sparse.coo_matrix((vals, (rows, cols)))
         return d2dz2
 
-    def zero_nondiag_for_nodes_inside_objects(self, nx, ny, nz, inner_regions):
+    def zero_nondiag_for_nodes_inside_objects(self, mesh, inner_regions):
         for ir in inner_regions.regions:
-            for node in ir._inner_nodes_not_at_domain_edge:
-                row_idx = self.node_ijk_to_global_index_in_matrix(
-                    node.x, node.y, node.z, nx, ny, nz)
-                csr_row_start = self.A.indptr[row_idx]
-                csr_row_end = self.A.indptr[row_idx + 1]
-                for j in range(csr_row_start, csr_row_end):
-                    if self.A.indices[j] != row_idx:
-                        self.A.data[j] = 0
-                    else:
-                        self.A.data[j] = 1
+            for n, i, j, k in self._double_index:
+                xyz = mesh.cell * (i, j, k)
+                if ir.check_if_point_inside(*xyz):
+                    csr_row_start = self.A.indptr[n]
+                    csr_row_end = self.A.indptr[n + 1]
+                    for t in range(csr_row_start, csr_row_end):
+                        if self.A.indices[t] != n:
+                            self.A.data[t] = 0
+                        else:
+                            self.A.data[t] = 1
 
     def create_solver_and_preconditioner(self):
         self.maxiter = 1000
