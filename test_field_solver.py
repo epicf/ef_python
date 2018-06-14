@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
+from scipy.sparse import csr_matrix
 
 from FieldSolver import FieldSolver
 from InnerRegion import InnerRegion
@@ -81,3 +82,65 @@ def test_init_rhs():
     region = InnerRegion('test', Box((1, 2, 3), (1, 2, 3)), 3)
     solver.init_rhs_vector(mesh, InnerRegionsManager([region]))
     assert_array_equal(solver.rhs, [3, 3, 0, 3, 3, 0, 3, 3, 0, 3, 3, 0])
+
+
+def test_zero_nondiag_inside_objects():
+    mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
+    solver = FieldSolver(mesh, InnerRegionsManager())
+    region = InnerRegion('test', Box((1, 2, 3), (1, 2, 3)), 3)
+    region.mark_inner_nodes(mesh)
+    region.select_inner_nodes_not_at_domain_edge(mesh)
+
+    solver.A = csr_matrix(np.full((12, 12), 2))
+    assert_array_equal(solver.A.toarray(), [[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]])
+    solver.zero_nondiag_for_nodes_inside_objects(5, 4, 4, InnerRegionsManager([region]))
+    assert_array_equal(solver.A.toarray(), [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]])
+
+    # TODO: check algorithm if on-diagonal zeros should turn into ones
+    solver.A = csr_matrix(np.array([[4, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 2, 0, 0, 3, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 6, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
+    solver.zero_nondiag_for_nodes_inside_objects(5, 4, 4, InnerRegionsManager([region]))
+    assert_array_equal(solver.A.toarray(), [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 2, 0, 0, 3, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
