@@ -10,6 +10,7 @@ class FieldSolver:
         if inner_regions.regions:
             print("WARNING: field-solver: inner region support is untested")
             print("WARNING: proceed with caution")
+        self._double_index = self.double_index(spat_mesh.n_nodes)
         nx = spat_mesh.x_n_nodes
         ny = spat_mesh.y_n_nodes
         nz = spat_mesh.z_n_nodes
@@ -215,14 +216,11 @@ class FieldSolver:
         self.rhs = rhs.ravel('F')
 
     def set_rhs_for_nodes_inside_objects(self, spat_mesh, inner_regions):
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
         for ir in inner_regions.regions:
-            for node in ir._inner_nodes_not_at_domain_edge:
-                global_idx = self.node_ijk_to_global_index_in_matrix(
-                    node.x, node.y, node.z, nx, ny, nz)
-                self.rhs[global_idx] = ir.potential
+            for n, i, j, k in self._double_index:
+                xyz = spat_mesh.cell * (i, j, k)
+                if ir.check_if_point_inside(*xyz):
+                    self.rhs[n] = ir.potential  # where is dx**2 dy**2 etc?
 
     @staticmethod
     def node_ijk_to_global_index_in_matrix(i, j, k, nx, ny, nz):

@@ -79,7 +79,5 @@ def test_init_rhs():
     mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
     solver = FieldSolver(mesh, InnerRegionsManager())
     region = InnerRegion('test', Box((1, 2, 3), (1, 2, 3)), 3)
-    region.mark_inner_nodes(mesh)
-    region.select_inner_nodes_not_at_domain_edge(mesh)
     solver.init_rhs_vector(mesh, InnerRegionsManager([region]))
     assert_array_equal(solver.rhs, [3, 3, 0, 3, 3, 0, 3, 3, 0, 3, 3, 0])
