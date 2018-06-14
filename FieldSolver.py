@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
+from scipy.sparse import diags
 
 
 class FieldSolver:
@@ -45,126 +46,39 @@ class FieldSolver:
 
     @staticmethod
     def construct_d2dx2_in_3d(nx, ny, nz):
-        nrow = (nx - 2) * (ny - 2) * (nz - 2)
-        ncol = nrow
         cols = []
         rows = []
         vals = []
-        #
-        for row_idx in range(nrow):
-            i, j, k = FieldSolver.global_index_in_matrix_to_node_ijk(row_idx, nx, ny, nz)
-            if i == 1:
-                # left boundary
-                rows.append(row_idx)
-                cols.append(row_idx)
-                vals.append(-2.0)
-                rows.append(row_idx)
-                cols.append(row_idx + 1)
+        for n, i, j, k in FieldSolver.double_index(np.array((nx, ny, nz))):
+            rows.append(n)
+            cols.append(n)
+            vals.append(-2)
+            if i < nx - 2:
+                rows.append(n)
+                cols.append(n + 1)
                 vals.append(1.0)
-            elif i == nx - 2:
-                # right boundary
-                rows.append(row_idx)
-                cols.append(row_idx - 1)
+            if i > 1:
+                rows.append(n)
+                cols.append(n - 1)
                 vals.append(1.0)
-                rows.append(row_idx)
-                cols.append(row_idx)
-                vals.append(-2.0)
-            else:
-                # center
-                rows.append(row_idx)
-                cols.append(row_idx - 1)
-                vals.append(1.0)
-                rows.append(row_idx)
-                cols.append(row_idx)
-                vals.append(-2.0)
-                rows.append(row_idx)
-                cols.append(row_idx + 1)
-                vals.append(1.0)
-            # printf("d2dx2 loop: i = %d \n", i);
         d2dx2 = scipy.sparse.coo_matrix((vals, (rows, cols)))
         return d2dx2
 
     @staticmethod
     def construct_d2dy2_in_3d(nx, ny, nz):
-        nrow = (nx - 2) * (ny - 2) * (nz - 2)
-        ncol = nrow
-        cols = []
-        rows = []
-        vals = []
-        #
-        for row_idx in range(nrow):
-            i, j, k = FieldSolver.global_index_in_matrix_to_node_ijk(row_idx, nx, ny, nz)
-            if j == 1:
-                # bottom boundary
-                rows.append(row_idx)
-                cols.append(row_idx)
-                vals.append(-2.0)
-                rows.append(row_idx)
-                cols.append(row_idx + (nx - 2))
-                vals.append(1.0)
-            elif j == ny - 2:
-                # top boundary
-                rows.append(row_idx)
-                cols.append(row_idx - (nx - 2))
-                vals.append(1.0)
-                rows.append(row_idx)
-                cols.append(row_idx)
-                vals.append(-2.0)
-            else:
-                # center
-                rows.append(row_idx)
-                cols.append(row_idx - (nx - 2))
-                vals.append(1.0)
-                rows.append(row_idx)
-                cols.append(row_idx)
-                vals.append(-2.0)
-                rows.append(row_idx)
-                cols.append(row_idx + (nx - 2))
-                vals.append(1.0)
-            # printf("d2dy2 loop: i = %d \n", i);
+        di = FieldSolver.double_index(np.array((nx, ny, nz)))
+        diag0 = np.array([(n, n, -2) for n, i, j, k in di])
+        diag1 = np.array([(n, n + nx - 2, 1) for n, i, j, k in di if j < ny - 2])
+        diag_1 = np.array([(n, n - nx + 2, 1) for n, i, j, k in di if j > 1])
+        rows, cols, vals = np.concatenate((diag0, diag1, diag_1)).T
         d2dy2 = scipy.sparse.coo_matrix((vals, (rows, cols)))
         return d2dy2
 
     @staticmethod
     def construct_d2dz2_in_3d(nx, ny, nz):
-        nrow = (nx - 2) * (ny - 2) * (nz - 2)
-        ncol = nrow
-        cols = []
-        rows = []
-        vals = []
-        #
-        for row_idx in range(nrow):
-            # i, j, k = global_index_in_matrix_to_node_ijk(row_idx, nx, ny, nz)
-            if row_idx < (nx - 2) * (ny - 2):
-                # near boundary
-                rows.append(row_idx)
-                cols.append(row_idx)
-                vals.append(-2.0)
-                rows.append(row_idx)
-                cols.append(row_idx + (nx - 2) * (ny - 2))
-                vals.append(1.0)
-            elif row_idx >= (nx - 2) * (ny - 2) * (nz - 3):
-                # far boundary
-                rows.append(row_idx)
-                cols.append(row_idx - (nx - 2) * (ny - 2))
-                vals.append(1.0)
-                rows.append(row_idx)
-                cols.append(row_idx)
-                vals.append(-2.0)
-            else:
-                # center
-                rows.append(row_idx)
-                cols.append(row_idx - (nx - 2) * (ny - 2))
-                vals.append(1.0)
-                rows.append(row_idx)
-                cols.append(row_idx)
-                vals.append(-2.0)
-                rows.append(row_idx)
-                cols.append(row_idx + (nx - 2) * (ny - 2))
-                vals.append(1.0)
-            # printf("d2dz2 loop: i = %d \n", i);
-        d2dz2 = scipy.sparse.coo_matrix((vals, (rows, cols)))
-        return d2dz2
+        offset = (nx - 2) * (ny - 2)
+        n = offset * ( nz - 2)
+        return scipy.sparse.diags([1.0, -2.0, 1.0], [-offset, 0, offset], shape=(n, n))
 
     def zero_nondiag_for_nodes_inside_objects(self, mesh, inner_regions):
         for ir in inner_regions.regions:
