@@ -3,7 +3,6 @@ import sys
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
-from scipy.sparse import diags
 
 
 class FieldSolver:
@@ -41,44 +40,36 @@ class FieldSolver:
         # d2dy2 = None
         d2dz2 = self.construct_d2dz2_in_3d(nx, ny, nz)
         self.A = self.A + d2dz2 * (dx * dx * dy * dy)
-        # d2dz2 = None
-        self.A = self.A.tocsr()
 
     @staticmethod
     def construct_d2dx2_in_3d(nx, ny, nz):
-        cols = []
-        rows = []
-        vals = []
+        n = (nx - 2) * (ny - 2) * (nz - 2)
+        a = scipy.sparse.dok_matrix((n, n), np.float64)
         for n, i, j, k in FieldSolver.double_index(np.array((nx, ny, nz))):
-            rows.append(n)
-            cols.append(n)
-            vals.append(-2)
+            a[n, n] = -2
             if i < nx - 2:
-                rows.append(n)
-                cols.append(n + 1)
-                vals.append(1.0)
+                a[n, n + 1] = 1
             if i > 1:
-                rows.append(n)
-                cols.append(n - 1)
-                vals.append(1.0)
-        d2dx2 = scipy.sparse.coo_matrix((vals, (rows, cols)))
-        return d2dx2
+                a[n, n - 1] = 1
+        return a.tocsr()
 
     @staticmethod
     def construct_d2dy2_in_3d(nx, ny, nz):
-        di = FieldSolver.double_index(np.array((nx, ny, nz)))
-        diag0 = np.array([(n, n, -2) for n, i, j, k in di])
-        diag1 = np.array([(n, n + nx - 2, 1) for n, i, j, k in di if j < ny - 2])
-        diag_1 = np.array([(n, n - nx + 2, 1) for n, i, j, k in di if j > 1])
-        rows, cols, vals = np.concatenate((diag0, diag1, diag_1)).T
-        d2dy2 = scipy.sparse.coo_matrix((vals, (rows, cols)))
-        return d2dy2
+        n = (nx - 2) * (ny - 2) * (nz - 2)
+        a = scipy.sparse.dok_matrix((n, n), np.float64)
+        for n, i, j, k in FieldSolver.double_index(np.array((nx, ny, nz))):
+            a[n, n] = -2
+            if j < ny - 2:
+                a[n, n + nx - 2] = 1
+            if j > 1:
+                a[n, n - nx + 2] = 1
+        return a.tocsr()
 
     @staticmethod
     def construct_d2dz2_in_3d(nx, ny, nz):
         offset = (nx - 2) * (ny - 2)
-        n = offset * ( nz - 2)
-        return scipy.sparse.diags([1.0, -2.0, 1.0], [-offset, 0, offset], shape=(n, n))
+        n = offset * (nz - 2)
+        return scipy.sparse.diags([1.0, -2.0, 1.0], [-offset, 0, offset], shape=(n, n)).tocsr()
 
     def zero_nondiag_for_nodes_inside_objects(self, mesh, inner_regions):
         for ir in inner_regions.regions:
