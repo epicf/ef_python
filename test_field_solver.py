@@ -186,3 +186,24 @@ class TestFieldSolver:
                                [0, 0, 0, 1, 0, 0, 0, 0, 0, -2, 0, 0],
                                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -2, 0],
                                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -2]])
+
+    def test_construct_equation_matrix_full_domain(self):
+        mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
+        solver = FieldSolver(mesh, InnerRegionsManager([]))
+        solver.construct_equation_matrix_in_full_domain(5, 4, 4, 1, 2, 3)
+        d = -2 * (2 * 2 * 3 * 3 + 3 * 3 + 2 * 2)
+        x = 2 * 2 * 3 * 3
+        y = 3 * 3
+        z = 2 * 2
+        assert_array_equal(solver.A.toarray(), [[d, x, 0, y, 0, 0, z, 0, 0, 0, 0, 0],
+                                                [x, d, x, 0, y, 0, 0, z, 0, 0, 0, 0],
+                                                [0, x, d, 0, 0, y, 0, 0, z, 0, 0, 0],
+                                                [y, 0, 0, d, x, 0, 0, 0, 0, z, 0, 0],
+                                                [0, y, 0, x, d, x, 0, 0, 0, 0, z, 0],
+                                                [0, 0, y, 0, x, d, 0, 0, 0, 0, 0, z],
+                                                [z, 0, 0, 0, 0, 0, d, x, 0, y, 0, 0],
+                                                [0, z, 0, 0, 0, 0, x, d, x, 0, y, 0],
+                                                [0, 0, z, 0, 0, 0, 0, x, d, 0, 0, y],
+                                                [0, 0, 0, z, 0, 0, y, 0, 0, d, x, 0],
+                                                [0, 0, 0, 0, z, 0, 0, y, 0, x, d, x],
+                                                [0, 0, 0, 0, 0, z, 0, 0, y, 0, x, d]])
