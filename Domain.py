@@ -127,10 +127,9 @@ class Domain():
         # First generate then remove.
         # This allows for overlap of source and inner region.
         self.generate_new_particles()
-#        self.apply_domain_boundary_conditions()
+        self.apply_domain_boundary_conditions()
         if self.particle_interaction_model.binary:
-           self.check_position_of_the_particle_outside()
-#        self.remove_particles_inside_inner_regions()
+           self.check_position_of_the_particle_outside()        self.remove_particles_inside_inner_regions()
 
 
     def check_position_of_the_particle_outside(self):
