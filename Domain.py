@@ -1,5 +1,6 @@
 import h5py
 
+from ParticleSourceBox import ParticleSourceBox
 from TimeGrid import TimeGrid
 from SpatialMesh import SpatialMesh
 from InnerRegionsManager import InnerRegionsManager
@@ -10,7 +11,7 @@ from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSourcesManager import ParticleSourcesManager
 from Vec3d import Vec3d
 import physical_constants
-
+#from Solid_boundary import Solid_boundary
 
 class Domain():
 
@@ -126,9 +127,71 @@ class Domain():
         # First generate then remove.
         # This allows for overlap of source and inner region.
         self.generate_new_particles()
-        self.apply_domain_boundary_conditions()
-        self.remove_particles_inside_inner_regions()
+#        self.apply_domain_boundary_conditions()
+        if self.particle_interaction_model.binary:
+           self.check_position_of_the_particle_outside()
+#        self.remove_particles_inside_inner_regions()
 
+
+    def check_position_of_the_particle_outside(self):
+        for src in self.particle_sources.sources:
+            for p in src.particles:
+                iter = p.id
+                dt = self.time_grid.time_step_size
+                pos = p.position                                                # Extraction of each particle Cartesian coordinate vector
+                mom = p.momentum                                                # Extraction of each particle momentum vector
+                m = p.mass
+                pos_est = self.future_step_particle_evolution(dt, pos, mom, m)
+                pos_new, mom_new = self.gradient_reflection(pos_est, mom)
+                p.position = pos_new
+                p.momentum = mom_new
+
+    def future_step_particle_evolution(self, dt, pos, mom, mass):
+        pos_step_change = mom.times_scalar(dt / mass)                  # Change of the particle position for a dt time interval
+        pos_step_evol = pos.add(pos_step_change)                            # The coordinate vector of the particle for a dt time step
+        return pos_step_evol
+
+    def gradient_reflection(self, pos_step_evol, mom):
+#        self.particle_sources.sources[0].()
+        outside_xleft = pos_step_evol.x <= self.particle_sources.sources[0].xleft
+        outside_xright = pos_step_evol.x >= self.particle_sources.sources[0].xright
+        if outside_xleft == 1:
+            x_grad = self.particle_sources.sources[0].xleft - pos_step_evol.x
+            mom_ch_x = -1
+        elif outside_xright == 1:
+            x_grad = self.particle_sources.sources[0].xright - pos_step_evol.x
+            mom_ch_x = -1
+        else:
+            x_grad = 0
+            mom_ch_x = 0
+
+        outside_ybottom = pos_step_evol.y <= self.particle_sources.sources[0].ybottom
+        outside_ytop = pos_step_evol.y >= self.particle_sources.sources[0].ytop
+        if outside_ybottom == 1:
+            y_grad = self.particle_sources.sources[0].ybottom - pos_step_evol.y
+            mom_ch_y = -1
+        elif outside_ytop == 1:
+            y_grad = self.particle_sources.sources[0].ytop - pos_step_evol.y
+            mom_ch_y = -1
+        else:
+            y_grad = 0
+            mom_ch_y = 0
+
+        outside_zfar = pos_step_evol.z <= self.particle_sources.sources[0].znear
+        outside_znear = pos_step_evol.z >= self.particle_sources.sources[0].zfar
+        if outside_zfar == 1:
+            z_grad = self.particle_sources.sources[0].zfar - pos_step_evol.z
+            mom_ch_z = -1
+        elif outside_znear == 1:
+            z_grad = self.particle_sources.sources[0].znear - pos_step_evol.z
+            mom_ch_z = -1
+        else:
+            z_grad = 0
+            mom_ch_z = 0
+
+        pos_new = Vec3d(pos_step_evol.x + 2*x_grad, pos_step_evol.y + 2*y_grad, pos_step_evol.z + 2*z_grad)
+        mom_new = Vec3d(mom.x + 2*mom_ch_x*mom.x, mom.y + 2*mom_ch_y*mom.y, mom.z + 2*mom_ch_z)
+        return pos_new, mom_new
 
 #
 # Push particles
@@ -185,6 +248,8 @@ class Domain():
             src.particles[:] = \
               [p for p in src.particles \
                if not self.inner_regions.check_if_particle_inside_and_count_charge(p)]
+
+
 
 
     def out_of_bound(self, particle):
