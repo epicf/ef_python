@@ -7,4 +7,5 @@ __pycache__
 .idea/
 venv/
 .ipynb_checkpoints/
+.pytest_cache/
 

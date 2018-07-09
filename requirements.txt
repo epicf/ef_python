@@ -1,3 +1,6 @@
 h5py
 matplotlib
 sympy
+pytest
+scipy
+jupyter

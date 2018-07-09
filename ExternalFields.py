@@ -86,7 +86,7 @@ class ExternalFieldMagneticUniform( ExternalField ):
 
     @classmethod
     def is_magnetic_uniform_config_part( cls, field_name ):
-        return "ExternalFieldMagneticUniform" in field_name
+        return "External_magnetic_field_uniform" in field_name
         
 # Uniform electric
 
@@ -141,4 +141,4 @@ class ExternalFieldElectricUniform( ExternalField ):
 
     @classmethod
     def is_electric_uniform_config_part( cls, field_name ):
-        return "ExternalFieldElectricUniform" in field_name
+        return "External_electric_field_uniform" in field_name
