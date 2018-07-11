@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar  9 15:19:56 2017
-Example for contour of ribbon electron beam
-@author: Boytsov
+Created on Wed July 11 13:00:00 2018
+Estimation of establishing Maxwell distribution of the Hydrogen ion gas inside the box
+@author: Getmanov
 """
 
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 import h5py
 
@@ -15,123 +16,120 @@ SI_conv_g_to_kg = 0.001
 SI_conv_Fr_to_C = 3.3356409519815207e-10
 
 
-def get_source_current(h5file):
-    time_step = h5file["/Time_grid"].attrs["time_step_size"]
-    charge = h5file["/Particle_sources/cathode_emitter"].attrs["charge"]
-    particles_per_step = h5file[
-        "/Particle_sources/cathode_emitter"].attrs["particles_to_generate_each_step"]
-    current = np.abs(particles_per_step * charge / time_step)
-    return current / SGSE_conv_unit_current_to_A
-
-
-def get_source_particle_parameters(h5file):
-    mass = h5file["/Particle_sources/cathode_emitter"].attrs["mass"]
-    charge = h5file["/Particle_sources/cathode_emitter"].attrs["charge"]
-    momentum_z = h5file["/Particle_sources/cathode_emitter"].attrs["mean_momentum_z"]
-    return (mass * SI_conv_g_to_kg,
-            charge * SI_conv_Fr_to_C,
-            momentum_z * SI_conv_g_to_kg * SI_conv_cm_to_m)
-
-
 def get_source_geometry(h5file):
     start_y = h5file["/Particle_sources/cathode_emitter"].attrs["box_y_top"]
     end_y = h5file["/Particle_sources/cathode_emitter"].attrs["box_y_bottom"]
     start_x = h5file["/Particle_sources/cathode_emitter"].attrs["box_x_left"]
     end_x = h5file["/Particle_sources/cathode_emitter"].attrs["box_x_right"]
-    length_of_cathode = start_y - end_y
-    half_width_of_cathode = (end_x - start_x) / 2
-    center_of_beam = (start_x + end_x) / 2
-    return (length_of_cathode * SI_conv_cm_to_m,
-            half_width_of_cathode * SI_conv_cm_to_m,
-            center_of_beam * SI_conv_cm_to_m)
-
-
-def get_zlim(h5file):
     start_z = h5file["/Particle_sources/cathode_emitter"].attrs["box_z_near"]
-    end_z = h5file["/Spatial_mesh/"].attrs["z_volume_size"]
-    return (start_z * SI_conv_cm_to_m,
-            end_z * SI_conv_cm_to_m)
+    end_z = h5file["/Particle_sources/cathode_emitter"].attrs["box_z_far"]
+    return start_x, end_x, start_y, end_y, start_z, end_z
 
+def draw_2dbox_boundary(start_x, end_x, start_z, end_z):
+    x_box = np.arange(start_x, end_x, (end_x - start_x) / 100)
+    z_box = start_z*np.ones(x_box.shape)
+    np.append(x_box, x_box)
+    np.append(z_box, end_z*np.ones(z_box.shape))
+    z1_box = np.arange(start_z, end_z, (end_z - start_z) / 100)
+    x1_box = start_x*np.ones(z1_box.shape)
+    np.append(x_box, x1_box)
+    np.append(z_box, z1_box)
+    np.append(x_box, end_x*np.ones(z1_box.shape))
+    np.append(z_box, z1_box)
+    return x_box, z_box
 
-def get_voltage(momentum_z, mass, charge):
-    energy = (momentum_z * momentum_z) / (2 * mass)
-    voltage = energy / np.abs(charge)
-    return voltage
+def analyt_maxwell_distrib(num_particles, temperature, h5file):
+    p_xend = h5file["/Particle_sources/cathode_emitter/momentum_x"][:]
+    p_yend = h5file["/Particle_sources/cathode_emitter/momentum_y"][:]
+    p_zend = h5file["/Particle_sources/cathode_emitter/momentum_z"][:]
+    mass = h5file["/Particle_sources/cathode_emitter"].attrs["mass"]
+    kB = 1.38e-16
 
+    p = (p_xend ** 2 + p_yend ** 2 + p_zend ** 2) ** (1/2)
 
-def get_current_dens(current, length_of_cathode):
-    current_dens = current / length_of_cathode
-    return current_dens
+    p_grid = np.arange(0.0, p.max(), (p.max() - p.min())/150)
+    p_grid_1 = p_grid[1:]
+    dp = p_grid_1 - p_grid[0:len(p_grid)-1]
 
+    distr = 4*math.pi* (1/(2*math.pi*mass*kB*temperature)) ** (3/2) * (p_grid[1:] ** 2) * np.exp(-1* (p_grid[1:] ** 2) /(2*kB*mass*temperature))*dp
+    dN = num_particles * distr
 
-def p_const(linear_current_density, voltage, charge, mass):
-    eps = 8.85e-12
-    p_const = 1 / (4 * eps * (np.abs(2 * charge / mass)) ** 0.5) * linear_current_density / voltage ** 1.5;
-    return p_const
+    return dN, p_grid[1:]
 
-
-def contour(z_position, half_width, angle, p_const):
-    contour = half_width + np.tan(angle) * z_position + p_const / 2 * (z_position * z_position)
-    return contour
-
-
-filename = 'task_maxwell0000000.h5'
+filename = 'task_maxwell0000001.h5'
 h5 = h5py.File(filename, mode="r")
 
-filename_1 = 'task_maxwell0000020.h5'
+filename_1 = 'task_maxwell0000200.h5'
 h5_1 = h5py.File(filename_1, mode="r")
 
-filename_2 = 'task_maxwell0000060.h5'
+filename_2 = 'task_maxwell0000400.h5'
 h5_2 = h5py.File(filename_2, mode="r")
 
-filename_3 = 'task_maxwell0000080.h5'
+filename_3 = 'task_maxwell0000900.h5'
 h5_3 = h5py.File(filename_3, mode="r")
 
-current = get_source_current(h5)
-mass, charge, momentum_z = get_source_particle_parameters(h5)
-length_of_cathode, half_width, center_of_beam = get_source_geometry(h5)
-start_z, end_z = get_zlim(h5)
-voltage = get_voltage(momentum_z, mass, charge)
-current_dens = get_current_dens(current, length_of_cathode)
-
-current = get_source_current(h5_1)
-mass, charge, momentum_z = get_source_particle_parameters(h5_1)
-length_of_cathode, half_width, center_of_beam = get_source_geometry(h5_1)
-start_z, end_z = get_zlim(h5)
-voltage = get_voltage(momentum_z, mass, charge)
-current_dens = get_current_dens(current, length_of_cathode)
-
-conv_grad_to_rad = np.pi / 180
-angle = 0 * conv_grad_to_rad  # angle of beam
-steps_z = 100000
-position_z = np.arange(start_z, end_z,
-                       (end_z - start_z) / steps_z)  # points in z direction, from 0 to 0.01 m with step 0,00001 m
-
-p_cons = p_const(current_dens, voltage, charge, mass)  # constant from equation of motion calculation
-contour = contour(position_z, half_width, angle, p_cons)  # countour calculation, m
+start_x, end_x, start_y, end_y, start_z, end_z = get_source_geometry(h5)
+x_box, z_box = draw_2dbox_boundary(start_x, end_x, start_z, end_z)
+dN, p_grid = analyt_maxwell_distrib(100, 7.740e+03, h5_3)
 
 h5 = h5py.File(filename, mode="r")  # read h5 file
 plt.figure(figsize=(10, 10), dpi=(100))
-plt.xlim(0.000, 0.0008)
-plt.ylim(-0.0002, 0.0008)
-plt.xlabel("Z position, [mm]")
-plt.ylabel("X position, [mm]")
-plt.plot(h5["/Particle_sources/cathode_emitter/position_z"][:] * SI_conv_cm_to_m * 1000,
-         ((h5["/Particle_sources/cathode_emitter/position_x"][:] * SI_conv_cm_to_m - center_of_beam) * 1000),
-         'o', label="calculated_points")  # plot particles
-plt.plot(h5_1["/Particle_sources/cathode_emitter/position_z"][:] * SI_conv_cm_to_m * 1000,
-         ((h5_1["/Particle_sources/cathode_emitter/position_x"][:] * SI_conv_cm_to_m - center_of_beam) * 1000),
-         'o', label="calculated_points2")
-plt.plot(h5_2["/Particle_sources/cathode_emitter/position_z"][:] * SI_conv_cm_to_m * 1000,
-         ((h5_2["/Particle_sources/cathode_emitter/position_x"][:] * SI_conv_cm_to_m - center_of_beam) * 1000),
-         'o', label="calculated_points3")
-plt.plot(h5_3["/Particle_sources/cathode_emitter/position_z"][:] * SI_conv_cm_to_m * 1000,
-         ((h5_3["/Particle_sources/cathode_emitter/position_x"][:] * SI_conv_cm_to_m - center_of_beam) * 1000),
-         'o', label="calculated_points4")
-
-plt.plot(position_z * 1000, contour * 1000, color='g', lw=3,
-         label="analytic_curve")  # plot countour in cm and move to left z of beam and top x of beam neat cathode
-plt.plot(position_z * 1000, -1 * contour * 1000, color='g', lw=3)
+#plt.xlim(2*start_z , 2*end_z)
+#plt.ylim(-0.0002, 0.0002)
+plt.xlabel("Z position, [cm]")
+plt.ylabel("X position, [cm]")
+plt.plot(h5["/Particle_sources/cathode_emitter/position_z"][:],
+         (h5["/Particle_sources/cathode_emitter/position_x"][:]),
+         'o', label="elapsed time: 0.67e-9 s")  # plot particles
+#plt.plot(h5_1["/Particle_sources/cathode_emitter/position_z"][:],
+#         (h5_1["/Particle_sources/cathode_emitter/position_x"][:]),
+#         'o', label="calculated_points2")
+#plt.plot(h5_2["/Particle_sources/cathode_emitter/position_z"][:],
+#         (h5_2["/Particle_sources/cathode_emitter/position_x"][:]),
+#         'o', label="calculated_points3")
+plt.plot(h5_3["/Particle_sources/cathode_emitter/position_z"][:],
+         (h5_3["/Particle_sources/cathode_emitter/position_x"][:]),
+         'o', label="elapsed time: 0.67e-6 s")
+plt.plot(z_box,x_box,'o', label="box")
 plt.legend(bbox_to_anchor=(0.32, 1), loc=1, borderaxespad=0.)
-plt.savefig('plt_maxwell10.png')  # save png picture
+plt.savefig('plt_maxwell_distr.png')
+plt.close()
+
+p_x0 = h5["/Particle_sources/cathode_emitter/momentum_x"][:]
+p_y0 = h5["/Particle_sources/cathode_emitter/momentum_y"][:]
+p_z0 = h5["/Particle_sources/cathode_emitter/momentum_z"][:]
+
+p0 = (p_x0 ** 2 + p_y0 ** 2 + p_z0 ** 2) ** (1/2)
+
+p_xend = h5_3["/Particle_sources/cathode_emitter/momentum_x"][:]
+p_yend = h5_3["/Particle_sources/cathode_emitter/momentum_y"][:]
+p_zend = h5_3["/Particle_sources/cathode_emitter/momentum_z"][:]
+
+p_end = (p_xend ** 2 + p_yend ** 2 + p_zend ** 2) ** (1/2)
+
+plt.figure()
+plt.hist(h5["/Particle_sources/cathode_emitter/momentum_z"][:],15)
+plt.hist(h5_1["/Particle_sources/cathode_emitter/momentum_z"][:],15)
+plt.hist(h5_2["/Particle_sources/cathode_emitter/momentum_z"][:],15)
+plt.hist(h5_3["/Particle_sources/cathode_emitter/momentum_z"][:],15)
+
+#plt.plot(position_z * 1000, -1 * contour * 1000, color='g', lw=3)
+plt.legend(bbox_to_anchor=(0.32, 1), loc=1, borderaxespad=0.)
+plt.savefig('plt_maxwell_hist.png')  # save png picture
+
+plt.figure()
+plt.hist(p0,20)
+plt.plot(p_grid, dN)
+plt.xlim(1.5e-18 , 4e-18)
+plt.savefig('plt_maxwell_hist_p0.png')
+
+plt.figure()
+plt.hist(p_end,20)
+plt.plot(p_grid, dN)
+plt.xlim(1.5e-18 , 4e-18)
+plt.savefig('plt_maxwell_hist_pend.png')
+
 h5.close()  # close h5 file
+h5_1.close()
+h5_2.close()
+h5_3.close()
