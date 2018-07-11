@@ -2,7 +2,8 @@ import os
 import sys
 import h5py
 import random
-from math import sqrt, copysign
+#from math import sqrt, copysign
+import math
 import numpy as np
 
 from common import production_assert
@@ -148,18 +149,30 @@ class ParticleSource():
         maxwell_gauss_std_mean_x = mean_momentum.x
         maxwell_gauss_std_mean_y = mean_momentum.y
         maxwell_gauss_std_mean_z = mean_momentum.z
-        maxwell_gauss_std_dev = sqrt( mass * temperature )
-        #
-        tmp = random.getstate()
-        random.setstate( self.rnd_state )
-        px = random.gauss( maxwell_gauss_std_mean_x, maxwell_gauss_std_dev )
-        py = random.gauss( maxwell_gauss_std_mean_y, maxwell_gauss_std_dev )
-        pz = random.gauss( maxwell_gauss_std_mean_z, maxwell_gauss_std_dev )
-        self.rnd_state = random.getstate()
-        random.setstate( tmp )
-        #
+        # Initialization of the Spherical Coordinate parameters
+        polar_angle_phi = np.random.uniform(0, 2*math.pi)
+        spheric_angle_theta = np.random.uniform(0, math.pi)
+        p_abs = mean_momentum.length()
+        #polat_trig_phi = np.random.uniform(0, 2*math.pi)
+        # The momentum vector in the Cartesian coordinates
+        px = p_abs*math.sin(spheric_angle_theta)*math.cos(polar_angle_phi)
+        py = p_abs*math.sin(spheric_angle_theta)*math.sin(polar_angle_phi)
+        pz = p_abs*math.cos(spheric_angle_theta)
+
         mom = Vec3d( px, py, pz )
-        mom = mom.times_scalar( 1.0 ) # recheck
+        mom = mom.times_scalar( 1.0 )
+#        maxwell_gauss_std_dev = sqrt( mass * temperature )
+        #
+#        tmp = random.getstate()
+#       random.setstate( self.rnd_state )
+#        px = random.gauss( maxwell_gauss_std_mean_x, maxwell_gauss_std_dev )
+#        py = random.gauss( maxwell_gauss_std_mean_y, maxwell_gauss_std_dev )
+#        pz = random.gauss( maxwell_gauss_std_mean_z, maxwell_gauss_std_dev )
+#        self.rnd_state = random.getstate()
+#        random.setstate( tmp )
+        #
+#        mom = Vec3d( px, py, pz )
+#        mom = mom.times_scalar( 1.0 ) # recheck
         return mom
 
     
@@ -244,4 +257,5 @@ class ParticleSource():
     def mass_gt_zero( self, conf, this_source_config_part ):
         if this_source_config_part.getfloat("mass") < 0:
             raise ValueError( "mass < 0" )
+
 
