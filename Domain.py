@@ -127,9 +127,12 @@ class Domain():
         # First generate then remove.
         # This allows for overlap of source and inner region.
         self.generate_new_particles()
-        self.apply_domain_boundary_conditions()
         if self.particle_interaction_model.binary:
-           self.check_position_of_the_particle_outside()        self.remove_particles_inside_inner_regions()
+            self.check_position_of_the_particle_outside()
+        self.apply_domain_boundary_conditions()
+#        if self.particle_interaction_model.binary:
+
+#        self.remove_particles_inside_inner_regions()
 
 
     def check_position_of_the_particle_outside(self):
@@ -154,6 +157,7 @@ class Domain():
 #        self.particle_sources.sources[0].()
         outside_xleft = pos_step_evol.x <= self.particle_sources.sources[0].xleft
         outside_xright = pos_step_evol.x >= self.particle_sources.sources[0].xright
+
         if outside_xleft == 1:
             x_grad = self.particle_sources.sources[0].xleft - pos_step_evol.x
             mom_ch_x = -1
@@ -176,20 +180,20 @@ class Domain():
             y_grad = 0
             mom_ch_y = 0
 
-        outside_zfar = pos_step_evol.z <= self.particle_sources.sources[0].znear
-        outside_znear = pos_step_evol.z >= self.particle_sources.sources[0].zfar
-        if outside_zfar == 1:
-            z_grad = self.particle_sources.sources[0].zfar - pos_step_evol.z
-            mom_ch_z = -1
-        elif outside_znear == 1:
+        outside_znear = pos_step_evol.z <= self.particle_sources.sources[0].znear
+        outside_zfar = pos_step_evol.z >= self.particle_sources.sources[0].zfar
+        if outside_znear == 1:
             z_grad = self.particle_sources.sources[0].znear - pos_step_evol.z
+            mom_ch_z = -1
+        elif outside_zfar == 1:
+            z_grad = self.particle_sources.sources[0].zfar - pos_step_evol.z
             mom_ch_z = -1
         else:
             z_grad = 0
             mom_ch_z = 0
 
         pos_new = Vec3d(pos_step_evol.x + 2*x_grad, pos_step_evol.y + 2*y_grad, pos_step_evol.z + 2*z_grad)
-        mom_new = Vec3d(mom.x + 2*mom_ch_x*mom.x, mom.y + 2*mom_ch_y*mom.y, mom.z + 2*mom_ch_z)
+        mom_new = Vec3d(mom.x + 2*mom_ch_x*mom.x, mom.y + 2*mom_ch_y*mom.y, mom.z + 2*mom_ch_z*mom.z)
         return pos_new, mom_new
 
 #
