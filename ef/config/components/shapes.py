@@ -1,4 +1,4 @@
-__all__ = ['Shape', 'Box', 'Cylinder', 'Tube', 'Sphere']
+__all__ = ['Shape', 'Box', 'Cylinder', 'Tube', 'Sphere', 'Cone']
 
 import numpy as np
 
@@ -46,3 +46,16 @@ class Sphere(Shape):
 
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_sphere(self.origin, self.r, **kwargs)
+
+
+class Cone(Shape):
+    def __init__(self, start=(0, 0, 0), end=(1, 0, 0),
+                 start_radii=(1, 2), end_radii=(3, 4)):
+        self.start = np.array(start, np.float)
+        self.end = np.array(end, np.float)
+        self.start_radii = np.array(start_radii, np.float)
+        self.end_radii = np.array(end_radii, np.float)
+
+    def visualize(self, visualizer, **kwargs):
+        visualizer.draw_cone(self.start, self.end,
+                             self.start_radii, self.end_radii, **kwargs)

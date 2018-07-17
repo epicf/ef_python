@@ -102,7 +102,10 @@ class Visualizer3d:
             lines = (a + circle * r, a + circle * R, b + circle * r, b + circle * R)
             self.ax.add_collection(Line3DCollection(lines, **kwargs))
         else:
-            ring = np.stack((r * circle, r * np.roll(circle, 1, axis=0), R * np.roll(circle, 1, axis=0), R * circle),
+            ring = np.stack((r * circle,
+                             r * np.roll(circle, 1, axis=0),
+                             R * np.roll(circle, 1, axis=0),
+                             R * circle),
                             axis=1)
             self.ax.add_collection(Poly3DCollection(a + ring, **kwargs))
             self.ax.add_collection(Poly3DCollection(b + ring, **kwargs))
@@ -127,6 +130,29 @@ class Visualizer3d:
             self.ax.add_collection(Poly3DCollection(quads, **kwargs))
 
 
+    def draw_cone(self, a, b, a_radii, b_radii, wireframe=False, **kwargs):
+        phi = np.radians(np.linspace(0, 360, 32, endpoint=wireframe))
+        circle = np.stack((np.cos(phi), np.sin(phi), np.zeros_like(phi))).T
+        circle = self.rotate_vectors_from_z_axis_towards_vector(circle, b - a)
+        # tell ax our extents, so that xyz limits are set correctly
+        self.ax.scatter(*(b + circle * np.max(a_radii[1], b_radii[1])).T, alpha=0.0)
+        if wireframe:
+            lines = (a + circle * a_radii[0],
+                     a + circle * a_radii[1],
+                     b + circle * b_radii[0],
+                     b + circle * b_radii[1])
+            self.ax.add_collection(Line3DCollection(lines, **kwargs))
+        else:
+            # todo: recheck
+            ring = np.stack((a_radii[0] * circle,
+                             b_radii[0] * np.roll(circle, 1, axis=0),
+                             b_radii[1] * np.roll(circle, 1, axis=0),
+                             a_radii[1] * circle),
+                            axis=1)
+            self.ax.add_collection(Poly3DCollection(a + ring, **kwargs))
+            self.ax.add_collection(Poly3DCollection(b + ring, **kwargs))
+
+            
 def main():
     v = Visualizer3d()
     v.draw_tube(np.array((1, 1, 1)), np.array((5, 8, 7)), 2, 3, facecolors='r', edgecolors='k')
@@ -137,6 +163,8 @@ def main():
     v.draw_cylinder(np.array((8, 7, 7)), np.array((5, 3, 8)), 4, wireframe=True)
     v.draw_box(np.array((10, 10, 10)), np.array((0, 0, 0)), colors='k', wireframe=True)
     v.draw_sphere(np.array((8, 3, 3)), 2, colors='purple', wireframe=True)
+    v.draw_cone(np.array((4, 5, 8)), np.array((12, 8, 10)),
+                np.array((1,2)), np.array((3,4)), colors='orange', wireframe=True)
     v.show()
 
 
