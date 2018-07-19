@@ -1,9 +1,6 @@
-from math import abs
-
 from InnerRegion import InnerRegion
-from Vec3d import Vec3d
 
-class InnerRegionCone(InnerRegion):
+class InnerRegionConeAlongZ(InnerRegion):
 
     def __init__(self):
         super().__init__()
@@ -43,8 +40,15 @@ class InnerRegionCone(InnerRegion):
 
     def check_correctness_of_cone_config_fields(self, conf, inner_region_cone_conf):
         # todo: check if region lies inside the domain
-        # todo: check radii
-        pass
+        if inner_region_cone_conf.getfloat("cone_axis_start_z") > \
+           inner_region_cone_conf.getfloat("cone_axis_end_z"):
+            raise ValueError("Expect axis_start_z < axis_end_z")
+        if inner_region_cone_conf.getfloat("cone_start_inner_radius") > \
+           inner_region_cone_conf.getfloat("cone_start_outer_radius"):
+            raise ValueError("Expect start_inner_radius < start_outer_radius")
+        if inner_region_cone_conf.getfloat("cone_end_inner_radius") > \
+           inner_region_cone_conf.getfloat("cone_end_outer_radius"):
+            raise ValueError("Expect end_inner_radius < end_outer_radius")
 
 
     def get_cone_values_from_config(self, inner_region_cone_conf):
@@ -73,24 +77,24 @@ class InnerRegionCone(InnerRegion):
         self.end_outer_radius = h5_inner_region_cone_group.attrs["cone_end_outer_radius"]
 
 
-    # todo: remove self from argument
-    def point_inside_cone(self, axis_x, axis_y,
-                          axis_start_z, axis_end_z,
-                          r_start, r_end,
-                          x, y, z):
+    @staticmethod
+    def point_inside_cone(axis_x, axis_y, axis_start_z, axis_end_z,
+                          r_start, r_end, x, y, z):
+        z_len = abs(axis_end_z - axis_start_z)
         x_dist = x - axis_x
         y_dist = y - axis_y
         if z < axis_start_z:
             return False
         if z > axis_end_z:
-            return False        
+            return False
         if r_start < r_end:
-            tg_a = (r_end - r_start) / abs(axis_end_z - axis_start_z)
-            z_dist = z - axis_start_z
+            tg_a = (r_end - r_start) / z_len
+            z_dist = abs(z - axis_start_z)
+            r = z_dist * tg_a + r_start
         else:
-            tg_a = (r_start - r_end) / abs(axis_end_z - axis_start_z)
+            tg_a = (r_start - r_end) / z_len
             z_dist = abs(z - axis_end_z)
-        r = z_dist * tg_a
+            r = z_dist * tg_a + r_end
         if r * r > x_dist * x_dist + y_dist * y_dist:
             return False
         return True
@@ -110,7 +114,7 @@ class InnerRegionCone(InnerRegion):
         return True
 
 
-    def write_hdf5_region_specific_parameters( self, current_region_group ):        
+    def write_hdf5_region_specific_parameters(self, current_region_group):
         current_region_group.attrs.create("cone_axis_x", self.axis_x)
         current_region_group.attrs.create("cone_axis_y", self.axis_y)
         current_region_group.attrs.create("cone_axis_start_z", self.axis_start_z)
@@ -125,4 +129,4 @@ class InnerRegionCone(InnerRegion):
 
     @classmethod
     def is_cone_region(cls, conf_sec_name):
-        return 'Inner_region_cone' in conf_sec_name
+        return 'InnerRegionConeAlongZ' in conf_sec_name
