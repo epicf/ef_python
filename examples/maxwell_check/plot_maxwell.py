@@ -56,16 +56,16 @@ def analyt_maxwell_distrib(num_particles, temperature, h5file):
 
     return dN, p_grid[1:]
 
-filename = 'task_maxwell0000001.h5'
+filename = 'task_maxwell_0000001.h5'
 h5 = h5py.File(filename, mode="r")
 
-filename_1 = 'task_maxwell0000200.h5'
+filename_1 = 'task_maxwell_0000200.h5'
 h5_1 = h5py.File(filename_1, mode="r")
 
-filename_2 = 'task_maxwell0000400.h5'
+filename_2 = 'task_maxwell_0000400.h5'
 h5_2 = h5py.File(filename_2, mode="r")
 
-filename_3 = 'task_maxwell0000900.h5'
+filename_3 = 'task_maxwell_0000900.h5'
 h5_3 = h5py.File(filename_3, mode="r")
 
 start_x, end_x, start_y, end_y, start_z, end_z = get_source_geometry(h5)
