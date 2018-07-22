@@ -2,7 +2,6 @@ import sys
 from math import ceil
 import numpy as np
 from Vec3d import Vec3d
-from common import production_assert
 
 class SpatialMesh():
 
@@ -272,42 +271,39 @@ class SpatialMesh():
 
 
     def grid_x_size_gt_zero(self, conf):
-        if conf["Spatial mesh"].getfloat("grid_x_size") < 0:
+        if conf["Spatial mesh"].getfloat("grid_x_size") <= 0:
             raise ValueError("expect grid_x_size > 0")
 
 
     def grid_x_step_gt_zero_le_grid_x_size(self, conf):
-        if (conf["Spatial mesh"].getfloat("grid_x_step") <= 0) and \
-           (conf["Spatial mesh"].getfloat("grid_x_step") >= \
+        if (conf["Spatial mesh"].getfloat("grid_x_step") <= 0) or \
+           (conf["Spatial mesh"].getfloat("grid_x_step") > \
             conf["Spatial mesh"].getfloat("grid_x_size")):
-            raise ValueError("Expect grid_x_step > 0 and grid_x_step < grid_x_size")
+            raise ValueError("Expect grid_x_step > 0 and grid_x_step <= grid_x_size")
 
 
     def grid_y_size_gt_zero(self, conf):
-        production_assert(
-            conf["Spatial mesh"].getfloat("grid_y_size") > 0,
-            "grid_y_size < 0")
+        if conf["Spatial mesh"].getfloat("grid_y_size") <= 0:
+            raise ValueError("Expect grid_y_size > 0")
 
 
     def grid_y_step_gt_zero_le_grid_y_size(self, conf):
-        production_assert(
-            (conf["Spatial mesh"].getfloat("grid_y_step") > 0) and
-            (conf["Spatial mesh"].getfloat("grid_y_step") <=
-             conf["Spatial mesh"].getfloat("grid_y_size")),
-            "grid_y_step < 0 or grid_y_step >= grid_y_size")
+        if (conf["Spatial mesh"].getfloat("grid_y_step") <= 0) or \
+           (conf["Spatial mesh"].getfloat("grid_y_step") > \
+            conf["Spatial mesh"].getfloat("grid_y_size")):
+            raise ValueError("Expect grid_y_step > 0 and grid_y_step <= grid_y_size")
 
 
     def grid_z_size_gt_zero(self, conf):
-        production_assert(conf["Spatial mesh"].getfloat("grid_z_size") > 0,
-                          "grid_z_size < 0")
+        if conf["Spatial mesh"].getfloat("grid_z_size") <= 0:
+            raise ValueError("Expect grid_z_size > 0")
 
 
     def grid_z_step_gt_zero_le_grid_z_size(self, conf):
-        production_assert(
-            (conf["Spatial mesh"].getfloat("grid_z_step") > 0) and
-            (conf["Spatial mesh"].getfloat("grid_z_step") <=
-             conf["Spatial mesh"].getfloat("grid_z_size")),
-            "grid_z_step < 0 or grid_z_step >= grid_z_size")
+        if (conf["Spatial mesh"].getfloat("grid_z_step") <= 0) or \
+           (conf["Spatial mesh"].getfloat("grid_z_step") > \
+            conf["Spatial mesh"].getfloat("grid_z_size")):
+            raise ValueError("Expect grid_z_step > 0 and grid_z_step <= grid_z_size")
 
 
     def node_number_to_coordinate_x(self, i):
