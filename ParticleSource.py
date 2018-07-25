@@ -23,19 +23,16 @@ class ParticleSource():
         return new_obj
 
 
-    @classmethod
-    def init_from_h5( cls, h5group ):
-        new_obj = cls()
-        new_obj.read_hdf5_source_parameters( h5group )
-        new_obj.read_hdf5_particles( h5group )
+    def read_particles_and_source_pars_from_h5( self, h5group ):
+        self.read_hdf5_source_parameters( h5group )
+        self.read_hdf5_particles( h5group )
         # Random number generator
         # Instead of saving/loading it's state to file just
         # reinit with different seed.
         tmp = random.getstate()
         random.seed() # system time is used by default
-        new_obj.rnd_state = random.getstate()
+        self.rnd_state = random.getstate()
         random.setstate( tmp )
-        return new_obj
         
         
     def check_correctness_of_related_config_fields( self, conf, this_source_config_part ):
