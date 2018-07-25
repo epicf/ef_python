@@ -41,10 +41,10 @@ class InnerRegionsManager():
                                                      spat_mesh))
             elif InnerRegionConeAlongZ.is_cone_region(sec_name):
                 new_obj.regions.append(
-                    InnerRegionTube.init_from_config(conf,
-                                                     conf[sec_name],
-                                                     sec_name,
-                                                     spat_mesh))
+                    InnerRegionConeAlongZ.init_from_config(conf,
+                                                           conf[sec_name],
+                                                           sec_name,
+                                                           spat_mesh))
         return new_obj
 
 
