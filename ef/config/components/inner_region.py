@@ -3,7 +3,7 @@ __all__ = ["InnerRegion", "InnerRegionBoxConf", "InnerRegionCylinderConf",
 
 from collections import namedtuple
 
-from ef.config.components.shapes import Box, Cylinder, Tube, Sphere
+from ef.config.components.shapes import Box, Cylinder, Tube, Sphere, Cone
 from ef.config.section import register, NamedConfigSection
 from ef.config.component import ConfigComponent
 
@@ -91,3 +91,28 @@ class InnerRegionSphereConf(NamedConfigSection):
     def make(self):
         sphere = Sphere(self.content[:3], self.content.sphere_radius)
         return InnerRegion(self.name, sphere, self.content.potential)
+
+
+@register
+class InnerRegionConeAlongZ(NamedConfigSection):
+    section = "InnerRegionConeAlongZ"
+    ContentTuple = namedtuple("InnerRegionConeAlongZTuple",
+                              ('cone_axis_x', 'cone_axis_y',
+                               'cone_axis_start_z', 'cone_axis_end_x',
+                               'cone_start_inner_radius', 'cone_start_outer_radius',
+                               'cone_end_inner_radius', 'cone_end_outer_radius',
+                               'potential'))
+    convert = ContentTuple(*[float] * 9)
+
+    def make(self):
+        cone = Cone((self.content.cone_axis_x,
+                     self.content.cone_axis_y,
+                     self.content.cone_axis_start_z),
+                    (self.content.cone_axis_x,
+                     self.content.cone_axis_y,
+                     self.content.cone_axis_end_z),
+                    (self.content.cone_start_inner_radius,
+                     self.content.cone_start_outer_radius),
+                    (self.content.cone_end_inner_radius,
+                     self.content.cone_end_outer_radius))
+        return InnerRegion(self.name, cone, self.content.potential)
