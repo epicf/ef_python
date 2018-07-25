@@ -135,7 +135,7 @@ class Visualizer3d:
         circle = np.stack((np.cos(phi), np.sin(phi), np.zeros_like(phi))).T
         circle = self.rotate_vectors_from_z_axis_towards_vector(circle, b - a)
         # tell ax our extents, so that xyz limits are set correctly
-        self.ax.scatter(*(b + circle * np.max(a_radii[1], b_radii[1])).T, alpha=0.0)
+        self.ax.scatter(*(b + circle * np.max(np.append(a_radii, b_radii))).T, alpha=0.0)
         if wireframe:
             lines = (a + circle * a_radii[0],
                      a + circle * a_radii[1],
