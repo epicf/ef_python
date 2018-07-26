@@ -1,8 +1,10 @@
 import sys
 
 from Vec3d import Vec3d
-from ExternalFields import ExternalField
-from ExternalFields import ExternalFieldMagneticUniform, ExternalFieldElectricUniform
+from ExternalFieldsUniform import ExternalFieldMagneticUniform, ExternalFieldElectricUniform
+from ExternalFieldsExternalFieldsOnRegularGridFromFile \
+    import ExternalFieldMagneticOnRegularGridFromFile
+
 
 class ExternalFieldsManager():
 
@@ -23,6 +25,10 @@ class ExternalFieldsManager():
             elif ExternalFieldElectricUniform.is_electric_uniform_config_part(sec_name):
                 new_obj.electric.append(
                     ExternalFieldElectricUniform.init_from_config(conf[sec_name], sec_name))
+            elif ExternalFieldMagneticOnRegularGridFromFile.is_relevant_conf_part(sec_name):
+                new_obj.magnetic.append(
+                    ExternalFieldMagneticOnRegularGridFromFile.init_from_config(
+                        conf[sec_name], sec_name))
         return new_obj
 
 
@@ -36,6 +42,7 @@ class ExternalFieldsManager():
             new_obj.parse_hdf5_external_field(current_field_grpid)
         return new_obj
 
+    
     def parse_hdf5_external_field(self, current_field_grpid):
         field_type = current_field_grpid.attrs["field_type"]
         if field_type == "magnetic_uniform":
@@ -44,6 +51,10 @@ class ExternalFieldsManager():
         elif field_type == "electric_uniform":
             self.electric.append(
                 ExternalFieldElectricUniform.init_from_h5(current_field_grpid))
+        elif field_type == "magnetic_on_regular_grid_from_file":
+            self.magnetic.append(
+                ExternalFieldMagneticOnRegularGridFromFile.init_from_h5(
+                    current_field_grpid))
         else:
             print("In External_field_manager constructor-from-h5: ")
             print("Unknown external_field type. Aborting")
