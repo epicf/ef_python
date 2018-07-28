@@ -1,11 +1,9 @@
 import sys
-import h5py
 
-from Vec3d import *
-from ParticleSource import *
-from ParticleSourceBox import *
-from ParticleSourceCylinder import *
-from ParticleSourceTube import *
+from Vec3d import Vec3d
+from ParticleSourceBox import ParticleSourceBox
+from ParticleSourceCylinder import ParticleSourceCylinder
+from ParticleSourceTube import ParticleSourceTube
 
 class ParticleSourcesManager:
 

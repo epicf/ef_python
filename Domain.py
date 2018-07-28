@@ -8,7 +8,6 @@ from FieldSolver import FieldSolver
 from ExternalFieldsManager import ExternalFieldsManager
 from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSourcesManager import ParticleSourcesManager
-from Vec3d import Vec3d
 import physical_constants
 
 

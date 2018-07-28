@@ -1,15 +1,14 @@
-from Vec3d import *
 import physical_constants
 
 class Particle():
 
-    def __init__(self, id, charge, mass, position, momentum):
-        self.id = id
+    def __init__(self, particle_id, charge, mass, position, momentum):
+        self.id = particle_id
         self.charge = charge
         self.mass = mass
         self.position = position
         self.momentum = momentum
-        self.momentum_is_half_time_step_shifted = False 
+        self.momentum_is_half_time_step_shifted = False
 
 
     def update_position(self, dt):
