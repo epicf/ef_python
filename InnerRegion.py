@@ -89,13 +89,13 @@ class InnerRegion():
                         self.inner_nodes.append(Node(i, j, k))
 
 
-    def select_inner_nodes_not_at_domain_edge(self, spat_mesh):
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
-        for node in self.inner_nodes:
-            if not node.at_domain_edge(nx, ny, nz):
-                inner_nodes_not_at_domain_edge.append(node)
+    # def select_inner_nodes_not_at_domain_edge(self, spat_mesh):
+    #     nx = spat_mesh.x_n_nodes
+    #     ny = spat_mesh.y_n_nodes
+    #     nz = spat_mesh.z_n_nodes
+    #     for node in self.inner_nodes:
+    #         if not node.at_domain_edge(nx, ny, nz):
+    #             inner_nodes_not_at_domain_edge.append(node)
 
 
     def write_to_file(self, regions_group_id):
