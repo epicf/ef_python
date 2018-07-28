@@ -17,13 +17,13 @@ class InnerRegionTube(InnerRegion):
 
     @classmethod
     def init_from_config(cls, conf, inner_region_tube_conf, sec_name, spat_mesh):
-        new_obj = super().init_from_config(conf,
-                                           inner_region_tube_conf,
-                                           sec_name,
-                                           spat_mesh)
-        new_obj.object_type = "tube"
-        new_obj.check_correctness_of_tube_config_fields(conf,
-                                                        inner_region_tube_conf)
+        new_obj = cls()
+        new_obj.init_common_fields_from_config(conf,
+                                               inner_region_tube_conf,
+                                               sec_name,
+                                               spat_mesh)
+        new_obj.geometry_type = "tube"
+        new_obj.check_correctness_of_tube_config_fields(conf, inner_region_tube_conf)
         new_obj.get_tube_values_from_config(inner_region_tube_conf)
         new_obj.mark_inner_nodes(spat_mesh)
         #new_obj.select_inner_nodes_not_at_domain_edge(spat_mesh)
@@ -32,7 +32,8 @@ class InnerRegionTube(InnerRegion):
 
     @classmethod
     def init_from_h5(cls, h5_inner_region_tube_group, spat_mesh):
-        new_obj = super().init_from_h5(h5_inner_region_tube_group)
+        new_obj = cls()
+        new_obj.init_common_fields_from_h5(h5_inner_region_tube_group)
         new_obj.geometry_type = "tube"
         new_obj.get_tube_values_from_h5(h5_inner_region_tube_group)
         new_obj.mark_inner_nodes(spat_mesh)

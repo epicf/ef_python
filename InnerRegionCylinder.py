@@ -16,11 +16,12 @@ class InnerRegionCylinder(InnerRegion):
 
     @classmethod
     def init_from_config(cls, conf, inner_region_cylinder_conf, sec_name, spat_mesh):
-        new_obj = super().init_from_config(conf,
-                                           inner_region_cylinder_conf,
-                                           sec_name,
-                                           spat_mesh)
-        new_obj.object_type = "cylinder"
+        new_obj = cls()
+        new_obj.init_common_fields_from_config(conf,
+                                               inner_region_cylinder_conf,
+                                               sec_name,
+                                               spat_mesh)
+        new_obj.geometry_type = "cylinder"
         new_obj.check_correctness_of_cylinder_config_fields(conf,
                                                             inner_region_cylinder_conf)
         new_obj.get_cylinder_values_from_config(inner_region_cylinder_conf)
@@ -31,7 +32,8 @@ class InnerRegionCylinder(InnerRegion):
 
     @classmethod
     def init_from_h5(cls, h5_inner_region_cylinder_group, spat_mesh):
-        new_obj = super().init_from_h5(h5_inner_region_cylinder_group)
+        new_obj = cls()
+        new_obj.init_common_fields_from_h5(h5_inner_region_cylinder_group)
         new_obj.geometry_type = "cylinder"
         new_obj.get_cylinder_values_from_h5(h5_inner_region_cylinder_group)
         new_obj.mark_inner_nodes(spat_mesh)

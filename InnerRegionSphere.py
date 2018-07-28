@@ -12,11 +12,12 @@ class InnerRegionSphere(InnerRegion):
 
     @classmethod
     def init_from_config(cls, conf, inner_region_sphere_conf, sec_name, spat_mesh):
-        new_obj = super().init_from_config(conf,
-                                           inner_region_sphere_conf,
-                                           sec_name,
-                                           spat_mesh)
-        new_obj.object_type = "sphere"
+        new_obj = cls()
+        new_obj.init_common_fields_from_config(conf,
+                                               inner_region_sphere_conf,
+                                               sec_name,
+                                               spat_mesh)
+        new_obj.geometry_type = "sphere"
         new_obj.check_correctness_of_sphere_config_fields(conf,
                                                           inner_region_sphere_conf)
         new_obj.get_sphere_values_from_config(inner_region_sphere_conf)
@@ -27,7 +28,8 @@ class InnerRegionSphere(InnerRegion):
 
     @classmethod
     def init_from_h5(cls, h5_inner_region_sphere_group, spat_mesh):
-        new_obj = super().init_from_h5(h5_inner_region_sphere_group)
+        new_obj = cls()
+        new_obj.init_common_fields_from_h5(h5_inner_region_sphere_group)
         new_obj.geometry_type = "sphere"
         new_obj.get_sphere_values_from_h5(h5_inner_region_sphere_group)
         new_obj.mark_inner_nodes(spat_mesh)
