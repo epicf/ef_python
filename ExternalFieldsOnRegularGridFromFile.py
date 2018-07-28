@@ -233,9 +233,9 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
         return (next_node, weight)
 
 
-    def write_hdf5_field_parameters(self, current_field_group_id):
-        current_field_group_id.attrs["field_type"] = self.field_type
-        current_field_group_id.attrs["field_file"] = self.field_file
+    def write_hdf5_field_parameters(self, current_field_group):
+        current_field_group.attrs["field_type"] = self.field_type
+        current_field_group.attrs["field_file"] = self.field_file
 
 
     @classmethod
