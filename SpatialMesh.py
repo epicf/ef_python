@@ -236,7 +236,7 @@ class SpatialMesh():
         h5group.attrs.create("z_n_nodes", self.z_n_nodes)
 
 
-    def write_hdf5_ongrid_values(self, h5group):    
+    def write_hdf5_ongrid_values(self, h5group):
         # todo: without compound datasets
         # there is this copying problem.
         dim = self.node_coordinates.size
