@@ -17,7 +17,9 @@ class ParticleSourceCylinder(ParticleSource):
 
     @classmethod
     def init_from_config(cls, conf, this_source_config_part, sec_name):
-        new_obj = super().init_from_config(conf, this_source_config_part, sec_name)
+        new_obj = cls()
+        new_obj.read_particles_and_source_pars_from_from_config(
+            conf, this_source_config_part, sec_name)
         new_obj.geometry_type = "cylinder"
         new_obj.check_correctness_of_cylinder_config_fields(
             conf, this_source_config_part)

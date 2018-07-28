@@ -14,13 +14,11 @@ class ParticleSource():
     def __init__( self ):
         pass
 
-    @classmethod
-    def init_from_config( cls, conf, this_source_config_part, sec_name ):
-        new_obj = cls()
-        new_obj.check_correctness_of_related_config_fields( 
-            conf, this_source_config_part )
-        new_obj.set_parameters_from_config( this_source_config_part, sec_name )
-        return new_obj
+    
+    def read_particles_and_source_pars_from_from_config(
+            self, conf, this_source_config_part, sec_name ):
+        self.check_correctness_of_related_config_fields( conf, this_source_config_part )
+        self.set_parameters_from_config( this_source_config_part, sec_name )
 
 
     def read_particles_and_source_pars_from_h5( self, h5group ):
