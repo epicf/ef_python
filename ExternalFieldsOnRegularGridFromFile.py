@@ -1,9 +1,8 @@
 import os.path
+from math import ceil
 import numpy as np
 
 from Vec3d import Vec3d
-import physical_constants
-
 from ExternalField import ExternalField
 
 # Magnetic on regular grid from file
@@ -14,6 +13,12 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
         super().__init__()
         self.field_file = None
         self.magnetic_field_from_file = None
+        self.x_start = None
+        self.y_start = None
+        self.z_start = None
+        self.x_end = None
+        self.y_end = None
+        self.z_end = None
         self.x_volume_size = None
         self.y_volume_size = None
         self.z_volume_size = None
@@ -59,7 +64,7 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
         self.determine_volume_sizes(mesh)
         self.determine_cell_sizes(mesh)
         self.determine_n_nodes(mesh)
-        self.start_and_end_grid_points(mesh)
+        self.determine_start_end_grid_points(mesh)
         #
         self.magnetic_field_from_file = np.full((self.x_n_nodes,
                                                  self.y_n_nodes,
@@ -111,8 +116,8 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
         self.x_end = mesh[-1, 0]
         self.y_end = mesh[-1, 1]
         self.z_end = mesh[-1, 2]
-    
-        
+
+
     def global_idx_to_node_ijk(self, global_idx):
         # In row-major order:
         # global_index = i * nz * ny +
@@ -127,18 +132,18 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
         k = j_and_k_part % nz
         return (i, j, k)
 
-    
+
     def inside_mesh(self, point):
-        x = particle.position.x
-        y = particle.position.y
-        z = particle.position.z
-        in = (x >= self.x_start) and (x <= self.x_end) \
-             and \
-             (y >= self.y_start) and (y <= self.y_end) \
-             and \
-             (z >= self.z_start) and (z <= self.z_end)
-        return in
-    
+        x = point.x
+        y = point.y
+        z = point.z
+        inside = (x >= self.x_start) and (x <= self.x_end) \
+                 and \
+                 (y >= self.y_start) and (y <= self.y_end) \
+                 and \
+                 (z >= self.z_start) and (z <= self.z_end)
+        return inside
+
 
     @classmethod
     def init_from_h5(cls, h5_field_group):
@@ -149,7 +154,7 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
             raise FileNotFoundError("Field file not found")
         new_obj.read_field_from_file()
         return new_obj
-    
+
 
     def field_at_particle_position(self, particle, current_time):
         if self.inside_mesh(particle.position):
@@ -158,19 +163,20 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
             field = Vec3d.zero()
         return field
 
-    
+
     # todo: refactor
     def field_at_particle_position(self, p):
         dx = self.x_cell_size
         dy = self.y_cell_size
         dz = self.z_cell_size
         # 'tlf' = 'top_left_far'
-        tlf_i, tlf_x_weight = next_node_num_and_weight(p.position.x, dx, self.x_start)
-        tlf_j, tlf_y_weight = next_node_num_and_weight(p.position.y, dy, self.y_start)
-        tlf_k, tlf_z_weight = next_node_num_and_weight(p.position.z, dz, self.z_start)
+        tlf_i, tlf_x_weight = self.next_node_num_and_weight(p.position.x, dx, self.x_start)
+        tlf_j, tlf_y_weight = self.next_node_num_and_weight(p.position.y, dy, self.y_start)
+        tlf_k, tlf_z_weight = self.next_node_num_and_weight(p.position.z, dz, self.z_start)
         # tlf
         total_field = Vec3d.zero()
-        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j][tlf_k].times_scalar(tlf_x_weight)
+        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j][tlf_k].times_scalar(
+            tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
@@ -222,7 +228,7 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
         return (next_node, weight)
 
 
-    def write_hdf5_field_parameters( self, current_field_group_id ):
+    def write_hdf5_field_parameters(self, current_field_group_id):
         current_field_group_id.attrs["field_type"] = self.field_type
         current_field_group_id.attrs["field_file"] = self.field_file
 
