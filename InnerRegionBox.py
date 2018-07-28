@@ -14,11 +14,12 @@ class InnerRegionBox(InnerRegion):
 
     @classmethod
     def init_from_config(cls, conf, inner_region_box_conf, sec_name, spat_mesh):
-        new_obj = super().init_from_config(conf,
-                                           inner_region_box_conf,
-                                           sec_name,
-                                           spat_mesh)
-        new_obj.object_type = "box"
+        new_obj = cls()
+        new_obj.init_common_fields_from_config(conf,
+                                               inner_region_box_conf,
+                                               sec_name,
+                                               spat_mesh)
+        new_obj.geometry_type = "box"
         new_obj.check_correctness_of_box_config_fields(conf, inner_region_box_conf)
         new_obj.get_box_values_from_config(inner_region_box_conf)
         new_obj.mark_inner_nodes(spat_mesh)
@@ -28,7 +29,8 @@ class InnerRegionBox(InnerRegion):
 
     @classmethod
     def init_from_h5(cls, h5_inner_region_box_group, spat_mesh):
-        new_obj = super().init_from_h5(h5_inner_region_box_group)
+        new_obj = cls()
+        new_obj.init_common_fields_from_h5(h5_inner_region_box_group)
         new_obj.geometry_type = "box"
         new_obj.get_box_values_from_h5(h5_inner_region_box_group)
         new_obj.mark_inner_nodes(spat_mesh)

@@ -7,27 +7,25 @@ class InnerRegion():
     def __init__(self):
         self.name = None
         self.potential = None
-        self.object_type = None
+        self.geometry_type = None
         self.total_absorbed_particles = 0
         self.total_absorbed_charge = 0
         self.inner_nodes = []
         self.inner_nodes_not_at_domain_edge = []
 
 
-    @classmethod
-    def init_from_config(cls, conf, this_reg_config_part, sec_name, spat_mesh):
-        new_obj = cls()
-        new_obj.check_correctness_of_related_config_fields(
+    def init_common_fields_from_config(self, conf, this_reg_config_part,
+                                       sec_name, spat_mesh):
+        self.check_correctness_of_related_config_fields(
             conf, this_reg_config_part, spat_mesh)
-        new_obj.set_parameters_from_config(this_reg_config_part, sec_name)
-        return new_obj
+        self.set_parameters_from_config(this_reg_config_part, sec_name)
 
 
-    @classmethod
-    def init_from_h5(cls, h5group):
-        new_obj = cls()
-        new_obj.get_values_from_h5(h5group)
-        return new_obj
+    def init_common_fields_from_h5(self, h5group):
+        self.name = os.path.basename(h5group.name)
+        self.potential = h5group.attrs["potential"]
+        self.total_absorbed_particles = h5group.attrs["total_absorbed_particles"]
+        self.total_absorbed_charge = h5group.attrs["total_absorbed_charge"]
 
 
     def check_correctness_of_related_config_fields(self, conf,
@@ -39,15 +37,6 @@ class InnerRegion():
     def set_parameters_from_config(self, this_reg_config_part, sec_name):
         self.name = sec_name[sec_name.rfind(".") + 1 :]
         self.potential = this_reg_config_part.getfloat("potential")
-
-
-    def get_values_from_h5(self, h5_inner_region_group):
-        self.name = os.path.basename(h5_inner_region_group.name)
-        self.potential = h5_inner_region_group.attrs["potential"]
-        self.total_absorbed_particles = h5_inner_region_group.attrs[
-            "total_absorbed_particles"]
-        self.total_absorbed_charge = h5_inner_region_group.attrs[
-            "total_absorbed_charge"]
 
 
     def check_if_particle_inside(self, p):
@@ -105,7 +94,7 @@ class InnerRegion():
 
 
     def write_hdf5_common_parameters(self, current_region_group_id):
-        current_region_group_id.attrs["object_type"] = self.object_type
+        current_region_group_id.attrs["geometry_type"] = self.geometry_type
         current_region_group_id.attrs.create("potential", self.potential)
         current_region_group_id.attrs.create("total_absorbed_particles",
                                              self.total_absorbed_particles)
@@ -113,6 +102,6 @@ class InnerRegion():
                                              self.total_absorbed_charge)
 
 
-    def write_hdf5_region_specific_parameters(self, current_region_group_id):
+    def write_hdf5_region_specific_parameters(self, current_region_group):
         # virtual method
         raise NotImplementedError()
