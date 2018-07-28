@@ -22,7 +22,7 @@ class ParticleSource():
         self.geometry_type = None
 
 
-    def read_particles_and_source_pars_from_from_config(
+    def read_particles_and_source_pars_from_config(
             self, conf, this_source_config_part, sec_name):
         self.check_correctness_of_related_config_fields(conf, this_source_config_part)
         self.set_parameters_from_config(this_source_config_part, sec_name)
