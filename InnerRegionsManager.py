@@ -1,5 +1,4 @@
 import sys
-
 from InnerRegionBox import InnerRegionBox
 from InnerRegionSphere import InnerRegionSphere
 from InnerRegionCylinder import InnerRegionCylinder
@@ -10,6 +9,7 @@ class InnerRegionsManager():
 
     def __init__(self):
         self.regions = []
+
 
     @classmethod
     def init_from_config(cls, conf, spat_mesh):
@@ -45,7 +45,7 @@ class InnerRegionsManager():
                                                            conf[sec_name],
                                                            sec_name,
                                                            spat_mesh))
-        return new_obj
+            return new_obj
 
 
     @classmethod
