@@ -34,11 +34,11 @@ class ParticleSourceTube(ParticleSource):
 
 
     @classmethod
-    def init_from_h5_source_group(cls, h5_source_group):
+    def init_from_h5(cls, h5group):
         new_obj = cls()
         new_obj.read_particles_and_source_pars_from_h5(h5group)
         new_obj.geometry_type = "tube"
-        new_obj.read_hdf5_tube_parameters(h5_source_group)
+        new_obj.read_hdf5_tube_parameters(h5group)
         return new_obj
 
 
