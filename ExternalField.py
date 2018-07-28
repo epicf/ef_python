@@ -4,6 +4,7 @@ class ExternalField:
 
     def __init__(self):
         self.name = None
+        self.field_type = None
 
 
     def init_common_fields_from_config(self, field_conf, field_conf_name):

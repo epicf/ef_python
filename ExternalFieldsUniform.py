@@ -10,7 +10,6 @@ class ExternalFieldMagneticUniform(ExternalField):
 
     def __init__(self):
         super().__init__()
-        self.field_type = None
         self.magnetic_field = None
 
 
@@ -74,7 +73,6 @@ class ExternalFieldElectricUniform(ExternalField):
 
     def __init__(self):
         super().__init__()
-        self.field_type = None
         self.electric_field = None
 
 
@@ -105,7 +103,7 @@ class ExternalFieldElectricUniform(ExternalField):
         new_obj.field_type = "electric_uniform"
         Ex = h5_field_group.attrs["electric_uniform_field_x"]
         Ey = h5_field_group.attrs["electric_uniform_field_y"]
-        Ez = h5_field_group.attrs["electric_uniform_field_z"]        
+        Ez = h5_field_group.attrs["electric_uniform_field_z"]
         new_obj.electric_field = Vec3d(Ex, Ey, Ez)
         return new_obj
 
