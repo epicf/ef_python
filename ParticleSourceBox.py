@@ -35,9 +35,9 @@ class ParticleSourceBox(ParticleSource):
 
 
     def check_correctness_of_box_config_fields(self, conf, this_source_config_part):
-        self.x_left_ge_zero(conf, this_source_config_part)
-        self.x_left_le_particle_source_x_right(conf, this_source_config_part)
-        self.x_right_le_grid_x_size(conf, this_source_config_part)
+        self.x_right_ge_zero(conf, this_source_config_part)
+        self.x_right_le_particle_source_x_left(conf, this_source_config_part)
+        self.x_left_le_grid_x_size(conf, this_source_config_part)
         self.y_bottom_ge_zero(conf, this_source_config_part)
         self.y_bottom_le_particle_source_y_top(conf, this_source_config_part)
         self.y_top_le_grid_y_size(conf, this_source_config_part)
@@ -69,10 +69,10 @@ class ParticleSourceBox(ParticleSource):
             raise ValueError("Expect box_x_right >= 0")
 
 
-    def x_left_ge_particle_source_x_right(self, conf, this_source_config_part):
-        if this_source_config_part.getfloat("box_x_left") < \
-           this_source_config_part.getfloat("box_x_right"):
-            raise ValueError("Expect box_x_left >= box_x_right")
+    def x_right_le_particle_source_x_left(self, conf, this_source_config_part):
+        if this_source_config_part.getfloat("box_x_right") > \
+           this_source_config_part.getfloat("box_x_left"):
+            raise ValueError("Expect box_x_right <= box_x_left")
 
 
     def x_left_le_grid_x_size(self, conf, this_source_config_part):
