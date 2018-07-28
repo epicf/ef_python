@@ -1,5 +1,4 @@
 from math import ceil
-from common import production_assert
 
 
 class TimeGrid():
@@ -111,20 +110,18 @@ class TimeGrid():
 
 
     def total_time_gt_zero(self, conf):
-        if conf["Time grid"].getfloat("total_time") < 0:
-            raise ValueError("total_time < 0")
+        if conf["Time grid"].getfloat("total_time") <= 0:
+            raise ValueError("Expect total_time > 0")
 
 
     def time_step_size_gt_zero_le_total_time(self, conf):
-        production_assert(
-            (conf["Time grid"].getfloat("time_step_size") > 0) and
-            (conf["Time grid"].getfloat("time_step_size") <= \
-             conf["Time grid"].getfloat("total_time")),
-            "time_step_size <= 0 or time_step_size > total_time")
+        if (conf["Time grid"].getfloat("time_step_size") <= 0) or \
+           (conf["Time grid"].getfloat("time_step_size") > \
+            conf["Time grid"].getfloat("total_time")):
+            raise ValueError("Expect time_step_size > 0 and time_step_size <= total_time")
 
 
     def time_save_step_ge_time_step_size(self, conf):
-        production_assert(
-            conf["Time grid"].getfloat("time_save_step") >= \
-            conf["Time grid"].getfloat("time_step_size"),
-            "time_save_step < time_step_size")
+        if conf["Time grid"].getfloat("time_save_step") < \
+           conf["Time grid"].getfloat("time_step_size"):
+            raise ValueError("Expect time_save_step >= time_step_size")
