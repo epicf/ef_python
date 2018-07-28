@@ -79,14 +79,14 @@ class InnerRegionsManager():
     def check_if_particle_inside( self, p ):
         for region in self.regions:
             if region.check_if_particle_inside( p ):
-                return true
+                return True
         return False
 
     
     def check_if_particle_inside_and_count_charge( self, p ):
         for region in self.regions:
             if region.check_if_particle_inside_and_count_charge( p ):
-                return true
+                return True
         return False    
     
    
