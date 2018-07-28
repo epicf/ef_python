@@ -10,8 +10,6 @@ class InnerRegion():
         self.object_type = None
         self.total_absorbed_particles = 0
         self.total_absorbed_charge = 0
-        self.absorbed_particles_current_timestep = 0
-        self.absorbed_charge_current_timestep = 0
         self.inner_nodes = []
         self.inner_nodes_not_at_domain_edge = []
 
@@ -38,7 +36,7 @@ class InnerRegion():
         pass
 
 
-    def set_parameters_from_config(self, this_reg_config_part, sec_name):        
+    def set_parameters_from_config(self, this_reg_config_part, sec_name):
         self.name = sec_name[sec_name.rfind(".") + 1 :]
         self.potential = this_reg_config_part.getfloat("potential")
 
@@ -62,8 +60,8 @@ class InnerRegion():
     def check_if_particle_inside_and_count_charge(self, p):
         in_or_out = self.check_if_particle_inside(p)
         if in_or_out:
-            self.absorbed_particles_current_timestep += 1
-            self.absorbed_charge_current_timestep += p.charge
+            self.total_absorbed_particles += 1
+            self.total_absorbed_charge += p.charge
         return in_or_out
 
 
