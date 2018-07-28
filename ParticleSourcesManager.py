@@ -104,6 +104,29 @@ class ParticleSourcesManager:
                 particle.update_position(dt)
 
 
+    def prepare_boris_integration(self, minus_half_dt, current_time,
+                                  spat_mesh, external_fields, inner_regions,
+                                  particle_to_mesh_map, particle_interaction_model):
+        # todo: too many arguments
+        # todo: place newly generated particles into separate buffer
+        for src_idx, src in enumerate(self.sources):
+            for p_idx, particle in enumerate(src.particles):
+                if not particle.momentum_is_half_time_step_shifted:
+                    total_el_field, total_mgn_field = \
+                        self.compute_total_fields_at_particle_position(
+                            particle, src_idx, p_idx,
+                            current_time, spat_mesh, external_fields, inner_regions,
+                            particle_to_mesh_map, particle_interaction_model)
+                    if total_mgn_field:
+                        particle.boris_update_momentum(minus_half_dt,
+                                                       total_el_field, total_mgn_field)
+                    else:
+                        particle.boris_update_momentum_no_mgn(minus_half_dt,
+                                                              total_el_field)
+                    particle.momentum_is_half_time_step_shifted = True
+
+
+
     def compute_total_fields_at_particle_position(
             self, particle, src_idx, p_idx,
             current_time, spat_mesh, external_fields, inner_regions,

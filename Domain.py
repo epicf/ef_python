@@ -137,37 +137,10 @@ class Domain():
     def shift_new_particles_velocities_half_time_step_back(self):
         minus_half_dt = -self.time_grid.time_step_size / 2.0
         #
-        for src in self.particle_sources.sources:
-            for p in src.particles:
-                if not p.momentum_is_half_time_step_shifted:
-                    total_el_field = \
-                    self.external_fields.total_electric_field_at_particle_position(
-                        p, self.time_grid.current_time)
-                    pic_el_field = self.particle_to_mesh_map.field_at_particle_position(
-                        self.spat_mesh, p)
-                    total_el_field = total_el_field.add(pic_el_field)
-                    #
-                    total_mgn_field = \
-                    self.external_fields.total_magnetic_field_at_particle_position(
-                        p, self.time_grid.current_time)
-                    #
-                    if not self.external_fields.magnetic:
-                        dp = total_el_field.times_scalar(p.charge * minus_half_dt)
-                        p.momentum = p.momentum.add(dp)
-                    else:
-                        q_quote = minus_half_dt * p.charge / p.mass / 2.0
-                        half_el_force = total_el_field.times_scalar(q_quote)
-                        v_current = p.momentum.times_scalar(1.0 / p.mass)
-                        u = v_current.add(half_el_force)
-                        h = total_mgn_field.times_scalar(
-                            q_quote / physical_constants.speed_of_light)
-                        s = h.times_scalar(
-                            2.0 / (1.0 + h.dot_product(h)))
-                        tmp = u.add(u.cross_product(h))
-                        u_quote = u.add(tmp.cross_product(s))
-                        p.momentum = u_quote.add(half_el_force).times_scalar(p.mass)
-                    p.momentum_is_half_time_step_shifted = True
-
+        self.particle_sources.prepare_boris_integration(
+            minus_half_dt, self.time_grid.current_time,
+            self.spat_mesh, self.external_fields, self.inner_regions,
+            self.particle_to_mesh_map, self.particle_interaction_model)
 
 
 #
