@@ -32,7 +32,8 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
 
     @classmethod
     def init_from_config(cls, field_conf, field_conf_name):
-        new_obj = super().init_from_config(field_conf, field_conf_name)
+        new_obj = cls()
+        new_obj.init_common_fields_from_config(field_conf, field_conf_name)
         new_obj.field_type = "magnetic_on_regular_grid_from_file"
         new_obj.check_correctness_of_related_config_fields(field_conf)
         new_obj.get_values_from_config(field_conf)
@@ -147,7 +148,8 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
 
     @classmethod
     def init_from_h5(cls, h5_field_group):
-        new_obj = super().init_from_h5(h5_field_group)
+        new_obj = cls()
+        new_obj.init_common_fields_from_h5(h5_field_group)
         new_obj.field_type = "magnetic_on_regular_grid_from_file"
         new_obj.field_file = h5_field_group.attrs["field_file"]
         if not os.path.exists(new_obj.field_file):
@@ -158,21 +160,24 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
 
     def field_at_particle_position(self, particle, current_time):
         if self.inside_mesh(particle.position):
-            field = self.field_at_particle_position(particle)
+            field = self.field_from_grid(particle)
         else:
             field = Vec3d.zero()
         return field
 
 
     # todo: refactor
-    def field_at_particle_position(self, p):
+    def field_from_grid(self, particle):
         dx = self.x_cell_size
         dy = self.y_cell_size
         dz = self.z_cell_size
         # 'tlf' = 'top_left_far'
-        tlf_i, tlf_x_weight = self.next_node_num_and_weight(p.position.x, dx, self.x_start)
-        tlf_j, tlf_y_weight = self.next_node_num_and_weight(p.position.y, dy, self.y_start)
-        tlf_k, tlf_z_weight = self.next_node_num_and_weight(p.position.z, dz, self.z_start)
+        tlf_i, tlf_x_weight = self.next_node_num_and_weight(
+            particle.position.x, dx, self.x_start)
+        tlf_j, tlf_y_weight = self.next_node_num_and_weight(
+            particle.position.y, dy, self.y_start)
+        tlf_k, tlf_z_weight = self.next_node_num_and_weight(
+            particle.position.z, dz, self.z_start)
         # tlf
         total_field = Vec3d.zero()
         field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j][tlf_k].times_scalar(

@@ -13,7 +13,8 @@ class ExternalFieldMagneticUniform( ExternalField ):
 
     @classmethod
     def init_from_config( cls, field_conf, field_conf_name ):
-        new_obj = super().init_from_config( field_conf, field_conf_name )
+        new_obj = cls()
+        new_obj.init_common_fields_from_config(field_conf, field_conf_name)
         new_obj.field_type = "magnetic_uniform"
         new_obj.check_correctness_of_related_config_fields( field_conf )
         new_obj.get_values_from_config( field_conf )
@@ -32,7 +33,8 @@ class ExternalFieldMagneticUniform( ExternalField ):
 
     @classmethod 
     def init_from_h5( cls, h5_field_group ):
-        new_obj = super().init_from_h5( h5_field_group )        
+        new_obj = cls()
+        new_obj.init_common_fields_from_h5(h5_field_group)
         new_obj.field_type = "magnetic_uniform"
         Hx = h5_field_group.attrs["magnetic_uniform_field_x"]
         Hy = h5_field_group.attrs["magnetic_uniform_field_y"]
@@ -71,7 +73,8 @@ class ExternalFieldElectricUniform( ExternalField ):
 
     @classmethod
     def init_from_config( cls, field_conf, field_conf_name ):
-        new_obj = super().init_from_config( field_conf, field_conf_name )
+        new_obj = cls()
+        new_obj.init_common_fields_from_config(field_conf, field_conf_name)
         new_obj.field_type = "electric_uniform"
         new_obj.check_correctness_of_related_config_fields( field_conf )
         new_obj.get_values_from_config( field_conf )
@@ -89,7 +92,8 @@ class ExternalFieldElectricUniform( ExternalField ):
 
     @classmethod 
     def init_from_h5( cls, h5_field_group ):
-        new_obj = super().init_from_h5( h5_field_group )        
+        new_obj = cls()
+        new_obj.init_common_fields_from_h5(h5_field_group)
         new_obj.field_type = "electric_uniform"
         Ex = h5_field_group.attrs["electric_uniform_field_x"]
         Ey = h5_field_group.attrs["electric_uniform_field_y"]
