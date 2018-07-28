@@ -1,4 +1,8 @@
-from ParticleSource import *
+from math import sqrt, copysign
+import numpy as np
+
+from Vec3d import Vec3d
+from ParticleSource import ParticleSource
 
 # Cylinder source
 
