@@ -22,7 +22,9 @@ class ParticleSourceTube(ParticleSource):
 
     @classmethod
     def init_from_config(cls, conf, this_source_config_part, sec_name):
-        new_obj = super().init_from_config(conf, this_source_config_part, sec_name)
+        new_obj = cls()
+        new_obj.read_particles_and_source_pars_from_config(
+            conf, this_source_config_part, sec_name)
         new_obj.geometry_type = "tube"
         new_obj.check_correctness_of_tube_config_fields(
             conf, this_source_config_part)
@@ -33,7 +35,8 @@ class ParticleSourceTube(ParticleSource):
 
     @classmethod
     def init_from_h5_source_group(cls, h5_source_group):
-        new_obj = super().init_from_h5(h5_source_group)
+        new_obj = cls()
+        new_obj.read_particles_and_source_pars_from_h5(h5group)
         new_obj.geometry_type = "tube"
         new_obj.read_hdf5_tube_parameters(h5_source_group)
         return new_obj
