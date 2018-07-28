@@ -84,13 +84,16 @@ class ParticleSourceTube(ParticleSource):
 
     def inner_radius_gt_zero(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("tube_inner_radius") <= 0:
-            raise ValueError("inner_radius <= 0")
+            raise ValueError("inner_radius = {};"
+                             "Expect tube_inner_radius > 0".format(self.inner_radius))
 
 
     def outer_radius_gt_inner_radius(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("tube_outer_radius") <= \
            this_source_config_part.getfloat("tube_inner_radius"):
-            raise ValueError("outer_radius <= inner_radius")
+            raise ValueError("inner_radius = {}; outer_radius = {};"
+                             "Expect outer_radius > inner_radius".format(
+                                 self.inner_radius, self.outer_radius))
 
 
     def axis_start_x_min_rad_ge_zero(self, conf, this_source_config_part):
