@@ -135,7 +135,7 @@ class Domain():
 
 
     def shift_new_particles_velocities_half_time_step_back(self):
-        minus_half_dt = -self.time_grid.time_step_size / 2.0
+        minus_half_dt = -1.0 * self.time_grid.time_step_size / 2.0
         #
         self.particle_sources.prepare_boris_integration(
             minus_half_dt, self.time_grid.current_time,

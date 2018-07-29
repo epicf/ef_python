@@ -160,6 +160,7 @@ class ParticleSourcesManager:
 
 
     def binary_field_at_particle_position(self, particle, src_idx, p_idx):
+        # todo: swap src_idx and p_idx arguments order
         bin_force = Vec3d.zero()
         for iter_src_idx, src in enumerate(self.sources):
             if iter_src_idx != src_idx:
