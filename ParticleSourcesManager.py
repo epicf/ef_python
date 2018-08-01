@@ -167,9 +167,7 @@ class ParticleSourcesManager:
                 for p in src.particles:
                     bin_force = bin_force.add(p.field_at_point(particle.position))
             else:
-                tmp_p = src.particles[0]
-                src.particles[0] = particle
-                src.particles[p_idx] = tmp_p
-                for p in src.particles[1:]:
-                    bin_force = bin_force.add(p.field_at_point(particle.position))
+                for p in src.particles:
+                    if p.id != particle.id:
+                        bin_force = bin_force.add(p.field_at_point(particle.position))
         return bin_force
