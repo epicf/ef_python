@@ -33,9 +33,6 @@ class InnerRegion(ConfigComponent):
         elif type(self.shape) is Sphere:
             shape_args = list(self.shape.origin) + [self.shape.r]
             cls = InnerRegionSphereConf
-        elif type(self.shape) is Cone:
-            shape_args = list(self.shape.origin) + [self.shape.r]
-            cls = InnerRegionConeAlongZ
         else:
             raise TypeError("Config can not represent inner region shape", self.shape)
         return cls(self.name, *(shape_args + [self.potential]))
