@@ -148,12 +148,12 @@ class SpatialMesh():
 
 
     def set_boundary_conditions(self, conf):
-        phi_left = conf["Boundary conditions"].getfloat("boundary_phi_left")
-        phi_right = conf["Boundary conditions"].getfloat("boundary_phi_right")
-        phi_top = conf["Boundary conditions"].getfloat("boundary_phi_top")
-        phi_bottom = conf["Boundary conditions"].getfloat("boundary_phi_bottom")
-        phi_near = conf["Boundary conditions"].getfloat("boundary_phi_near")
-        phi_far = conf["Boundary conditions"].getfloat("boundary_phi_far")
+        phi_left = conf["BoundaryConditions"].getfloat("boundary_phi_left")
+        phi_right = conf["BoundaryConditions"].getfloat("boundary_phi_right")
+        phi_top = conf["BoundaryConditions"].getfloat("boundary_phi_top")
+        phi_bottom = conf["BoundaryConditions"].getfloat("boundary_phi_bottom")
+        phi_near = conf["BoundaryConditions"].getfloat("boundary_phi_near")
+        phi_far = conf["BoundaryConditions"].getfloat("boundary_phi_far")
         #
         nx = self.x_n_nodes
         ny = self.y_n_nodes

@@ -22,7 +22,7 @@ class BoundaryConditions(ConfigComponent):
 
 @register
 class BoundaryConditionsConf(ConfigSection):
-    section = "Boundary conditions"
+    section = "BoundaryConditions"
     ContentTuple = namedtuple("BoundaryConditionsTuple",
                               ('boundary_phi_right', 'boundary_phi_left', 'boundary_phi_bottom',
                                'boundary_phi_top', 'boundary_phi_near', 'boundary_phi_far'))
