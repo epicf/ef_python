@@ -12,7 +12,14 @@ class ParticleInteractionModel():
         new_obj = cls()
         new_obj.check_correctness_of_related_config_fields(conf)
         new_obj.get_values_from_config(conf)
+        ParticleInteractionModel.mark_partintmodel_sec_as_used(conf)
         return new_obj
+
+
+    @staticmethod
+    def mark_partintmodel_sec_as_used(conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf["ParticleInteractionModel"]["used"] = "True"
 
 
     def check_correctness_of_related_config_fields(self, conf):

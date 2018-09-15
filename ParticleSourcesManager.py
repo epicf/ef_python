@@ -21,17 +21,26 @@ class ParticleSourcesManager:
                     ParticleSourceBox.init_from_config(conf,
                                                        conf[sec_name],
                                                        sec_name))
+                ParticleSourcesManager.mark_particlesource_sec_as_used(sec_name, conf)
             elif ParticleSourceCylinder.is_cylinder_source(sec_name):
                 new_obj.sources.append(
                     ParticleSourceCylinder.init_from_config(conf,
                                                             conf[sec_name],
                                                             sec_name))
+                ParticleSourcesManager.mark_particlesource_sec_as_used(sec_name, conf)
             elif ParticleSourceTube.is_tube_source(sec_name):
                 new_obj.sources.append(
                     ParticleSourceTube.init_from_config(conf,
                                                         conf[sec_name],
                                                         sec_name))
+                ParticleSourcesManager.mark_particlesource_sec_as_used(sec_name, conf)
         return new_obj
+
+
+    @staticmethod
+    def mark_particlesource_sec_as_used(sec_name, conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf[sec_name]["used"] = "True"
 
 
     @classmethod

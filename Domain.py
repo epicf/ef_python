@@ -39,9 +39,28 @@ class Domain():
         new_obj.external_fields = ExternalFieldsManager.init_from_config(conf)
         new_obj.particle_interaction_model = ParticleInteractionModel.init_from_config(
             conf)
-        new_obj.output_filename_prefix = conf["OutputFilename"]["output_filename_prefix"]
-        new_obj.output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
+        new_obj.get_output_filename_prefix_and_suffix(conf)
+        Domain.check_and_print_unused_conf_sections(conf)
         return new_obj
+
+
+    def get_output_filename_prefix_and_suffix(self, conf):
+        self.output_filename_prefix = conf["OutputFilename"]["output_filename_prefix"]
+        self.output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
+        Domain.mark_outputfilename_sec_as_used(conf)
+
+
+    @staticmethod
+    def mark_outputfilename_sec_as_used(conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf["OutputFilename"]["used"] = "True"
+
+
+    @staticmethod
+    def check_and_print_unused_conf_sections(conf):
+        for sec_name in conf.sections():
+            if not conf[sec_name].getboolean("used"):
+                print("!!!! Warning: unused config section: ", sec_name)
 
 
     @classmethod

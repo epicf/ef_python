@@ -22,7 +22,14 @@ class TimeGrid():
         new_obj.shrink_time_step_size_if_necessary(conf)
         new_obj.shrink_time_save_step_if_necessary(conf)
         new_obj.set_current_time_and_node()
+        TimeGrid.mark_timegrid_sec_as_used(conf)
         return new_obj
+
+
+    @staticmethod
+    def mark_timegrid_sec_as_used(conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf["TimeGrid"]["used"] = "True"
 
 
     @classmethod

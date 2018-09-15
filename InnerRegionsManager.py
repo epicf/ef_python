@@ -21,31 +21,42 @@ class InnerRegionsManager():
                                                     conf[sec_name],
                                                     sec_name,
                                                     spat_mesh))
+                InnerRegionsManager.mark_innerreg_sec_as_used(sec_name, conf)
             elif InnerRegionSphere.is_sphere_region(sec_name):
                 new_obj.regions.append(
                     InnerRegionSphere.init_from_config(conf,
                                                        conf[sec_name],
                                                        sec_name,
                                                        spat_mesh))
+                InnerRegionsManager.mark_innerreg_sec_as_used(sec_name, conf)
             elif InnerRegionCylinder.is_cylinder_region(sec_name):
                 new_obj.regions.append(
                     InnerRegionCylinder.init_from_config(conf,
                                                          conf[sec_name],
                                                          sec_name,
                                                          spat_mesh))
+                InnerRegionsManager.mark_innerreg_sec_as_used(sec_name, conf)
             elif InnerRegionTube.is_tube_region(sec_name):
                 new_obj.regions.append(
                     InnerRegionTube.init_from_config(conf,
                                                      conf[sec_name],
                                                      sec_name,
                                                      spat_mesh))
+                InnerRegionsManager.mark_innerreg_sec_as_used(sec_name, conf)
             elif InnerRegionConeAlongZ.is_cone_region(sec_name):
                 new_obj.regions.append(
                     InnerRegionConeAlongZ.init_from_config(conf,
                                                            conf[sec_name],
                                                            sec_name,
                                                            spat_mesh))
+                InnerRegionsManager.mark_innerreg_sec_as_used(sec_name, conf)
         return new_obj
+
+
+    @staticmethod
+    def mark_innerreg_sec_as_used(sec_name, conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf[sec_name]["used"] = "True"
 
 
     @classmethod

@@ -31,7 +31,15 @@ class SpatialMesh():
         new_obj.allocate_ongrid_values()
         new_obj.fill_node_coordinates()
         new_obj.set_boundary_conditions(conf)
+        SpatialMesh.mark_spatmesh_sec_as_used(conf)
         return new_obj
+
+
+    @staticmethod
+    def mark_spatmesh_sec_as_used(conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf["SpatialMesh"]["used"] = "True"
+        conf["BoundaryConditions"]["used"] = "True"
 
 
     @classmethod

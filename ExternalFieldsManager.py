@@ -21,14 +21,23 @@ class ExternalFieldsManager():
             if ExternalFieldMagneticUniform.is_magnetic_uniform_config_part(sec_name):
                 new_obj.magnetic.append(
                     ExternalFieldMagneticUniform.init_from_config(conf[sec_name], sec_name))
+                ExternalFieldsManager.mark_extfield_sec_as_used(sec_name, conf)
             elif ExternalFieldElectricUniform.is_electric_uniform_config_part(sec_name):
                 new_obj.electric.append(
                     ExternalFieldElectricUniform.init_from_config(conf[sec_name], sec_name))
+                ExternalFieldsManager.mark_extfield_sec_as_used(sec_name, conf)
             elif ExternalFieldMagneticOnRegularGridFromFile.is_relevant_conf_part(sec_name):
                 new_obj.magnetic.append(
                     ExternalFieldMagneticOnRegularGridFromFile.init_from_config(
                         conf[sec_name], sec_name))
+                ExternalFieldsManager.mark_extfield_sec_as_used(sec_name, conf)
         return new_obj
+
+
+    @staticmethod
+    def mark_extfield_sec_as_used(sec_name, conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf[sec_name]["used"] = "True"
 
 
     @classmethod
