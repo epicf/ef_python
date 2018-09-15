@@ -1,7 +1,6 @@
 from Vec3d import Vec3d
 from ParticleSource import ParticleSource
 
-# Box source
 
 class ParticleSourceBox(ParticleSource):
 
@@ -31,7 +30,7 @@ class ParticleSourceBox(ParticleSource):
     @classmethod
     def init_from_h5(cls, h5_source_group):
         new_obj = cls()
-        new_obj.read_particles_and_source_pars_from_h5(h5group)
+        new_obj.read_particles_and_source_pars_from_h5(h5_source_group)
         new_obj.geometry_type = "box"
         new_obj.read_hdf5_box_parameters(h5_source_group)
         return new_obj
