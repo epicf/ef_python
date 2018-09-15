@@ -55,8 +55,8 @@ z_an = z_an + emitter_z_pos
 r_num = h5file["/Particle_sources/cathode_emitter/position_x"]
 z_num = h5file["/Particle_sources/cathode_emitter/position_z"]
 
-z_volume_size = h5file["/Spatial_mesh"].attrs["z_volume_size"]
-x_volume_size = h5file["/Spatial_mesh"].attrs["x_volume_size"]
+z_volume_size = h5file["/SpatialMesh"].attrs["z_volume_size"]
+x_volume_size = h5file["/SpatialMesh"].attrs["x_volume_size"]
 plt.xlabel( "Z [cm]" )
 plt.ylabel( "X [cm]" )
 plt.ylim( 0, x_volume_size )

@@ -100,7 +100,7 @@ class SpatialMesh():
 
 
     def init_x_grid(self, conf):
-        spat_mesh_conf = conf["Spatial mesh"]
+        spat_mesh_conf = conf["SpatialMesh"]
         self.x_volume_size = spat_mesh_conf.getfloat("grid_x_size")
         self.x_n_nodes = ceil(spat_mesh_conf.getfloat("grid_x_size") /
                               spat_mesh_conf.getfloat("grid_x_step")) + 1
@@ -112,7 +112,7 @@ class SpatialMesh():
 
 
     def init_y_grid(self, conf):
-        spat_mesh_conf = conf["Spatial mesh"]
+        spat_mesh_conf = conf["SpatialMesh"]
         self.y_volume_size = spat_mesh_conf.getfloat("grid_y_size")
         self.y_n_nodes = ceil(spat_mesh_conf.getfloat("grid_y_size") /
                               spat_mesh_conf.getfloat("grid_y_step")) + 1
@@ -124,7 +124,7 @@ class SpatialMesh():
 
 
     def init_z_grid(self, conf):
-        spat_mesh_conf = conf["Spatial mesh"]
+        spat_mesh_conf = conf["SpatialMesh"]
         self.z_volume_size = spat_mesh_conf.getfloat("grid_z_size")
         self.z_n_nodes = ceil(spat_mesh_conf.getfloat("grid_z_size") /
                               spat_mesh_conf.getfloat("grid_z_step")) + 1
@@ -218,7 +218,7 @@ class SpatialMesh():
 
 
     def write_to_file(self, h5file):
-        groupname = "/Spatial_mesh"
+        groupname = "/SpatialMesh"
         h5group = h5file.create_group(groupname)
         self.write_hdf5_attributes(h5group)
         self.write_hdf5_ongrid_values(h5group)
@@ -271,38 +271,38 @@ class SpatialMesh():
 
 
     def grid_x_size_gt_zero(self, conf):
-        if conf["Spatial mesh"].getfloat("grid_x_size") <= 0:
+        if conf["SpatialMesh"].getfloat("grid_x_size") <= 0:
             raise ValueError("expect grid_x_size > 0")
 
 
     def grid_x_step_gt_zero_le_grid_x_size(self, conf):
-        if (conf["Spatial mesh"].getfloat("grid_x_step") <= 0) or \
-           (conf["Spatial mesh"].getfloat("grid_x_step") > \
-            conf["Spatial mesh"].getfloat("grid_x_size")):
+        if (conf["SpatialMesh"].getfloat("grid_x_step") <= 0) or \
+           (conf["SpatialMesh"].getfloat("grid_x_step") > \
+            conf["SpatialMesh"].getfloat("grid_x_size")):
             raise ValueError("Expect grid_x_step > 0 and grid_x_step <= grid_x_size")
 
 
     def grid_y_size_gt_zero(self, conf):
-        if conf["Spatial mesh"].getfloat("grid_y_size") <= 0:
+        if conf["SpatialMesh"].getfloat("grid_y_size") <= 0:
             raise ValueError("Expect grid_y_size > 0")
 
 
     def grid_y_step_gt_zero_le_grid_y_size(self, conf):
-        if (conf["Spatial mesh"].getfloat("grid_y_step") <= 0) or \
-           (conf["Spatial mesh"].getfloat("grid_y_step") > \
-            conf["Spatial mesh"].getfloat("grid_y_size")):
+        if (conf["SpatialMesh"].getfloat("grid_y_step") <= 0) or \
+           (conf["SpatialMesh"].getfloat("grid_y_step") > \
+            conf["SpatialMesh"].getfloat("grid_y_size")):
             raise ValueError("Expect grid_y_step > 0 and grid_y_step <= grid_y_size")
 
 
     def grid_z_size_gt_zero(self, conf):
-        if conf["Spatial mesh"].getfloat("grid_z_size") <= 0:
+        if conf["SpatialMesh"].getfloat("grid_z_size") <= 0:
             raise ValueError("Expect grid_z_size > 0")
 
 
     def grid_z_step_gt_zero_le_grid_z_size(self, conf):
-        if (conf["Spatial mesh"].getfloat("grid_z_step") <= 0) or \
-           (conf["Spatial mesh"].getfloat("grid_z_step") > \
-            conf["Spatial mesh"].getfloat("grid_z_size")):
+        if (conf["SpatialMesh"].getfloat("grid_z_step") <= 0) or \
+           (conf["SpatialMesh"].getfloat("grid_z_step") > \
+            conf["SpatialMesh"].getfloat("grid_z_size")):
             raise ValueError("Expect grid_z_step > 0 and grid_z_step <= grid_z_size")
 
 

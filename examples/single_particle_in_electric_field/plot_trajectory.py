@@ -84,14 +84,14 @@ def eval_field_amplitude():
     # Attempt to extract them results in cryptic manipulations
     # with number of nodes in different directions of mesh.
     # Need to fix it somehow.
-    x_n_nodes = h5["/Spatial_mesh"].attrs["x_n_nodes"][0]
-    y_n_nodes = h5["/Spatial_mesh"].attrs["y_n_nodes"][0]
-    z_n_nodes = h5["/Spatial_mesh"].attrs["z_n_nodes"][0]
-    z_volume_size = h5["/Spatial_mesh"].attrs["z_volume_size"][0]
+    x_n_nodes = h5["/SpatialMesh"].attrs["x_n_nodes"][0]
+    y_n_nodes = h5["/SpatialMesh"].attrs["y_n_nodes"][0]
+    z_n_nodes = h5["/SpatialMesh"].attrs["z_n_nodes"][0]
+    z_volume_size = h5["/SpatialMesh"].attrs["z_volume_size"][0]
     # first point with X != 0, Y != 0, Z == 0
-    phi_near  = h5["/Spatial_mesh/potential"][ z_n_nodes * y_n_nodes + z_n_nodes ]
+    phi_near  = h5["/SpatialMesh/potential"][ z_n_nodes * y_n_nodes + z_n_nodes ]
     # first point with X != 0, Y != 0, Z == Z_size
-    phi_far  = h5["/Spatial_mesh/potential"][ z_n_nodes * y_n_nodes + z_n_nodes + z_n_nodes - 1 ]
+    phi_far  = h5["/SpatialMesh/potential"][ z_n_nodes * y_n_nodes + z_n_nodes + z_n_nodes - 1 ]
     E0 = - ( phi_far - phi_near ) / z_volume_size
     return E0
     

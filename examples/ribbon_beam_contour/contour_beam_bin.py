@@ -44,7 +44,7 @@ def get_source_geometry( h5file ):
     
 def get_zlim( h5file ):
     start_z = h5file["/Particle_sources/cathode_emitter"].attrs["box_z_near"]
-    end_z = h5file["/Spatial_mesh/"].attrs["z_volume_size"]
+    end_z = h5file["/SpatialMesh/"].attrs["z_volume_size"]
     return( start_z * SI_conv_cm_to_m, 
            end_z * SI_conv_cm_to_m)
 
