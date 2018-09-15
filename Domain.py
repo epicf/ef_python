@@ -39,8 +39,8 @@ class Domain():
         new_obj.external_fields = ExternalFieldsManager.init_from_config(conf)
         new_obj.particle_interaction_model = ParticleInteractionModel.init_from_config(
             conf)
-        new_obj.output_filename_prefix = conf["Output filename"]["output_filename_prefix"]
-        new_obj.output_filename_suffix = conf["Output filename"]["output_filename_suffix"]
+        new_obj.output_filename_prefix = conf["OutputFilename"]["output_filename_prefix"]
+        new_obj.output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
         return new_obj
 
 

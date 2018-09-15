@@ -17,7 +17,7 @@ class OutputFile(ConfigComponent):
 
 @register
 class OutputFilenameConf(ConfigSection):
-    section = "Output filename"
+    section = "OutputFilename"
     ContentTuple = namedtuple("OutputFileNameTuple", ('output_filename_prefix', 'output_filename_suffix'))
     convert = ContentTuple(str, str)
 
