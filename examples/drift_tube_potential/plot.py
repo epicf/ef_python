@@ -8,7 +8,7 @@ def get_source_parameters(h5file):
     mass = h5file["/Particle_sources/cathode_emitter"].attrs["mass"]
     momentum_z = h5file["/Particle_sources/cathode_emitter"].attrs["mean_momentum_z"]
     particle_per_step = h5file["/Particle_sources/cathode_emitter"].attrs["particles_to_generate_each_step"]
-    time_step = h5file["/Time_grid"].attrs["time_step_size"]
+    time_step = h5file["/TimeGrid"].attrs["time_step_size"]
     radius_tube = h5file["/Inner_regions/tube"].attrs["tube_inner_radius"]
     return radius_beam,charge,mass,momentum_z,particle_per_step,time_step,radius_tube
 

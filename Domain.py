@@ -47,7 +47,7 @@ class Domain():
     @classmethod
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
         new_obj = cls()
-        new_obj.time_grid = TimeGrid.init_from_h5(h5file["/Time_grid"])
+        new_obj.time_grid = TimeGrid.init_from_h5(h5file["/TimeGrid"])
         new_obj.spat_mesh = SpatialMesh.init_from_h5(h5file["/Spatial_mesh"])
         new_obj.inner_regions = InnerRegionsManager.init_from_h5(
             h5file["/Inner_regions"], new_obj.spat_mesh)

@@ -37,7 +37,7 @@ def find_necessary_out_files():
 
 def extract_time_pos_mom( h5file ):
     h5 = h5py.File( h5file, mode="r")
-    t = h5["/Time_grid"].attrs["current_time"]
+    t = h5["/TimeGrid"].attrs["current_time"]
     t_pos_mom = ()
     if ( len(h5["/Particle_sources/emit_single_particle"]) > 0 ):
         x = h5["/Particle_sources/emit_single_particle/position_x"][0]

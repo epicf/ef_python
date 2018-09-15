@@ -7,13 +7,13 @@ filename = 'contour_0000100.h5'
 h5file = h5py.File( filename, mode = "r" )
 
 def get_source_current( h5file ):
-    time_step = h5file["/Time_grid"].attrs["time_step_size"]
+    time_step = h5file["/TimeGrid"].attrs["time_step_size"]
     charge = h5file["/Particle_sources/cathode_emitter"].attrs["charge"]
     particles_per_step = h5file[
         "/Particle_sources/cathode_emitter"].attrs["particles_to_generate_each_step"]
     current = particles_per_step * charge / time_step
     return current
-    
+
 def get_source_geometry( h5file ):
     axis_start_x = \
         h5file["/Particle_sources/cathode_emitter"].attrs["cylinder_axis_start_x"]

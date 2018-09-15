@@ -21,7 +21,7 @@ class TimeGrid(ConfigComponent):
 
 @register
 class TimeGridConf(ConfigSection):
-    section = "Time grid"
+    section = "TimeGrid"
     ContentTuple = namedtuple("TimeGridTuple", ('total_time', 'time_save_step', 'time_step_size'))
     convert = ContentTuple(float, float, float)
 

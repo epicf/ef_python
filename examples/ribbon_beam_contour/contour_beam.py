@@ -10,24 +10,24 @@ import matplotlib.pyplot as plt
 import h5py
 
 SGSE_conv_unit_current_to_A = 3e10 * 0.1;     #from current units SGSE to A
-SI_conv_cm_to_m = 0.01;      
+SI_conv_cm_to_m = 0.01;
 SI_conv_g_to_kg = 0.001
 SI_conv_Fr_to_C = 3.3356409519815207e-10
 
 def get_source_current( h5file ):
-    time_step = h5file["/Time_grid"].attrs["time_step_size"]
+    time_step = h5file["/TimeGrid"].attrs["time_step_size"]
     charge = h5file["/Particle_sources/cathode_emitter"].attrs["charge"]
     particles_per_step = h5file[
         "/Particle_sources/cathode_emitter"].attrs["particles_to_generate_each_step"]
     current = np.abs(particles_per_step * charge / time_step)
-    return current / SGSE_conv_unit_current_to_A 
-    
+    return current / SGSE_conv_unit_current_to_A
+
 def get_source_particle_parameters( h5file ):
     mass = h5file["/Particle_sources/cathode_emitter"].attrs["mass"]
     charge = h5file["/Particle_sources/cathode_emitter"].attrs["charge"]
     momentum_z = h5file["/Particle_sources/cathode_emitter"].attrs["mean_momentum_z"]
-    return ( mass * SI_conv_g_to_kg, 
-            charge * SI_conv_Fr_to_C, 
+    return ( mass * SI_conv_g_to_kg,
+            charge * SI_conv_Fr_to_C,
             momentum_z * SI_conv_g_to_kg * SI_conv_cm_to_m )
     
 def get_source_geometry( h5file ):
