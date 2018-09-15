@@ -99,4 +99,4 @@ class InnerRegionTube(InnerRegion):
 
     @classmethod
     def is_tube_region(cls, conf_sec_name):
-        return 'Inner_region_tube' in conf_sec_name
+        return 'InnerRegionTube' in conf_sec_name

@@ -50,7 +50,7 @@ class Domain():
         new_obj.time_grid = TimeGrid.init_from_h5(h5file["/TimeGrid"])
         new_obj.spat_mesh = SpatialMesh.init_from_h5(h5file["/SpatialMesh"])
         new_obj.inner_regions = InnerRegionsManager.init_from_h5(
-            h5file["/Inner_regions"], new_obj.spat_mesh)
+            h5file["/InnerRegions"], new_obj.spat_mesh)
         new_obj.particle_to_mesh_map = ParticleToMeshMap()
         new_obj.field_solver = FieldSolver(new_obj.spat_mesh, new_obj.inner_regions)
         new_obj.particle_sources = ParticleSourcesManager.init_from_h5(

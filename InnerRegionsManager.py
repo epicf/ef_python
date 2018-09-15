@@ -80,7 +80,7 @@ class InnerRegionsManager():
 
 
     def write_to_file(self, h5file):
-        h5group = h5file.create_group("/Inner_regions")
+        h5group = h5file.create_group("/InnerRegions")
         h5group.attrs.create("number_of_regions", len(self.regions))
         for reg in self.regions:
             reg.write_to_file(h5group)

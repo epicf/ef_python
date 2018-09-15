@@ -79,4 +79,4 @@ class InnerRegionBox(InnerRegion):
 
     @classmethod
     def is_box_region(cls, conf_sec_name):
-        return 'Inner_region_box' in conf_sec_name
+        return 'InnerRegionBox' in conf_sec_name
