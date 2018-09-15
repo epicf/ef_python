@@ -56,7 +56,7 @@ class Domain():
         new_obj.particle_sources = ParticleSourcesManager.init_from_h5(
             h5file["/ParticleSources"])
         new_obj.external_fields = ExternalFieldsManager.init_from_h5(
-            h5file["/External_fields"])
+            h5file["/ExternalFields"])
         new_obj.particle_interaction_model = ParticleInteractionModel.init_from_h5(
             h5file["/ParticleInteractionModel"])
         new_obj.output_filename_prefix = filename_prefix

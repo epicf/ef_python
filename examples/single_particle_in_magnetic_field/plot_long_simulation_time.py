@@ -81,7 +81,7 @@ def eval_an_trajectory_at_num_time_points( num_trajectory ):
     return( an_trajectory )
     
 def extract_magn_field( h5 ):
-    B0 = h5["/External_fields/mgn_uni"].attrs["magnetic_uniform_field_z"]
+    B0 = h5["/ExternalFields/mgn_uni"].attrs["magnetic_uniform_field_z"]
     return B0
 
 def extract_particle_charge_and_mass( h5 ):

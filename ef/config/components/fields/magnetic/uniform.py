@@ -19,7 +19,7 @@ class ExternalMagneticFieldUniform(Field):
 
 @register
 class ExternalMagneticFieldUniformConf(NamedConfigSection):
-    section = "External_magnetic_field_uniform"
+    section = "ExternalMagneticFieldUniform"
     ContentTuple = namedtuple("ExternalMagneticFieldUniform",
                               ('magnetic_field_x', 'magnetic_field_y', 'magnetic_field_z'))
     convert = ContentTuple(float, float, float)

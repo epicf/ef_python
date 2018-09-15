@@ -55,7 +55,7 @@ class ExternalFieldsManager():
                 ExternalFieldMagneticOnRegularGridFromFile.init_from_h5(
                     current_field_grpid))
         else:
-            print("In External_field_manager constructor-from-h5: ")
+            print("In ExternalFieldsManager constructor-from-h5: ")
             print("Unknown external_field type. Aborting")
             sys.exit(-1)
 
@@ -77,7 +77,7 @@ class ExternalFieldsManager():
 
 
     def write_to_file(self, hdf5_file_id):
-        hdf5_groupname = "/External_fields"
+        hdf5_groupname = "/ExternalFields"
         n_of_electric_fields = len(self.electric)
         n_of_magnetic_fields = len(self.magnetic)
         fields_group = hdf5_file_id.create_group(hdf5_groupname)
