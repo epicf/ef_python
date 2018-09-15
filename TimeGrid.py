@@ -22,7 +22,14 @@ class TimeGrid():
         new_obj.shrink_time_step_size_if_necessary(conf)
         new_obj.shrink_time_save_step_if_necessary(conf)
         new_obj.set_current_time_and_node()
+        TimeGrid.mark_timegrid_sec_as_used(conf)
         return new_obj
+
+
+    @staticmethod
+    def mark_timegrid_sec_as_used(conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf["TimeGrid"]["used"] = "True"
 
 
     @classmethod
@@ -45,9 +52,9 @@ class TimeGrid():
 
 
     def get_values_from_config(self, conf):
-        self.total_time = conf["Time grid"].getfloat("total_time")
-        self.time_step_size = conf["Time grid"].getfloat("time_step_size")
-        self.time_save_step = conf["Time grid"].getfloat("time_save_step")
+        self.total_time = conf["TimeGrid"].getfloat("total_time")
+        self.time_step_size = conf["TimeGrid"].getfloat("time_step_size")
+        self.time_save_step = conf["TimeGrid"].getfloat("time_save_step")
 
 
     def init_total_nodes(self):
@@ -56,23 +63,23 @@ class TimeGrid():
 
     def shrink_time_step_size_if_necessary(self, conf):
         self.time_step_size = self.total_time / (self.total_nodes - 1)
-        if self.time_step_size != conf["Time grid"].getfloat("time_step_size"):
+        if self.time_step_size != conf["TimeGrid"].getfloat("time_step_size"):
             print("Time step was shrinked to {:.3E} "
                   "from {:.3E} "
                   " to fit round number of cells.".format(
                       self.time_step_size,
-                      conf["Time grid"].getfloat("time_step_size")))
+                      conf["TimeGrid"].getfloat("time_step_size")))
 
 
     def shrink_time_save_step_if_necessary(self, conf):
         self.time_save_step = \
             int(self.time_save_step / self.time_step_size) * self.time_step_size
-        if self.time_save_step != conf["Time grid"].getfloat("time_save_step"):
+        if self.time_save_step != conf["TimeGrid"].getfloat("time_save_step"):
             print("Time save step was shrinked to {:.3E} "
                   "from {:.3E} "
                   "to be a multiple of time step.".format(
                       self.time_save_step,
-                      conf["Time grid"].getfloat("time_save_step")))
+                      conf["TimeGrid"].getfloat("time_save_step")))
         self.node_to_save = int(self.time_save_step / self.time_step_size)
 
 
@@ -87,7 +94,7 @@ class TimeGrid():
 
 
     def print(self):
-        print("### Time grid:")
+        print("### TimeGrid:")
         print("Total time = {:.3E}".format(self.total_time))
         print("Current time = {:.3E}".format(self.current_time))
         print("Time step size = {:.3E}".format(self.time_step_size))
@@ -98,7 +105,7 @@ class TimeGrid():
 
 
     def write_to_file(self, h5file):
-        groupname = "/Time_grid"
+        groupname = "/TimeGrid"
         h5group = h5file.create_group(groupname)
         h5group.attrs.create("total_time", self.total_time)
         h5group.attrs.create("current_time", self.current_time)
@@ -110,18 +117,18 @@ class TimeGrid():
 
 
     def total_time_gt_zero(self, conf):
-        if conf["Time grid"].getfloat("total_time") <= 0:
+        if conf["TimeGrid"].getfloat("total_time") <= 0:
             raise ValueError("Expect total_time > 0")
 
 
     def time_step_size_gt_zero_le_total_time(self, conf):
-        if (conf["Time grid"].getfloat("time_step_size") <= 0) or \
-           (conf["Time grid"].getfloat("time_step_size") > \
-            conf["Time grid"].getfloat("total_time")):
+        if (conf["TimeGrid"].getfloat("time_step_size") <= 0) or \
+           (conf["TimeGrid"].getfloat("time_step_size") > \
+            conf["TimeGrid"].getfloat("total_time")):
             raise ValueError("Expect time_step_size > 0 and time_step_size <= total_time")
 
 
     def time_save_step_ge_time_step_size(self, conf):
-        if conf["Time grid"].getfloat("time_save_step") < \
-           conf["Time grid"].getfloat("time_step_size"):
+        if conf["TimeGrid"].getfloat("time_save_step") < \
+           conf["TimeGrid"].getfloat("time_step_size"):
             raise ValueError("Expect time_save_step >= time_step_size")

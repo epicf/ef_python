@@ -19,7 +19,7 @@ class ExternalElectricFieldUniform(Field):
 
 @register
 class ExternalElectricFieldUniformConf(NamedConfigSection):
-    section = "External_electric_field_uniform"
+    section = "ExternalElectricFieldUniform"
     ContentTuple = namedtuple("ExternalElectricFieldUniform",
                               ('electric_field_x', 'electric_field_y', 'electric_field_z'))
     convert = ContentTuple(float, float, float)

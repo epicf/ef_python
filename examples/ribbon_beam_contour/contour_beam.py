@@ -10,31 +10,31 @@ import matplotlib.pyplot as plt
 import h5py
 
 SGSE_conv_unit_current_to_A = 3e10 * 0.1;     #from current units SGSE to A
-SI_conv_cm_to_m = 0.01;      
+SI_conv_cm_to_m = 0.01;
 SI_conv_g_to_kg = 0.001
 SI_conv_Fr_to_C = 3.3356409519815207e-10
 
 def get_source_current( h5file ):
-    time_step = h5file["/Time_grid"].attrs["time_step_size"]
-    charge = h5file["/Particle_sources/cathode_emitter"].attrs["charge"]
+    time_step = h5file["/TimeGrid"].attrs["time_step_size"]
+    charge = h5file["/ParticleSources/cathode_emitter"].attrs["charge"]
     particles_per_step = h5file[
-        "/Particle_sources/cathode_emitter"].attrs["particles_to_generate_each_step"]
+        "/ParticleSources/cathode_emitter"].attrs["particles_to_generate_each_step"]
     current = np.abs(particles_per_step * charge / time_step)
-    return current / SGSE_conv_unit_current_to_A 
-    
+    return current / SGSE_conv_unit_current_to_A
+
 def get_source_particle_parameters( h5file ):
-    mass = h5file["/Particle_sources/cathode_emitter"].attrs["mass"]
-    charge = h5file["/Particle_sources/cathode_emitter"].attrs["charge"]
-    momentum_z = h5file["/Particle_sources/cathode_emitter"].attrs["mean_momentum_z"]
-    return ( mass * SI_conv_g_to_kg, 
-            charge * SI_conv_Fr_to_C, 
+    mass = h5file["/ParticleSources/cathode_emitter"].attrs["mass"]
+    charge = h5file["/ParticleSources/cathode_emitter"].attrs["charge"]
+    momentum_z = h5file["/ParticleSources/cathode_emitter"].attrs["mean_momentum_z"]
+    return ( mass * SI_conv_g_to_kg,
+            charge * SI_conv_Fr_to_C,
             momentum_z * SI_conv_g_to_kg * SI_conv_cm_to_m )
     
 def get_source_geometry( h5file ):
-    start_y = h5file["/Particle_sources/cathode_emitter"].attrs["box_y_top"]
-    end_y = h5file["/Particle_sources/cathode_emitter"].attrs["box_y_bottom"]
-    start_x = h5file["/Particle_sources/cathode_emitter"].attrs["box_x_left"]
-    end_x = h5file["/Particle_sources/cathode_emitter"].attrs["box_x_right"]
+    start_y = h5file["/ParticleSources/cathode_emitter"].attrs["box_y_top"]
+    end_y = h5file["/ParticleSources/cathode_emitter"].attrs["box_y_bottom"]
+    start_x = h5file["/ParticleSources/cathode_emitter"].attrs["box_x_left"]
+    end_x = h5file["/ParticleSources/cathode_emitter"].attrs["box_x_right"]
     length_of_cathode = start_y - end_y
     half_width_of_cathode = ( end_x - start_x ) / 2
     center_of_beam = ( start_x + end_x ) / 2    
@@ -43,8 +43,8 @@ def get_source_geometry( h5file ):
              center_of_beam * SI_conv_cm_to_m )
     
 def get_zlim( h5file ):
-    start_z = h5file["/Particle_sources/cathode_emitter"].attrs["box_z_near"]
-    end_z = h5file["/Spatial_mesh/"].attrs["z_volume_size"]
+    start_z = h5file["/ParticleSources/cathode_emitter"].attrs["box_z_near"]
+    end_z = h5file["/SpatialMesh/"].attrs["z_volume_size"]
     return( start_z * SI_conv_cm_to_m, 
            end_z * SI_conv_cm_to_m)
 
@@ -89,8 +89,8 @@ h5 = h5py.File( filename , mode="r") # read h5 file
 plt.figure(figsize=(10,10), dpi = (100))
 plt.xlabel("Z position, [mm]")
 plt.ylabel("X position, [mm]")
-plt.plot(h5["/Particle_sources/cathode_emitter/position_z"][:]*SI_conv_cm_to_m*1000,
-         ((h5["/Particle_sources/cathode_emitter/position_x"][:]*SI_conv_cm_to_m - center_of_beam)*1000),
+plt.plot(h5["/ParticleSources/cathode_emitter/position_z"][:]*SI_conv_cm_to_m*1000,
+         ((h5["/ParticleSources/cathode_emitter/position_x"][:]*SI_conv_cm_to_m - center_of_beam)*1000),
              'o',label="calculated_points") #plot particles
 
 plt.plot(position_z*1000,contour*1000, color = 'g', lw = 3, label="analytic_curve") # plot countour in cm and move to left z of beam and top x of beam neat cathode

@@ -12,11 +12,18 @@ class ParticleInteractionModel():
         new_obj = cls()
         new_obj.check_correctness_of_related_config_fields(conf)
         new_obj.get_values_from_config(conf)
+        ParticleInteractionModel.mark_partintmodel_sec_as_used(conf)
         return new_obj
 
 
+    @staticmethod
+    def mark_partintmodel_sec_as_used(conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf["ParticleInteractionModel"]["used"] = "True"
+
+
     def check_correctness_of_related_config_fields(self, conf):
-        conf_part = conf["Particle interaction model"]
+        conf_part = conf["ParticleInteractionModel"]
         model = conf_part["particle_interaction_model"]
         # 'PIC' or 'noninteracting' or 'binary'
         if model != "noninteracting" and model != "binary" and model != "PIC":
@@ -27,7 +34,7 @@ class ParticleInteractionModel():
 
 
     def get_values_from_config(self, conf):
-        conf_part = conf["Particle interaction model"]
+        conf_part = conf["ParticleInteractionModel"]
         self.particle_interaction_model = conf_part["particle_interaction_model"]
         if self.particle_interaction_model == "noninteracting":
             self.noninteracting = True
@@ -51,11 +58,11 @@ class ParticleInteractionModel():
 
 
     def __str__(self):
-        return "Particle interaction model = {}".format(self.particle_interaction_model)
+        return "particle_interaction_model = {}".format(self.particle_interaction_model)
 
 
     def print(self):
-        print("### Particle_interaction_model:")
+        print("### ParticleInteractionModel:")
         print(self)
         print("self.noninteracting = {}".format(self.noninteracting))
         print("self.binary = {}".format(self.binary))
@@ -63,6 +70,6 @@ class ParticleInteractionModel():
 
 
     def write_to_file(self, h5file):
-        groupname = "/Particle_interaction_model"
+        groupname = "/ParticleInteractionModel"
         h5group = h5file.create_group(groupname)
         h5group.attrs["particle_interaction_model"] = self.particle_interaction_model

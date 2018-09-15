@@ -1,3 +1,4 @@
+import sys
 import h5py
 
 from TimeGrid import TimeGrid
@@ -39,26 +40,51 @@ class Domain():
         new_obj.external_fields = ExternalFieldsManager.init_from_config(conf)
         new_obj.particle_interaction_model = ParticleInteractionModel.init_from_config(
             conf)
-        new_obj.output_filename_prefix = conf["Output filename"]["output_filename_prefix"]
-        new_obj.output_filename_suffix = conf["Output filename"]["output_filename_suffix"]
+        new_obj.get_output_filename_prefix_and_suffix(conf)
+        Domain.check_and_print_unused_conf_sections(conf)
         return new_obj
+
+
+    def get_output_filename_prefix_and_suffix(self, conf):
+        self.output_filename_prefix = conf["OutputFilename"]["output_filename_prefix"]
+        self.output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
+        Domain.mark_outputfilename_sec_as_used(conf)
+
+
+    @staticmethod
+    def mark_outputfilename_sec_as_used(conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf["OutputFilename"]["used"] = "True"
+
+
+    @staticmethod
+    def check_and_print_unused_conf_sections(conf):
+        found_unused = False
+        for sec_name in conf.sections():
+            if not conf[sec_name].getboolean("used"):
+                print("!!!! Warning: unused config section: ", sec_name)
+                found_unused = True
+        if found_unused:
+            print("If you don't need these sections, please, comment them explicitly.")
+            print("Aborting.")
+            sys.exit(-1)
 
 
     @classmethod
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
         new_obj = cls()
-        new_obj.time_grid = TimeGrid.init_from_h5(h5file["/Time_grid"])
-        new_obj.spat_mesh = SpatialMesh.init_from_h5(h5file["/Spatial_mesh"])
+        new_obj.time_grid = TimeGrid.init_from_h5(h5file["/TimeGrid"])
+        new_obj.spat_mesh = SpatialMesh.init_from_h5(h5file["/SpatialMesh"])
         new_obj.inner_regions = InnerRegionsManager.init_from_h5(
-            h5file["/Inner_regions"], new_obj.spat_mesh)
+            h5file["/InnerRegions"], new_obj.spat_mesh)
         new_obj.particle_to_mesh_map = ParticleToMeshMap()
         new_obj.field_solver = FieldSolver(new_obj.spat_mesh, new_obj.inner_regions)
         new_obj.particle_sources = ParticleSourcesManager.init_from_h5(
-            h5file["/Particle_sources"])
+            h5file["/ParticleSources"])
         new_obj.external_fields = ExternalFieldsManager.init_from_h5(
-            h5file["/External_fields"])
+            h5file["/ExternalFields"])
         new_obj.particle_interaction_model = ParticleInteractionModel.init_from_h5(
-            h5file["/Particle_interaction_model"])
+            h5file["/ParticleInteractionModel"])
         new_obj.output_filename_prefix = filename_prefix
         new_obj.output_filename_suffix = filename_suffix
         return new_obj

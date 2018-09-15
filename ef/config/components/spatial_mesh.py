@@ -24,7 +24,7 @@ class SpatialMesh(ConfigComponent):
 
 @register
 class SpatialMeshConf(ConfigSection):
-    section = "Spatial mesh"
+    section = "SpatialMesh"
     ContentTuple = namedtuple("SpatialMeshTuple", ('grid_x_size', 'grid_x_step', 'grid_y_size',
                                                    'grid_y_step', 'grid_z_size', 'grid_z_step'))
     convert = ContentTuple(*[float] * 6)
