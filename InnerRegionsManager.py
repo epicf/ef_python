@@ -45,7 +45,7 @@ class InnerRegionsManager():
                                                            conf[sec_name],
                                                            sec_name,
                                                            spat_mesh))
-            return new_obj
+        return new_obj
 
 
     @classmethod
