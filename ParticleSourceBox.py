@@ -141,4 +141,4 @@ class ParticleSourceBox(ParticleSource):
 
     @classmethod
     def is_box_source(cls, conf_sec_name):
-        return 'Particle_source_box' in conf_sec_name
+        return 'ParticleSourceBox' in conf_sec_name

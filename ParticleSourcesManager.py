@@ -55,13 +55,13 @@ class ParticleSourcesManager:
             self.sources.append(
                 ParticleSourceTube.init_from_h5(this_source_h5_group))
         else:
-            print("In Particle_source_manager constructor-from-h5: "
+            print("In ParticleSourcesManager constructor-from-h5: "
                   "Unknown particle_source type. Aborting")
             sys.exit(-1)
 
 
     def write_to_file(self, h5file):
-        h5group = h5file.create_group("/Particle_sources")
+        h5group = h5file.create_group("/ParticleSources")
         for src in self.sources:
             src.write_to_file(h5group)
 

@@ -54,7 +54,7 @@ class Domain():
         new_obj.particle_to_mesh_map = ParticleToMeshMap()
         new_obj.field_solver = FieldSolver(new_obj.spat_mesh, new_obj.inner_regions)
         new_obj.particle_sources = ParticleSourcesManager.init_from_h5(
-            h5file["/Particle_sources"])
+            h5file["/ParticleSources"])
         new_obj.external_fields = ExternalFieldsManager.init_from_h5(
             h5file["/External_fields"])
         new_obj.particle_interaction_model = ParticleInteractionModel.init_from_h5(

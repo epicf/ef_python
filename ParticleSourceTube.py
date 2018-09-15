@@ -237,4 +237,4 @@ class ParticleSourceTube(ParticleSource):
 
     @classmethod
     def is_tube_source(cls, conf_sec_name):
-        return 'Particle_source_tube' in conf_sec_name
+        return 'ParticleSourceTube' in conf_sec_name

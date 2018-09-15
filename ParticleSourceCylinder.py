@@ -222,4 +222,4 @@ class ParticleSourceCylinder(ParticleSource):
 
     @classmethod
     def is_cylinder_source(cls, conf_sec_name):
-        return 'Particle_source_cylinder' in conf_sec_name
+        return 'ParticleSourceCylinder' in conf_sec_name
