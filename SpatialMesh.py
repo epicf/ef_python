@@ -245,7 +245,6 @@ class SpatialMesh():
         tmp_z = np.empty_like(tmp_x)
         # todo: make view instead of copy
         flat_node_coords = self.node_coordinates.ravel(order='C')
-        print(len(flat_node_coords), dim)
         for i, v in enumerate(flat_node_coords):
             tmp_x[i] = v.x
             tmp_y[i] = v.y
