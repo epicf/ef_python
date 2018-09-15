@@ -1,3 +1,4 @@
+import sys
 import h5py
 
 from TimeGrid import TimeGrid
@@ -58,9 +59,15 @@ class Domain():
 
     @staticmethod
     def check_and_print_unused_conf_sections(conf):
+        found_unused = False
         for sec_name in conf.sections():
             if not conf[sec_name].getboolean("used"):
                 print("!!!! Warning: unused config section: ", sec_name)
+                found_unused = True
+        if found_unused:
+            print("If you don't need these sections, please, comment them explicitly.")
+            print("Aborting.")
+            sys.exit(-1)
 
 
     @classmethod
