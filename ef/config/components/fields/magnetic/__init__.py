@@ -1,1 +1,0 @@
-from ef.config.components.fields.magnetic.uniform import *
