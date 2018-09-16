@@ -39,7 +39,7 @@ class ExternalFieldUniform(ExternalField):
         Fx = h5_field_group.attrs["field_x"]
         Fy = h5_field_group.attrs["field_y"]
         Fz = h5_field_group.attrs["field_z"]
-        new_obj.uniform_field = Vec3d(Fx, Fy, Fz)
+        new_obj.uniform_field_vec = Vec3d(Fx, Fy, Fz)
         return new_obj
 
 
