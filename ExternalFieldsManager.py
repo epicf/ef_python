@@ -2,7 +2,7 @@ import sys
 
 from Vec3d import Vec3d
 from ExternalFieldUniform import ExternalFieldUniform
-from ExternalFieldsOnRegularGridFromFile import ExternalFieldMagneticOnRegularGridFromFile
+from ExternalFieldFromFile import ExternalFieldFromFile
 
 
 class ExternalFieldsManager():
