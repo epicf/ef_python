@@ -1,5 +1,7 @@
 import os
 
+import physical_constants
+
 class ExternalField:
 
     def __init__(self):
@@ -24,6 +26,7 @@ class ExternalField:
     def write_to_file(self, h5_fields_group):
         current_field_group = h5_fields_group.create_group("./" + self.name)
         current_field_group.attrs["electric_or_magnetic"] = self.electric_or_magnetic
+        current_field_group.attrs.create("speed_of_light", physical_constants.speed_of_light)
         current_field_group.attrs["field_type"] = self.field_type
         self.write_hdf5_field_parameters(current_field_group)
 

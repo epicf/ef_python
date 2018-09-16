@@ -1,5 +1,4 @@
 from Vec3d import Vec3d
-import physical_constants
 
 from ExternalField import ExternalField
 
@@ -52,8 +51,6 @@ class ExternalFieldUniform(ExternalField):
         current_field_group.attrs.create("field_x", self.uniform_field_vec.x)
         current_field_group.attrs.create("field_y", self.uniform_field_vec.y)
         current_field_group.attrs.create("field_z", self.uniform_field_vec.z)
-        current_field_group.attrs.create("speed_of_light",
-                                         physical_constants.speed_of_light)
 
 
     @classmethod
