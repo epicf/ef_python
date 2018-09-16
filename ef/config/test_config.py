@@ -5,7 +5,7 @@ from ef.config.efconf import EfConf
 from ef.config.section import ConfigSection
 
 comp_list = [BoundaryConditions, InnerRegion, OutputFile, ParticleInteractionModel,
-             ParticleSource, SpatialMesh, TimeGrid, ExternalMagneticFieldUniform, ExternalElectricFieldUniform]
+             ParticleSource, SpatialMesh, TimeGrid, ExternalFieldUniform]
 
 
 def test_components_to_conf_and_back():
@@ -30,7 +30,8 @@ def test_minimal_example():
     components = [conf.make() for conf in ConfigSection.parser_to_confs(parser)]
     assert components == [TimeGrid(1e-7, 1e-9, 1e-9), SpatialMesh((5, 5, 15), (0.5, 0.5, 1.5)),
                           ParticleInteractionModel('noninteracting'), BoundaryConditions(0),
-                          ExternalMagneticFieldUniform('mgn_uni'),  ExternalElectricFieldUniform('el_uni'),
+                          ExternalFieldUniform('mgn_uni', 'magnetic'),
+                          ExternalFieldUniform('el_uni', 'electric'),
                           OutputFile('example_', '.h5')]
 
 
