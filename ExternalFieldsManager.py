@@ -18,15 +18,17 @@ class ExternalFieldsManager():
         new_obj.electric = []
         new_obj.magnetic = []
         for sec_name in conf:
+            field = None
             if ExternalFieldUniform.is_relevant_config_part(sec_name):
                 field = ExternalFieldUniform.init_from_config(conf[sec_name], sec_name)
             elif ExternalFieldFromFile.is_relevant_conf_part(sec_name):
                 field = ExternalFieldFromFile.init_from_config(conf[sec_name], sec_name)
-            if conf[sec_name]["electric_or_magnetic"] == 'electric':
-                new_obj.electric.append(field)
-            elif conf[sec_name]["electric_or_magnetic"] == 'magnetic':
-                new_obj.magnetic.append(field)
-            ExternalFieldsManager.mark_extfield_sec_as_used(sec_name, conf)
+            if field:
+                if conf[sec_name]["electric_or_magnetic"] == 'electric':
+                    new_obj.electric.append(field)
+                elif conf[sec_name]["electric_or_magnetic"] == 'magnetic':
+                    new_obj.magnetic.append(field)
+                ExternalFieldsManager.mark_extfield_sec_as_used(sec_name, conf)
         return new_obj
 
 
