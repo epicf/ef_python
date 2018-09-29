@@ -238,5 +238,5 @@ class ExternalFieldFromFile(ExternalField):
 
 
     @classmethod
-    def is_relevant_conf_part(cls, field_name):
+    def is_relevant_config_part(cls, field_name):
         return "ExternalFieldFromFile" in field_name

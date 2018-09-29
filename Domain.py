@@ -38,8 +38,7 @@ class Domain():
         new_obj.field_solver = FieldSolver(new_obj.spat_mesh, new_obj.inner_regions)
         new_obj.particle_sources = ParticleSourcesManager.init_from_config(conf)
         new_obj.external_fields = ExternalFieldsManager.init_from_config(conf)
-        new_obj.particle_interaction_model = ParticleInteractionModel.init_from_config(
-            conf)
+        new_obj.particle_interaction_model = ParticleInteractionModel.init_from_config(conf)
         new_obj.get_output_filename_prefix_and_suffix(conf)
         Domain.check_and_print_unused_conf_sections(conf)
         return new_obj
