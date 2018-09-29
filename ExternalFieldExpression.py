@@ -28,9 +28,9 @@ class ExternalFieldExpression(ExternalField):
 
 
     def get_values_from_config(self, field_conf):
-        self.expression_x = field_conf.getstring("field_x")
-        self.expression_y = field_conf.getstring("field_y")
-        self.expression_z = field_conf.getstring("field_z")
+        self.expression_x = field_conf["field_x"]
+        self.expression_y = field_conf["field_y"]
+        self.expression_z = field_conf["field_z"]
 
 
     @classmethod
@@ -61,9 +61,9 @@ class ExternalFieldExpression(ExternalField):
 
 
     def write_hdf5_field_parameters(self, current_field_group):
-        current_field_group.attrs.create("field_x", self.expression_x)
-        current_field_group.attrs.create("field_y", self.expression_y)
-        current_field_group.attrs.create("field_z", self.expression_z)
+        current_field_group.attrs["field_x"] = self.expression_x
+        current_field_group.attrs["field_y"] = self.expression_y
+        current_field_group.attrs["field_z"] = self.expression_z
 
 
     @classmethod
