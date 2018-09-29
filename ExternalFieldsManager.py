@@ -2,6 +2,7 @@ import sys
 
 from Vec3d import Vec3d
 from ExternalFieldUniform import ExternalFieldUniform
+from ExternalFieldExpression import ExternalFieldExpression
 from ExternalFieldFromFile import ExternalFieldFromFile
 
 
@@ -21,6 +22,8 @@ class ExternalFieldsManager():
             field = None
             if ExternalFieldUniform.is_relevant_config_part(sec_name):
                 field = ExternalFieldUniform.init_from_config(conf[sec_name], sec_name)
+            elif ExternalFieldExpression.is_relevant_conf_part(sec_name):
+                field = ExternalFieldExpression.init_from_config(conf[sec_name], sec_name)
             elif ExternalFieldFromFile.is_relevant_conf_part(sec_name):
                 field = ExternalFieldFromFile.init_from_config(conf[sec_name], sec_name)
             if field:
@@ -53,6 +56,8 @@ class ExternalFieldsManager():
         field_type = current_field_grpid.attrs["field_type"]
         if field_type == "uniform":
             field = ExternalFieldUniform.init_from_h5(current_field_grpid)
+        elif field_type == "expression":
+            field = ExternalFieldExpression.init_from_h5(current_field_grpid)
         elif field_type == "from_file":
             field = ExternalFieldFromFile.init_from_h5(current_field_grpid)
         else:
