@@ -1,8 +1,7 @@
-from simpleeval import SimpleEval
+import math
 from Vec3d import Vec3d
-
 from ExternalField import ExternalField
-
+from libs.simpleeval.simpleeval import SimpleEval
 
 class ExternalFieldExpression(ExternalField):
 
@@ -25,7 +24,7 @@ class ExternalFieldExpression(ExternalField):
 
     def check_correctness_of_related_config_fields(self, field_conf):
         pass
-        # nothing to check here
+        # todo: check expression correctness
 
 
     def get_values_from_config(self, field_conf):
@@ -46,13 +45,17 @@ class ExternalFieldExpression(ExternalField):
 
 
     def field_at_particle_position(self, particle, current_time):
-        se = SimpleEval(names={"x":particle.position.x,
+        ev = SimpleEval(names={"x":particle.position.x,
                                "y":particle.position.y,
                                "z":particle.position.z,
-                               "t":current_time})
-        fx = se.eval(self.expression_x)
-        fy = se.eval(self.expression_y)
-        fz = se.eval(self.expression_z)
+                               "t":current_time},
+                        functions={"sin": math.sin,
+                                   "cos": math.cos,
+                                   "sqrt":math.sqrt})
+        # todo: inherit SimpleEval and define math functions inside
+        fx = ev.eval(self.expression_x)
+        fy = ev.eval(self.expression_y)
+        fz = ev.eval(self.expression_z)
         return Vec3d(fx, fy, fz)
 
 
