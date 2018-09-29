@@ -22,9 +22,9 @@ class ExternalFieldsManager():
             field = None
             if ExternalFieldUniform.is_relevant_config_part(sec_name):
                 field = ExternalFieldUniform.init_from_config(conf[sec_name], sec_name)
-            elif ExternalFieldExpression.is_relevant_conf_part(sec_name):
+            elif ExternalFieldExpression.is_relevant_config_part(sec_name):
                 field = ExternalFieldExpression.init_from_config(conf[sec_name], sec_name)
-            elif ExternalFieldFromFile.is_relevant_conf_part(sec_name):
+            elif ExternalFieldFromFile.is_relevant_config_part(sec_name):
                 field = ExternalFieldFromFile.init_from_config(conf[sec_name], sec_name)
             if field:
                 if conf[sec_name]["electric_or_magnetic"] == 'electric':

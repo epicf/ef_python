@@ -53,6 +53,7 @@ class ExternalFieldExpression(ExternalField):
                                    "cos": math.cos,
                                    "sqrt":math.sqrt})
         # todo: inherit SimpleEval and define math functions inside
+        # todo: add r, theta, phi names
         fx = ev.eval(self.expression_x)
         fy = ev.eval(self.expression_y)
         fz = ev.eval(self.expression_z)
