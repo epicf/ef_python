@@ -12,7 +12,7 @@ class GeometricPrimitive:
     @classmethod
     def init_from_string_dispatch(cls, expression):
         # todo: avoid adding new shapes manually
-        for primcls in [Box, Cylinder, Tube, Sphere, Cone]:
+        for primcls in [Box, CylinderAlongAxis, TubeAlongAxis, Sphere, Cone]:
             newobj = primcls.init_primitive_from_string(expression)
             if newobj:
                 return newobj
@@ -80,41 +80,68 @@ class CylinderAlongAxis(GeometricPrimitive):
     def check_if_point_inside(self, point):
         shifted = point - self.start
         point_r = None
-        if axis == 'z':
+        if self.axis == 'z':
             if (shifted.z >= 0) and (shifted.z <= self.lenght):
                 point_r = shifted.x**2 + shifted.y**2
-        elif axis == 'y':
+        elif self.axis == 'y':
             if (shifted.y >= 0) and (shifted.y <= self.lenght):
                 point_r = shifted.x**2 + shifted.z**2
-        elif axis == 'x':
+        elif self.axis == 'x':
             if (shifted.x >= 0) and (shifted.x <= self.lenght):
                 point_r = shifted.y**2 + shifted.z**2
         else:
             print("Unexpected axis; aborting")
             sys.exit(-1)
-        inside = point_r and point_r <= self.r
+        inside = point_r and point_r <= self.r * self.r
         return inside
 
 
 
-class Tube(GeometricPrimitive):
-    def __init__(self, start=(0, 0, 0), end=(1, 0, 0), inner_radius=1, outer_radius=2):
-        self.start = np.array(start, np.float)
-        self.end = np.array(end, np.float)
-        self.r = float(inner_radius)
-        self.R = float(outer_radius)
+class TubeAlongAxis(GeometricPrimitive):
 
-    def visualize(self, visualizer, **kwargs):
-        visualizer.draw_tube(self.start, self.end, self.r, self.R, **kwargs)
+    def __init__(self, start=(0, 0, 0), length=1,
+                 inner_radius=1, outer_radius=2, axis='z'):
+        super().__init__()
+        self.start = Vec3d(*start) # '*' unrolls tuple
+        self.lenght = length
+        self.axis = axis
+        self.inner_r = inner_radius
+        self.outer_r = outer_radius
+
+
+    def check_if_point_inside(self, point):
+        shifted = point - self.start
+        point_r = None
+        if self.axis == 'z':
+            if (shifted.z >= 0) and (shifted.z <= self.lenght):
+                point_r = shifted.x**2 + shifted.y**2
+        elif self.axis == 'y':
+            if (shifted.y >= 0) and (shifted.y <= self.lenght):
+                point_r = shifted.x**2 + shifted.z**2
+        elif self.axis == 'x':
+            if (shifted.x >= 0) and (shifted.x <= self.lenght):
+                point_r = shifted.y**2 + shifted.z**2
+        else:
+            print("Unexpected axis; aborting")
+            sys.exit(-1)
+        inside = point_r and (point_r >= self.inner_r * self.inner_r) \
+                 and (point_r <= self.outer_r * self.outer_r)
+        return inside
+
 
 
 class Sphere(GeometricPrimitive):
-    def __init__(self, origin=(0,0,0), radius=1):
-        self.origin = np.array(origin)
-        self.r = float(radius)
 
-    def visualize(self, visualizer, **kwargs):
-        visualizer.draw_sphere(self.origin, self.r, **kwargs)
+    def __init__(self, center=(0, 0, 0), radius=1):
+        super().__init__()
+        self.center = Vec3d(*center) # '*' unrolls tuple
+        self.r = radius
+
+
+    def check_if_point_inside(self, point):
+        shifted = point - self.center
+        point_r = shifted.x**2 + shifted.y**2 + shifted.z**2
+        return point_r <= self.r * self.r
 
 
 class Cone(GeometricPrimitive):
