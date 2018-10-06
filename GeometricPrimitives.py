@@ -13,7 +13,7 @@ class GeometricPrimitive:
     @classmethod
     def init_from_string_dispatch(cls, expression):
         # todo: avoid adding new shapes manually
-        for primcls in [Box, CylinderAlongAxis, TubeAlongAxis, Sphere, Cone]:
+        for primcls in [Box, CylinderAlongAxis, TubeAlongAxis, Sphere, ConeTubeAlongAxis]:
             newobj = primcls.init_primitive_from_string(expression)
             if newobj:
                 return newobj
@@ -28,6 +28,24 @@ class GeometricPrimitive:
         raise NotImplementedError()
 
 
+    @staticmethod
+    def parse_string(expression):
+        classname_expr, args_expr = split_classname_and_args(expression)
+        args_list = parse_args(args_expr)
+
+
+    @staticmethod
+    def split_classname_and_args(expression):
+
+
+    
+
+    @classmethod
+    def init_primitive_from_hdf5(cls, h5group):
+        # virtual method
+        raise NotImplementedError()
+
+
     def check_if_point_inside(self, point):
         # virtual method
         raise NotImplementedError()
@@ -38,7 +56,7 @@ class GeometricPrimitive:
         raise NotImplementedError()
 
 
-    def write_hdf5_attributes(self, h5group):
+    def write_hdf5_attributes(self, h5field):
         # virtual method
         raise NotImplementedError()
 
@@ -58,6 +76,27 @@ class Box(GeometricPrimitive):
         self.z_near = center[2] - size[2] / 2
 
 
+    @classmethod
+    def init_primitive_from_string(cls, expression):
+        # virtual method
+        raise NotImplementedError()
+
+
+    @classmethod
+    def init_primitive_from_hdf5(cls, h5field):
+        x_left = h5field.attrs["x_left"]
+        x_right = h5field.attrs["x_right"]
+        y_top = h5field.attrs["y_top"]
+        y_bottom = h5field.attrs["y_bottom"]
+        z_far = h5field.attrs["z_far"]
+        z_near = h5field.attrs["z_near"]
+        # todo: do something with construction procedure
+        center = ((x_left + x_right)/2, (y_top + y_bottom)/2, (z_far + z_near)/2)
+        size = (x_left - x_right, y_top - y_bottom, z_far - z_near)
+        newobj = cls(center=center, size=size)
+        return newobj
+
+
     def check_if_point_inside(self, point):
         inside = (point.x <= self.x_left) and (point.x >= self.x_right)
         inside = inside and (point.y <= self.y_top) and (point.y >= self.y_bottom)
@@ -72,9 +111,13 @@ class Box(GeometricPrimitive):
         return p
 
 
-    def write_hdf5_attributes(self, h5group):
-        # virtual method
-        raise NotImplementedError()
+    def write_hdf5_attributes(self, h5field):
+        h5field.attrs.create("x_left", self.x_left)
+        h5field.attrs.create("x_right", self.x_right)
+        h5field.attrs.create("y_top", self.y_top)
+        h5field.attrs.create("y_bottom", self.y_bottom)
+        h5field.attrs.create("z_far", self.z_far)
+        h5field.attrs.create("z_near", self.z_near)
 
 
 class CylinderAlongAxis(GeometricPrimitive):
@@ -89,7 +132,7 @@ class CylinderAlongAxis(GeometricPrimitive):
 
     def check_if_point_inside(self, point):
         shifted = point - self.start
-        point_r = None
+        point_r_sqr = None
         if self.axis == 'z':
             if (shifted.z >= 0) and (shifted.z <= self.length):
                 point_r_sqr = shifted.x**2 + shifted.y**2
@@ -102,7 +145,7 @@ class CylinderAlongAxis(GeometricPrimitive):
         else:
             print("Unexpected axis; aborting")
             sys.exit(-1)
-        inside = point_r and point_r <= self.radius * self.radius
+        inside = point_r_sqr and point_r_sqr <= self.radius * self.radius
         return inside
 
 
@@ -129,6 +172,14 @@ class CylinderAlongAxis(GeometricPrimitive):
         return Vec3d(x, y, z)
 
 
+    def write_hdf5_attributes(self, h5field):
+        h5field.attrs.create("start_x", self.start.x)
+        h5field.attrs.create("start_y", self.start.y)
+        h5field.attrs.create("start_z", self.start.z)
+        h5field.attrs.create("length", self.length)
+        h5field.attrs.create("radius", self.radius)
+        h5field.attrs.create("axis", self.axis)
+
 
 class TubeAlongAxis(GeometricPrimitive):
 
@@ -144,7 +195,7 @@ class TubeAlongAxis(GeometricPrimitive):
 
     def check_if_point_inside(self, point):
         shifted = point - self.start
-        point_r = None
+        point_r_sqr = None
         if self.axis == 'z':
             if (shifted.z >= 0) and (shifted.z <= self.length):
                 point_r_sqr = shifted.x**2 + shifted.y**2
@@ -157,7 +208,7 @@ class TubeAlongAxis(GeometricPrimitive):
         else:
             print("Unexpected axis; aborting")
             sys.exit(-1)
-        inside = point_r and (point_r_sqr >= self.inner_radius * self.inner_radius) \
+        inside = point_r_sqr and (point_r_sqr >= self.inner_radius * self.inner_radius) \
                  and (point_r_sqr <= self.outer_radius * self.outer_radius)
         return inside
 
@@ -212,14 +263,50 @@ class Sphere(GeometricPrimitive):
         return Vec3d(x, y, z)
 
 
-class Cone(GeometricPrimitive):
-    def __init__(self, start=(0, 0, 0), end=(0, 0, 1),
-                 start_radii=(1, 2), end_radii=(3, 4)):
-        self.start = np.array(start, np.float)
-        self.end = np.array(end, np.float)
-        self.start_radii = np.array(start_radii, np.float)
-        self.end_radii = np.array(end_radii, np.float)
+class ConeTubeAlongAxis(GeometricPrimitive):
 
-    def visualize(self, visualizer, **kwargs):
-        visualizer.draw_cone(self.start, self.end,
-                             self.start_radii, self.end_radii, **kwargs)
+    def __init__(self, start=(0, 0, 0), length=1,
+                 start_radii=(1, 2), end_radii=(3, 4), axis='z'):
+        super().__init__()
+        self.start = Vec3d(*start)
+        self.length = length
+        self.start_radii = start_radii
+        self.end_radii = end_radii
+        self.axis = axis
+
+
+    # @staticmethod
+    # def point_inside_cone(axis_x, axis_y, axis_start_z, axis_end_z,
+    #                       r_start, r_end, x, y, z):
+    #     z_len = abs(axis_end_z - axis_start_z)
+    #     x_dist = x - axis_x
+    #     y_dist = y - axis_y
+    #     if z < axis_start_z:
+    #         return False
+    #     if z > axis_end_z:
+    #         return False
+    #     if r_start < r_end:
+    #         tg_a = (r_end - r_start) / z_len
+    #         z_dist = abs(z - axis_start_z)
+    #         r = z_dist * tg_a + r_start
+    #     else:
+    #         tg_a = (r_start - r_end) / z_len
+    #         z_dist = abs(z - axis_end_z)
+    #         r = z_dist * tg_a + r_end
+    #     if r * r > x_dist * x_dist + y_dist * y_dist:
+    #         return False
+    #     return True
+
+
+    # def check_if_point_inside(self, x, y, z):
+    #     in_outer = self.point_inside_cone(self.axis_x, self.axis_y,
+    #                                       self.axis_start_z, self.axis_end_z,
+    #                                       self.start_outer_radius, self.end_outer_radius,
+    #                                       x, y, z)
+    #     if not in_outer: return False
+    #     in_inner = self.point_inside_cone(self.axis_x, self.axis_y,
+    #                                       self.axis_start_z, self.axis_end_z,
+    #                                       self.start_inner_radius, self.end_inner_radius,
+    #                                       x, y, z)
+    #     if in_inner: return False
+    #     return True
