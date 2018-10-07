@@ -28,20 +28,8 @@ class GeometricPrimitive:
         raise NotImplementedError()
 
 
-    @staticmethod
-    def parse_string(expression):
-        classname_expr, args_expr = split_classname_and_args(expression)
-        args_list = parse_args(args_expr)
-
-
-    @staticmethod
-    def split_classname_and_args(expression):
-
-
-    
-
     @classmethod
-    def init_primitive_from_hdf5(cls, h5group):
+    def init_primitive_from_hdf5(cls, h5field):
         # virtual method
         raise NotImplementedError()
 
@@ -59,6 +47,92 @@ class GeometricPrimitive:
     def write_hdf5_attributes(self, h5field):
         # virtual method
         raise NotImplementedError()
+
+
+    @staticmethod
+    def get_classname(expression):
+        tmp = expression.split('(', 1)
+        if len(tmp) < 2:
+            raise SyntaxError("Can't get class from expression '{}'".format(expression))
+        clsname, rest = tmp
+        rest = rest.rsplit(')', 1)[0]
+        return clsname, rest
+
+
+    @staticmethod
+    def get_args_as_key_value(expression):
+        result = {}
+        while expression:
+            key, val, expression = GeometricPrimitive.get_keyvalue_pair(expression)
+            result[key] = val
+        return result
+
+
+    @staticmethod
+    def get_keyvalue_pair(expression):
+        tmp = expression.split('=', 1)
+        if len(tmp) < 2:
+            raise SyntaxError("Can't get key from expression '{}'".format(expression))
+        key, rest = tmp
+        if rest.lstrip()[0] == '(':
+            # val is tuple
+            val, rest = rest.split(')', 1)
+            val = val + ')'
+            tmp = rest.split(',', 1)
+            if len(tmp) < 2:
+                rest = None
+            else:
+                rest = tmp[1]
+        else:
+            # val is number or string
+            tmp = rest.split(',', 1)
+            val = tmp[0]
+            if len(tmp) < 2:
+                rest = None
+            else:
+                rest = tmp[1]
+        return key, val, rest
+
+
+    @staticmethod
+    def parse_number_or_tuple_of_numbers(expression):
+        if expression.lstrip()[0] == '(':
+            expression = expression.lstrip(' (')
+            expression = expression.rsplit(')', 1)[0]
+            result = []
+            while expression:
+                tmp = expression.split(',', 1)
+                if len(tmp) < 2:
+                    expression = None
+                else:
+                    expression = tmp[1]
+                number = GeometricPrimitive.parse_number(tmp[0])
+                result.append(number)
+                result = tuple(result)
+        else:
+            result = GeometricPrimitive.parse_number(expression)
+        return result
+
+
+    @staticmethod
+    def parse_number(expression):
+        expression = expression.lstrip()
+        if expression[0].isdigit():
+            result = float(expression)
+            return result
+        else:
+            raise SyntaxError("Can't interpret as a number: '{}'".format(expression))
+
+
+    @staticmethod
+    def parse_string(expression):
+        expression = expression.lstrip()
+        expression = expression.rstrip()
+        if expression[0] == '"' or expression[0] == "'":
+            result = expression[1:-1].decode("string-escape")
+            return result
+        else:
+            raise SyntaxError("Can't interpret expression as string: '{}'".format(expression))
 
 
 
@@ -84,16 +158,18 @@ class Box(GeometricPrimitive):
 
     @classmethod
     def init_primitive_from_hdf5(cls, h5field):
+        # todo: do something with construction procedure
         x_left = h5field.attrs["x_left"]
         x_right = h5field.attrs["x_right"]
         y_top = h5field.attrs["y_top"]
         y_bottom = h5field.attrs["y_bottom"]
         z_far = h5field.attrs["z_far"]
         z_near = h5field.attrs["z_near"]
-        # todo: do something with construction procedure
         center = ((x_left + x_right)/2, (y_top + y_bottom)/2, (z_far + z_near)/2)
         size = (x_left - x_right, y_top - y_bottom, z_far - z_near)
         newobj = cls(center=center, size=size)
+        newobj.primitive = h5field.attrs["primitive"]
+        newobj.expression = h5field.attrs["expression"]
         return newobj
 
 
@@ -112,6 +188,8 @@ class Box(GeometricPrimitive):
 
 
     def write_hdf5_attributes(self, h5field):
+        h5field.attrs.create("primitive", self.primitive)
+        h5field.attrs.create("expression", self.expression)
         h5field.attrs.create("x_left", self.x_left)
         h5field.attrs.create("x_right", self.x_right)
         h5field.attrs.create("y_top", self.y_top)
@@ -173,6 +251,8 @@ class CylinderAlongAxis(GeometricPrimitive):
 
 
     def write_hdf5_attributes(self, h5field):
+        h5field.attrs.create("primitive", self.primitive)
+        h5field.attrs.create("expression", self.expression)
         h5field.attrs.create("start_x", self.start.x)
         h5field.attrs.create("start_y", self.start.y)
         h5field.attrs.create("start_z", self.start.z)
@@ -237,6 +317,18 @@ class TubeAlongAxis(GeometricPrimitive):
         return Vec3d(x, y, z)
 
 
+    def write_hdf5_attributes(self, h5field):
+        h5field.attrs.create("primitive", self.primitive)
+        h5field.attrs.create("expression", self.expression)
+        h5field.attrs.create("start_x", self.start.x)
+        h5field.attrs.create("start_y", self.start.y)
+        h5field.attrs.create("start_z", self.start.z)
+        h5field.attrs.create("length", self.length)
+        h5field.attrs.create("inner_radius", self.inner_radius)
+        h5field.attrs.create("outer_radius", self.outer_radius)
+        h5field.attrs.create("axis", self.axis)
+
+
 
 class Sphere(GeometricPrimitive):
 
@@ -261,6 +353,15 @@ class Sphere(GeometricPrimitive):
         y = r * np.sqrt(1.0 - u*u) * np.sin(theta)
         z = r * u
         return Vec3d(x, y, z)
+
+
+    def write_hdf5_attributes(self, h5field):
+        h5field.attrs.create("primitive", self.primitive)
+        h5field.attrs.create("expression", self.expression)
+        h5field.attrs.create("center_x", self.center.x)
+        h5field.attrs.create("center_y", self.center.y)
+        h5field.attrs.create("center_z", self.center.z)
+        h5field.attrs.create("radius", self.radius)
 
 
 class ConeTubeAlongAxis(GeometricPrimitive):
