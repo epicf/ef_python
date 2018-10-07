@@ -74,6 +74,7 @@ class GeometricPrimitive:
         if len(tmp) < 2:
             raise SyntaxError("Can't get key from expression '{}'".format(expression))
         key, rest = tmp
+        key = key.strip()
         if rest.lstrip()[0] == '(':
             # val is tuple
             val, rest = rest.split(')', 1)
@@ -152,8 +153,18 @@ class Box(GeometricPrimitive):
 
     @classmethod
     def init_primitive_from_string(cls, expression):
-        # virtual method
-        raise NotImplementedError()
+        newobj = None
+        clsname, rest = GeometricPrimitive.get_classname(expression)
+        if clsname.strip() == 'Box':
+            kv_args = GeometricPrimitive.get_args_as_key_value(rest)
+            center = GeometricPrimitive.parse_number_or_tuple_of_numbers(kv_args["center"])
+            size = GeometricPrimitive.parse_number_or_tuple_of_numbers(kv_args["size"])
+            newobj = cls(center, size)
+            # todo: set this in parent class constructor
+            newobj.expression = expression
+            newobj.primitive = 'Box'
+        return newobj
+
 
 
     @classmethod
@@ -206,6 +217,39 @@ class CylinderAlongAxis(GeometricPrimitive):
         self.length = length
         self.axis = axis
         self.radius = radius
+
+
+    @classmethod
+    def init_primitive_from_string(cls, expression):
+        newobj = None
+        clsname, rest = GeometricPrimitive.get_classname(expression)
+        if clsname.strip() == 'CylinderAlongAxis':
+            kv_args = GeometricPrimitive.get_args_as_key_value(rest)
+            start = GeometricPrimitive.parse_number_or_tuple_of_numbers(kv_args["start"])
+            length = GeometricPrimitive.parse_number_or_tuple_of_numbers(kv_args["length"])
+            radius = GeometricPrimitive.parse_number_or_tuple_of_numbers(kv_args["radius"])
+            axis = GeometricPrimitive.parse_string(kv_args["axis"])
+            newobj = cls(start, length, radius, axis)
+            # todo: set this in parent class constructor
+            newobj.expression = expression
+            newobj.primitive = 'CylinderAlongAxis'
+        return newobj
+
+
+    @classmethod
+    def init_primitive_from_hdf5(cls, h5field):
+        # todo: do something with construction procedure
+        start_x = h5field.attrs["start_x"]
+        start_y = h5field.attrs["start_y"]
+        start_z = h5field.attrs["start_z"]
+        start = (start_x, start_y, start_z)
+        length = h5field.attrs["length"]
+        radius = h5field.attrs["radius"]
+        axis = h5field.attrs["axis"]
+        newobj = cls(start=start, length=length, radius=radius, axis=axis)
+        newobj.primitive = h5field.attrs["primitive"]
+        newobj.expression = h5field.attrs["expression"]
+        return newobj
 
 
     def check_if_point_inside(self, point):
@@ -273,6 +317,44 @@ class TubeAlongAxis(GeometricPrimitive):
         self.outer_radius = outer_radius
 
 
+    @classmethod
+    def init_primitive_from_string(cls, expression):
+        newobj = None
+        clsname, rest = GeometricPrimitive.get_classname(expression)
+        if clsname.strip() == 'TubeAlongAxis':
+            kv_args = GeometricPrimitive.get_args_as_key_value(rest)
+            start = GeometricPrimitive.parse_number_or_tuple_of_numbers(kv_args["start"])
+            length = GeometricPrimitive.parse_number_or_tuple_of_numbers(kv_args["length"])
+            inner_radius = GeometricPrimitive.parse_number_or_tuple_of_numbers(
+                kv_args["inner_radius"])
+            outer_radius = GeometricPrimitive.parse_number_or_tuple_of_numbers(
+                kv_args["outer_radius"])
+            axis = GeometricPrimitive.parse_string(kv_args["axis"])
+            newobj = cls(start, length, inner_radius, outer_radius, axis)
+            # todo: set this in parent class constructor
+            newobj.expression = expression
+            newobj.primitive = 'TubeAlongAxis'
+        return newobj
+
+
+    @classmethod
+    def init_primitive_from_hdf5(cls, h5field):
+        # todo: do something with construction procedure
+        start_x = h5field.attrs["start_x"]
+        start_y = h5field.attrs["start_y"]
+        start_z = h5field.attrs["start_z"]
+        start = (start_x, start_y, start_z)
+        length = h5field.attrs["length"]
+        inner_radius = h5field.attrs["inner_radius"]
+        outer_radius = h5field.attrs["outer_radius"]
+        axis = h5field.attrs["axis"]
+        newobj = cls(start=start, length=length,
+                     inner_radius=inner_radius, outer_radius=outer_radius, axis=axis)
+        newobj.primitive = h5field.attrs["primitive"]
+        newobj.expression = h5field.attrs["expression"]
+        return newobj
+
+
     def check_if_point_inside(self, point):
         shifted = point - self.start
         point_r_sqr = None
@@ -336,6 +418,21 @@ class Sphere(GeometricPrimitive):
         super().__init__()
         self.center = Vec3d(*center) # '*' unrolls tuple
         self.radius = radius
+
+
+    @classmethod
+    def init_primitive_from_string(cls, expression):
+        newobj = None
+        clsname, rest = GeometricPrimitive.get_classname(expression)
+        if clsname.strip() == 'Sphere':
+            kv_args = GeometricPrimitive.get_args_as_key_value(rest)
+            center = GeometricPrimitive.parse_number_or_tuple_of_numbers(kv_args["center"])
+            radius = GeometricPrimitive.parse_number_or_tuple_of_numbers(kv_args["radius"])
+            newobj = cls(center, radius)
+            # todo: set this in parent class constructor
+            newobj.expression = expression
+            newobj.primitive = 'Sphere'
+        return newobj
 
 
     def check_if_point_inside(self, point):
