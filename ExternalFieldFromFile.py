@@ -67,11 +67,8 @@ class ExternalFieldFromFile(ExternalField):
         self.determine_n_nodes(mesh)
         self.determine_start_end_grid_points(mesh)
         #
-        self.magnetic_field_from_file = np.full((self.x_n_nodes,
-                                                 self.y_n_nodes,
-                                                 self.z_n_nodes),
-                                                Vec3d.zero(),
-                                                dtype=object)
+        self.field_from_file = np.full((self.x_n_nodes, self.y_n_nodes, self.z_n_nodes),
+                                       Vec3d.zero(), dtype=object)
         for global_idx, (Fx, Fy, Fz) in enumerate(zip(mesh[:, 3], mesh[:, 4], mesh[:, 5])):
             i, j, k = self.global_idx_to_node_ijk(global_idx)
             self.field_from_file[i][j][k] = Vec3d(Fx, Fy, Fz)
@@ -105,9 +102,9 @@ class ExternalFieldFromFile(ExternalField):
 
 
     def determine_n_nodes(self, mesh):
-        self.x_n_nodes = int(round(self.x_volume_size // self.x_cell_size)) + 1
-        self.y_n_nodes = int(round(self.y_volume_size // self.y_cell_size)) + 1
-        self.z_n_nodes = int(round(self.z_volume_size // self.z_cell_size)) + 1
+        self.x_n_nodes = int(round(self.x_volume_size / self.x_cell_size)) + 1
+        self.y_n_nodes = int(round(self.y_volume_size / self.y_cell_size)) + 1
+        self.z_n_nodes = int(round(self.z_volume_size / self.z_cell_size)) + 1
 
 
     def determine_start_end_grid_points(self, mesh):
@@ -180,43 +177,43 @@ class ExternalFieldFromFile(ExternalField):
             particle.position.z, dz, self.z_start)
         # tlf
         total_field = Vec3d.zero()
-        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j][tlf_k].times_scalar(
+        field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k].times_scalar(
             tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # trf
-        field_from_node = self.magnetic_field_from_file[tlf_i-1][tlf_j][tlf_k].times_scalar(1.0 - tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i-1][tlf_j][tlf_k].times_scalar(1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # blf
-        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j - 1][tlf_k].times_scalar(tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i][tlf_j - 1][tlf_k].times_scalar(tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # brf
-        field_from_node = self.magnetic_field_from_file[tlf_i-1][tlf_j-1][tlf_k].times_scalar(1.0 - tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i-1][tlf_j-1][tlf_k].times_scalar(1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # tln
-        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j][tlf_k-1].times_scalar(tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k-1].times_scalar(tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # trn
-        field_from_node = self.magnetic_field_from_file[tlf_i-1][tlf_j][tlf_k-1].times_scalar(1.0 - tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i-1][tlf_j][tlf_k-1].times_scalar(1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # bln
-        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j - 1][tlf_k-1].times_scalar(tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i][tlf_j - 1][tlf_k-1].times_scalar(tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # brn
-        field_from_node = self.magnetic_field_from_file[tlf_i-1][tlf_j-1][tlf_k-1].times_scalar(1.0 - tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i-1][tlf_j-1][tlf_k-1].times_scalar(1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
