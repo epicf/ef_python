@@ -21,17 +21,26 @@ class ParticleSourcesManager:
                     ParticleSourceBox.init_from_config(conf,
                                                        conf[sec_name],
                                                        sec_name))
+                ParticleSourcesManager.mark_particlesource_sec_as_used(sec_name, conf)
             elif ParticleSourceCylinder.is_cylinder_source(sec_name):
                 new_obj.sources.append(
                     ParticleSourceCylinder.init_from_config(conf,
                                                             conf[sec_name],
                                                             sec_name))
+                ParticleSourcesManager.mark_particlesource_sec_as_used(sec_name, conf)
             elif ParticleSourceTube.is_tube_source(sec_name):
                 new_obj.sources.append(
                     ParticleSourceTube.init_from_config(conf,
                                                         conf[sec_name],
                                                         sec_name))
+                ParticleSourcesManager.mark_particlesource_sec_as_used(sec_name, conf)
         return new_obj
+
+
+    @staticmethod
+    def mark_particlesource_sec_as_used(sec_name, conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf[sec_name]["used"] = "True"
 
 
     @classmethod
@@ -55,13 +64,13 @@ class ParticleSourcesManager:
             self.sources.append(
                 ParticleSourceTube.init_from_h5(this_source_h5_group))
         else:
-            print("In Particle_source_manager constructor-from-h5: "
+            print("In ParticleSourcesManager constructor-from-h5: "
                   "Unknown particle_source type. Aborting")
             sys.exit(-1)
 
 
     def write_to_file(self, h5file):
-        h5group = h5file.create_group("/Particle_sources")
+        h5group = h5file.create_group("/ParticleSources")
         for src in self.sources:
             src.write_to_file(h5group)
 

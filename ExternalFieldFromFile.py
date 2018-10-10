@@ -1,18 +1,18 @@
 import os.path
-from math import ceil
 import numpy as np
+from math import ceil
+
 
 from Vec3d import Vec3d
 from ExternalField import ExternalField
 
-# Magnetic on regular grid from file
 
-class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
+class ExternalFieldFromFile(ExternalField):
 
     def __init__(self):
         super().__init__()
-        self.field_file = None
-        self.magnetic_field_from_file = None
+        self.field_filename = None
+        self.field_from_file = None
         self.x_start = None
         self.y_start = None
         self.z_start = None
@@ -33,8 +33,8 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
     @classmethod
     def init_from_config(cls, field_conf, field_conf_name):
         new_obj = cls()
-        new_obj.init_common_fields_from_config(field_conf, field_conf_name)
-        new_obj.field_type = "magnetic_on_regular_grid_from_file"
+        new_obj.init_common_parameters_from_config(field_conf, field_conf_name)
+        new_obj.field_type = "from_file"
         new_obj.check_correctness_of_related_config_fields(field_conf)
         new_obj.get_values_from_config(field_conf)
         new_obj.read_field_from_file()
@@ -42,20 +42,20 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
 
 
     def check_correctness_of_related_config_fields(self, field_conf):
-        if not os.path.exists(field_conf["field_file"]):
+        if not os.path.exists(field_conf["field_filename"]):
             raise FileNotFoundError("Field file not found")
 
 
     def get_values_from_config(self, field_conf):
-        self.field_file = field_conf["field_file"]
+        self.field_filename = field_conf["field_filename"]
 
 
     def read_field_from_file(self):
-        mesh = np.loadtxt(self.field_file)
-        # assume X Y Z Hx Hy Hz columns
+        mesh = np.loadtxt(self.field_filename)
+        # assume X Y Z Fx Fy Fz columns
         # sort by column 0, then 1, then 2
         # https://stackoverflow.com/a/38194077
-        ind = mesh[:, 2].argsort() # First sort doesn't need to be stable.
+        ind = mesh[:, 2].argsort()  # First sort doesn't need to be stable.
         mesh = mesh[ind]
         ind = mesh[:, 1].argsort(kind='mergesort')
         mesh = mesh[ind]
@@ -67,14 +67,11 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
         self.determine_n_nodes(mesh)
         self.determine_start_end_grid_points(mesh)
         #
-        self.magnetic_field_from_file = np.full((self.x_n_nodes,
-                                                 self.y_n_nodes,
-                                                 self.z_n_nodes),
-                                                Vec3d.zero(),
-                                                dtype=object)
-        for global_idx, (Hx, Hy, Hz) in enumerate(zip(mesh[:, 3], mesh[:, 4], mesh[:, 5])):
+        self.field_from_file = np.full((self.x_n_nodes, self.y_n_nodes, self.z_n_nodes),
+                                       Vec3d.zero(), dtype=object)
+        for global_idx, (Fx, Fy, Fz) in enumerate(zip(mesh[:, 3], mesh[:, 4], mesh[:, 5])):
             i, j, k = self.global_idx_to_node_ijk(global_idx)
-            self.magnetic_field_from_file[i][j][k] = Vec3d(Hx, Hy, Hz)
+            self.field_from_file[i][j][k] = Vec3d(Fx, Fy, Fz)
 
 
     def determine_volume_sizes(self, mesh):
@@ -105,9 +102,9 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
 
 
     def determine_n_nodes(self, mesh):
-        self.x_n_nodes = self.x_volume_size // self.x_cell_size + 1
-        self.y_n_nodes = self.y_volume_size // self.y_cell_size + 1
-        self.z_n_nodes = self.z_volume_size // self.z_cell_size + 1
+        self.x_n_nodes = int(round(self.x_volume_size / self.x_cell_size)) + 1
+        self.y_n_nodes = int(round(self.y_volume_size / self.y_cell_size)) + 1
+        self.z_n_nodes = int(round(self.z_volume_size / self.z_cell_size)) + 1
 
 
     def determine_start_end_grid_points(self, mesh):
@@ -149,10 +146,10 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
     @classmethod
     def init_from_h5(cls, h5_field_group):
         new_obj = cls()
-        new_obj.init_common_fields_from_h5(h5_field_group)
-        new_obj.field_type = "magnetic_on_regular_grid_from_file"
-        new_obj.field_file = h5_field_group.attrs["field_file"]
-        if not os.path.exists(new_obj.field_file):
+        new_obj.init_common_parameters_from_h5(h5_field_group)
+        new_obj.field_type = "from_file"
+        new_obj.field_filename = h5_field_group.attrs["field_filename"]
+        if not os.path.exists(new_obj.field_filename):
             raise FileNotFoundError("Field file not found")
         new_obj.read_field_from_file()
         return new_obj
@@ -180,43 +177,43 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
             particle.position.z, dz, self.z_start)
         # tlf
         total_field = Vec3d.zero()
-        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j][tlf_k].times_scalar(
+        field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k].times_scalar(
             tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # trf
-        field_from_node = self.magnetic_field_from_file[tlf_i-1][tlf_j][tlf_k].times_scalar(1.0 - tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i-1][tlf_j][tlf_k].times_scalar(1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # blf
-        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j - 1][tlf_k].times_scalar(tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i][tlf_j - 1][tlf_k].times_scalar(tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # brf
-        field_from_node = self.magnetic_field_from_file[tlf_i-1][tlf_j-1][tlf_k].times_scalar(1.0 - tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i-1][tlf_j-1][tlf_k].times_scalar(1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # tln
-        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j][tlf_k-1].times_scalar(tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k-1].times_scalar(tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # trn
-        field_from_node = self.magnetic_field_from_file[tlf_i-1][tlf_j][tlf_k-1].times_scalar(1.0 - tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i-1][tlf_j][tlf_k-1].times_scalar(1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # bln
-        field_from_node = self.magnetic_field_from_file[tlf_i][tlf_j - 1][tlf_k-1].times_scalar(tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i][tlf_j - 1][tlf_k-1].times_scalar(tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # brn
-        field_from_node = self.magnetic_field_from_file[tlf_i-1][tlf_j-1][tlf_k-1].times_scalar(1.0 - tlf_x_weight)
+        field_from_node = self.field_from_file[tlf_i-1][tlf_j-1][tlf_k-1].times_scalar(1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
@@ -234,10 +231,9 @@ class ExternalFieldMagneticOnRegularGridFromFile(ExternalField):
 
 
     def write_hdf5_field_parameters(self, current_field_group):
-        current_field_group.attrs["field_type"] = self.field_type
-        current_field_group.attrs["field_file"] = self.field_file
+        current_field_group.attrs["field_filename"] = self.field_filename
 
 
     @classmethod
-    def is_relevant_conf_part(cls, field_name):
-        return "ExternalMagneticFieldOnRegularGridFromFile" in field_name
+    def is_relevant_config_part(cls, field_name):
+        return "ExternalFieldFromFile" in field_name

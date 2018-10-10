@@ -43,7 +43,7 @@ class InnerRegion(ConfigComponent):
 
 @register
 class InnerRegionBoxConf(NamedConfigSection):
-    section = "Inner_region_box"
+    section = "InnerRegionBox"
     ContentTuple = namedtuple("InnerRegionBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
                                                       'box_y_top', 'box_z_near', 'box_z_far',
                                                       'potential'))
@@ -57,7 +57,7 @@ class InnerRegionBoxConf(NamedConfigSection):
 
 @register
 class InnerRegionCylinderConf(NamedConfigSection):
-    section = "Inner_region_cylinder"
+    section = "InnerRegionCylinder"
     ContentTuple = namedtuple("InnerRegionCylinderTuple", ('cylinder_axis_start_x', 'cylinder_axis_start_y',
                                                            'cylinder_axis_start_z', 'cylinder_axis_end_x',
                                                            'cylinder_axis_end_y', 'cylinder_axis_end_z',
@@ -71,7 +71,7 @@ class InnerRegionCylinderConf(NamedConfigSection):
 
 @register
 class InnerRegionTubeConf(NamedConfigSection):
-    section = "Inner_region_tube"
+    section = "InnerRegionTube"
     ContentTuple = namedtuple("InnerRegionTubeTuple", ('tube_axis_start_x', 'tube_axis_start_y',
                                                        'tube_axis_start_z', 'tube_axis_end_x',
                                                        'tube_axis_end_y', 'tube_axis_end_z',

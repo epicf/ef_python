@@ -100,4 +100,4 @@ class InnerRegionCylinder(InnerRegion):
 
     @classmethod
     def is_cylinder_region(cls, conf_sec_name):
-        return 'Inner_region_cylinder' in conf_sec_name
+        return 'InnerRegionCylinder' in conf_sec_name

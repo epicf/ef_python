@@ -7,25 +7,25 @@ filename = 'contour_0000100.h5'
 h5file = h5py.File( filename, mode = "r" )
 
 def get_source_current( h5file ):
-    time_step = h5file["/Time_grid"].attrs["time_step_size"]
-    charge = h5file["/Particle_sources/cathode_emitter"].attrs["charge"]
+    time_step = h5file["/TimeGrid"].attrs["time_step_size"]
+    charge = h5file["/ParticleSources/cathode_emitter"].attrs["charge"]
     particles_per_step = h5file[
-        "/Particle_sources/cathode_emitter"].attrs["particles_to_generate_each_step"]
+        "/ParticleSources/cathode_emitter"].attrs["particles_to_generate_each_step"]
     current = particles_per_step * charge / time_step
     return current
-    
+
 def get_source_geometry( h5file ):
     axis_start_x = \
-        h5file["/Particle_sources/cathode_emitter"].attrs["cylinder_axis_start_x"]
+        h5file["/ParticleSources/cathode_emitter"].attrs["cylinder_axis_start_x"]
     axis_start_z = \
-        h5file["/Particle_sources/cathode_emitter"].attrs["cylinder_axis_start_z"]
-    radius = h5file["/Particle_sources/cathode_emitter"].attrs["cylinder_radius"]
+        h5file["/ParticleSources/cathode_emitter"].attrs["cylinder_axis_start_z"]
+    radius = h5file["/ParticleSources/cathode_emitter"].attrs["cylinder_radius"]
     return ( axis_start_x, axis_start_z, radius )
 
 def get_source_particle_parameters( h5file ):
-    mass = h5file["/Particle_sources/cathode_emitter"].attrs["mass"]
-    charge = h5file["/Particle_sources/cathode_emitter"].attrs["charge"]
-    momentum_z = h5file["/Particle_sources/cathode_emitter"].attrs["mean_momentum_z"]
+    mass = h5file["/ParticleSources/cathode_emitter"].attrs["mass"]
+    charge = h5file["/ParticleSources/cathode_emitter"].attrs["charge"]
+    momentum_z = h5file["/ParticleSources/cathode_emitter"].attrs["mean_momentum_z"]
     return ( mass, charge, momentum_z )
 
 def beam_radius( u, r_0 ):
@@ -52,11 +52,11 @@ r_an_lower = beam_axis_x_pos - r_an
 z_an = [ beam_z( x, m = m, v = v, q = q, I = I, r_0 = r_0 ) for x in u ]
 z_an = z_an + emitter_z_pos
 
-r_num = h5file["/Particle_sources/cathode_emitter/position_x"]
-z_num = h5file["/Particle_sources/cathode_emitter/position_z"]
+r_num = h5file["/ParticleSources/cathode_emitter/position_x"]
+z_num = h5file["/ParticleSources/cathode_emitter/position_z"]
 
-z_volume_size = h5file["/Spatial_mesh"].attrs["z_volume_size"]
-x_volume_size = h5file["/Spatial_mesh"].attrs["x_volume_size"]
+z_volume_size = h5file["/SpatialMesh"].attrs["z_volume_size"]
+x_volume_size = h5file["/SpatialMesh"].attrs["x_volume_size"]
 plt.xlabel( "Z [cm]" )
 plt.ylabel( "X [cm]" )
 plt.ylim( 0, x_volume_size )

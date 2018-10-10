@@ -18,7 +18,7 @@ class ParticleInteractionModel(ConfigComponent):
 
 @register
 class ParticleInteractionModelConf(ConfigSection):
-    section = "Particle interaction model"
+    section = "ParticleInteractionModel"
     ContentTuple = namedtuple("ParticleInteractionModelTuple", ('particle_interaction_model',))
     convert = ContentTuple(str)
 

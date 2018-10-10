@@ -55,7 +55,7 @@ class ParticleSource(ConfigComponent):
 
 @register
 class ParticleSourceBoxConf(NamedConfigSection):
-    section = "Particle_source_box"
+    section = "ParticleSourceBox"
     ContentTuple = namedtuple("ParticleSourceBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
                                                          'box_y_top', 'box_z_near', 'box_z_far',
                                                          'initial_number_of_particles',
@@ -72,7 +72,7 @@ class ParticleSourceBoxConf(NamedConfigSection):
 
 @register
 class ParticleSourceCylinderConf(NamedConfigSection):
-    section = "Particle_source_cylinder"
+    section = "ParticleSourceCylinder"
     ContentTuple = namedtuple("ParticleSourceCylinderTuple", ('cylinder_axis_start_x', 'cylinder_axis_start_y',
                                                               'cylinder_axis_start_z', 'cylinder_axis_end_x',
                                                               'cylinder_axis_end_y', 'cylinder_axis_end_z',
@@ -90,7 +90,7 @@ class ParticleSourceCylinderConf(NamedConfigSection):
 
 @register
 class ParticleSourceTubeConf(NamedConfigSection):
-    section = "Particle_source_tube"
+    section = "ParticleSourceTube"
     ContentTuple = namedtuple("ParticleSourceTubeTuple", ('tube_axis_start_x', 'tube_axis_start_y',
                                                           'tube_axis_start_z', 'tube_axis_end_x',
                                                           'tube_axis_end_y', 'tube_axis_end_z',

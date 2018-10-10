@@ -75,4 +75,4 @@ class InnerRegionSphere(InnerRegion):
 
     @classmethod
     def is_sphere_region(cls, conf_sec_name):
-        return 'Inner_region_sphere' in conf_sec_name
+        return 'InnerRegionSphere' in conf_sec_name

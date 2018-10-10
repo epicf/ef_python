@@ -1,8 +1,9 @@
 import sys
 
 from Vec3d import Vec3d
-from ExternalFieldsUniform import ExternalFieldMagneticUniform, ExternalFieldElectricUniform
-from ExternalFieldsOnRegularGridFromFile import ExternalFieldMagneticOnRegularGridFromFile
+from ExternalFieldUniform import ExternalFieldUniform
+from ExternalFieldExpression import ExternalFieldExpression
+from ExternalFieldFromFile import ExternalFieldFromFile
 
 
 class ExternalFieldsManager():
@@ -18,17 +19,26 @@ class ExternalFieldsManager():
         new_obj.electric = []
         new_obj.magnetic = []
         for sec_name in conf:
-            if ExternalFieldMagneticUniform.is_magnetic_uniform_config_part(sec_name):
-                new_obj.magnetic.append(
-                    ExternalFieldMagneticUniform.init_from_config(conf[sec_name], sec_name))
-            elif ExternalFieldElectricUniform.is_electric_uniform_config_part(sec_name):
-                new_obj.electric.append(
-                    ExternalFieldElectricUniform.init_from_config(conf[sec_name], sec_name))
-            elif ExternalFieldMagneticOnRegularGridFromFile.is_relevant_conf_part(sec_name):
-                new_obj.magnetic.append(
-                    ExternalFieldMagneticOnRegularGridFromFile.init_from_config(
-                        conf[sec_name], sec_name))
+            field = None
+            if ExternalFieldUniform.is_relevant_config_part(sec_name):
+                field = ExternalFieldUniform.init_from_config(conf[sec_name], sec_name)
+            elif ExternalFieldExpression.is_relevant_config_part(sec_name):
+                field = ExternalFieldExpression.init_from_config(conf[sec_name], sec_name)
+            elif ExternalFieldFromFile.is_relevant_config_part(sec_name):
+                field = ExternalFieldFromFile.init_from_config(conf[sec_name], sec_name)
+            if field:
+                if conf[sec_name]["electric_or_magnetic"] == 'electric':
+                    new_obj.electric.append(field)
+                elif conf[sec_name]["electric_or_magnetic"] == 'magnetic':
+                    new_obj.magnetic.append(field)
+                ExternalFieldsManager.mark_extfield_sec_as_used(sec_name, conf)
         return new_obj
+
+
+    @staticmethod
+    def mark_extfield_sec_as_used(sec_name, conf):
+        # For now simply mark sections as 'used' instead of removing them.
+        conf[sec_name]["used"] = "True"
 
 
     @classmethod
@@ -41,23 +51,23 @@ class ExternalFieldsManager():
             new_obj.parse_hdf5_external_field(current_field_grpid)
         return new_obj
 
-    
+
     def parse_hdf5_external_field(self, current_field_grpid):
         field_type = current_field_grpid.attrs["field_type"]
-        if field_type == "magnetic_uniform":
-            self.magnetic.append(
-                ExternalFieldMagneticUniform.init_from_h5(current_field_grpid))
-        elif field_type == "electric_uniform":
-            self.electric.append(
-                ExternalFieldElectricUniform.init_from_h5(current_field_grpid))
-        elif field_type == "magnetic_on_regular_grid_from_file":
-            self.magnetic.append(
-                ExternalFieldMagneticOnRegularGridFromFile.init_from_h5(
-                    current_field_grpid))
+        if field_type == "uniform":
+            field = ExternalFieldUniform.init_from_h5(current_field_grpid)
+        elif field_type == "expression":
+            field = ExternalFieldExpression.init_from_h5(current_field_grpid)
+        elif field_type == "from_file":
+            field = ExternalFieldFromFile.init_from_h5(current_field_grpid)
         else:
-            print("In External_field_manager constructor-from-h5: ")
+            print("In ExternalFieldsManager constructor-from-h5: ")
             print("Unknown external_field type. Aborting")
             sys.exit(-1)
+        if field.electric_or_magnetic == 'electric':
+            self.electric.append(field)
+        elif field.electric_or_magnetic == 'magnetic':
+            self.magnetic.append(field)
 
 
     def total_electric_field_at_particle_position(self, particle, current_time):
@@ -77,7 +87,7 @@ class ExternalFieldsManager():
 
 
     def write_to_file(self, hdf5_file_id):
-        hdf5_groupname = "/External_fields"
+        hdf5_groupname = "/ExternalFields"
         n_of_electric_fields = len(self.electric)
         n_of_magnetic_fields = len(self.magnetic)
         fields_group = hdf5_file_id.create_group(hdf5_groupname)

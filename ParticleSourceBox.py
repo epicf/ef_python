@@ -1,7 +1,6 @@
 from Vec3d import Vec3d
 from ParticleSource import ParticleSource
 
-# Box source
 
 class ParticleSourceBox(ParticleSource):
 
@@ -31,7 +30,7 @@ class ParticleSourceBox(ParticleSource):
     @classmethod
     def init_from_h5(cls, h5_source_group):
         new_obj = cls()
-        new_obj.read_particles_and_source_pars_from_h5(h5group)
+        new_obj.read_particles_and_source_pars_from_h5(h5_source_group)
         new_obj.geometry_type = "box"
         new_obj.read_hdf5_box_parameters(h5_source_group)
         return new_obj
@@ -80,7 +79,7 @@ class ParticleSourceBox(ParticleSource):
 
     def x_left_le_grid_x_size(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("box_x_left") > \
-           conf["Spatial mesh"].getfloat("grid_x_size"):
+           conf["SpatialMesh"].getfloat("grid_x_size"):
             raise ValueError("Expect box_x_left <= grid_x_size")
 
 
@@ -97,7 +96,7 @@ class ParticleSourceBox(ParticleSource):
 
     def y_top_le_grid_y_size(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("box_y_top") > \
-           conf["Spatial mesh"].getfloat("grid_y_size"):
+           conf["SpatialMesh"].getfloat("grid_y_size"):
             raise ValueError("Expect box_y_top <= grid_y_size")
 
 
@@ -114,7 +113,7 @@ class ParticleSourceBox(ParticleSource):
 
     def z_far_le_grid_z_size(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("box_z_far") > \
-           conf["Spatial mesh"].getfloat("grid_z_size"):
+           conf["SpatialMesh"].getfloat("grid_z_size"):
             raise ValueError("Expect box_z_far <= grid_z_size")
 
 
@@ -141,4 +140,4 @@ class ParticleSourceBox(ParticleSource):
 
     @classmethod
     def is_box_source(cls, conf_sec_name):
-        return 'Particle_source_box' in conf_sec_name
+        return 'ParticleSourceBox' in conf_sec_name

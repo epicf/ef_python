@@ -105,7 +105,7 @@ class ParticleSourceTube(ParticleSource):
     def axis_start_x_plus_rad_le_grid_x_size(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("tube_axis_start_x") + \
            this_source_config_part.getfloat("tube_outer_radius") > \
-           conf["Spatial mesh"].getfloat("grid_x_size"):
+           conf["SpatialMesh"].getfloat("grid_x_size"):
             raise ValueError("tube_axis_start_x + tube_outer_radius > grid_x_size")
 
 
@@ -118,7 +118,7 @@ class ParticleSourceTube(ParticleSource):
     def axis_start_y_plus_rad_le_grid_y_size(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("tube_axis_start_y") + \
            this_source_config_part.getfloat("tube_outer_radius") > \
-           conf["Spatial mesh"].getfloat("grid_y_size"):
+           conf["SpatialMesh"].getfloat("grid_y_size"):
             raise ValueError("tube_axis_start_y + tube_outer_radius > grid_y_size")
 
 
@@ -131,7 +131,7 @@ class ParticleSourceTube(ParticleSource):
     def axis_start_z_plus_rad_le_grid_z_size(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("tube_axis_start_z") + \
            this_source_config_part.getfloat("tube_outer_radius") > \
-           conf["Spatial mesh"].getfloat("grid_z_size"):
+           conf["SpatialMesh"].getfloat("grid_z_size"):
             raise ValueError("tube_axis_start_z + tube_outer_radius > grid_z_size")
 
 
@@ -144,7 +144,7 @@ class ParticleSourceTube(ParticleSource):
     def axis_end_x_plus_rad_le_grid_x_size(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("tube_axis_end_x") + \
            this_source_config_part.getfloat("tube_outer_radius") >\
-           conf["Spatial mesh"].getfloat("grid_x_size"):
+           conf["SpatialMesh"].getfloat("grid_x_size"):
             raise ValueError ("tube_axis_end_x + tube_outer_radius > grid_x_size")
 
 
@@ -157,7 +157,7 @@ class ParticleSourceTube(ParticleSource):
     def axis_end_y_plus_rad_le_grid_y_size(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("tube_axis_end_y") + \
            this_source_config_part.getfloat("tube_outer_radius") > \
-           conf["Spatial mesh"].getfloat("grid_y_size"):
+           conf["SpatialMesh"].getfloat("grid_y_size"):
             raise ValueError("tube_axis_end_y + tube_outer_radius > grid_y_size")
 
 
@@ -170,7 +170,7 @@ class ParticleSourceTube(ParticleSource):
     def axis_end_z_plus_rad_le_grid_z_size(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("tube_axis_end_z") + \
            this_source_config_part.getfloat("tube_outer_radius") > \
-           conf["Spatial mesh"].getfloat("grid_z_size"):
+           conf["SpatialMesh"].getfloat("grid_z_size"):
             raise ValueError("tube_axis_end_z + tube_outer_radius > grid_z_size")
 
 
@@ -237,4 +237,4 @@ class ParticleSourceTube(ParticleSource):
 
     @classmethod
     def is_tube_source(cls, conf_sec_name):
-        return 'Particle_source_tube' in conf_sec_name
+        return 'ParticleSourceTube' in conf_sec_name
