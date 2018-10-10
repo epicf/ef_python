@@ -49,10 +49,9 @@ class Sphere(Shape):
 
 
 class Cone(Shape):
-    def __init__(self, start=(0, 0, 0), end=(0, 0, 1),
+    def __init__(self, start=(0, 0, 0, 1),
                  start_radii=(1, 2), end_radii=(3, 4)):
         self.start = np.array(start, np.float)
-        self.end = np.array(end, np.float)
         self.start_radii = np.array(start_radii, np.float)
         self.end_radii = np.array(end_radii, np.float)
 

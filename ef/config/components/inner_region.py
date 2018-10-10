@@ -34,7 +34,7 @@ class InnerRegion(ConfigComponent):
             shape_args = list(self.shape.origin) + [self.shape.r]
             cls = InnerRegionSphereConf
         elif type(self.shape) is Cone:
-            shape_args = list(self.shape.start) + list(self.shape.end) + list(self.shape.start_radii) + list(self.shape.end_radii)
+            shape_args = list(self.shape.start) +  list(self.shape.start_radii) + list(self.shape.end_radii)
             cls = InnerRegionConeAlongZConf
         else:
             raise TypeError("Config can not represent inner region shape", self.shape)
@@ -101,7 +101,7 @@ class InnerRegionConeAlongZConf(NamedConfigSection):
     section = "InnerRegionConeAlongZ"
     ContentTuple = namedtuple("InnerRegionConeAlongZTuple",
                               ('cone_axis_x', 'cone_axis_y',
-                               'cone_axis_start_z', 'cone_axis_end_x',
+                               'cone_axis_start_z', 'cone_axis_end_z',
                                'cone_start_inner_radius', 'cone_start_outer_radius',
                                'cone_end_inner_radius', 'cone_end_outer_radius',
                                'potential'))
@@ -110,9 +110,7 @@ class InnerRegionConeAlongZConf(NamedConfigSection):
     def make(self):
         cone = Cone((self.content.cone_axis_x,
                      self.content.cone_axis_y,
-                     self.content.cone_axis_start_z),
-                    (self.content.cone_axis_x,
-                     self.content.cone_axis_y,
+                     self.content.cone_axis_start_z,
                      self.content.cone_axis_end_z),
                     (self.content.cone_start_inner_radius,
                      self.content.cone_start_outer_radius),
