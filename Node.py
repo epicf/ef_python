@@ -1,6 +1,6 @@
 class Node():
 
-    def __init__( self, xx, yy, zz ):
+    def __init__(self, xx, yy, zz):
         # x, y, z are indices not coordinates
         # todo: rename to i,j,k
         self.x = xx
@@ -8,9 +8,17 @@ class Node():
         self.z = zz
 
 
-    def __str__( self ):
-        return "Node = {} {} {}".format( self.x, self.y, self.z )
-        
+    def __str__(self):
+        return "Node = {} {} {}".format(self.x, self.y, self.z)
+
+
+    def at_domain_edge(self, nx, ny, nz):
+        return \
+            self.x <= 0 or self.x >= nx - 1 or \
+            self.y <= 0 or self.y >= ny - 1 or \
+	        self.z <= 0 or self.z >= nz - 1
+
+
 #     std::vector<Node_reference> adjacent_nodes() {
 # 	Node_reference left( x+1, y, z );
 # 	Node_reference right( x-1, y, z );
