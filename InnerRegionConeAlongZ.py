@@ -16,11 +16,12 @@ class InnerRegionConeAlongZ(InnerRegion):
 
     @classmethod
     def init_from_config(cls, conf, inner_region_cone_conf, sec_name, spat_mesh):
-        new_obj = super().init_from_config(conf,
-                                           inner_region_cone_conf,
-                                           sec_name,
-                                           spat_mesh)
-        new_obj.object_type = "cone"
+        new_obj = cls()
+        new_obj.init_common_fields_from_config(conf,
+                                               inner_region_cone_conf,
+                                               sec_name,
+                                               spat_mesh)
+        new_obj.geometry_type = "cone"
         new_obj.check_correctness_of_cone_config_fields(conf, inner_region_cone_conf)
         new_obj.get_cone_values_from_config(inner_region_cone_conf)
         new_obj.mark_inner_nodes(spat_mesh)
@@ -30,7 +31,8 @@ class InnerRegionConeAlongZ(InnerRegion):
 
     @classmethod
     def init_from_h5(cls, h5_inner_region_cone_group, spat_mesh):
-        new_obj = super().init_from_h5(h5_inner_region_cone_group)
+        new_obj = cls()
+        new_obj.init_common_fields_from_h5(h5_inner_region_cone_group)
         new_obj.geometry_type = "cone"
         new_obj.get_cone_values_from_h5(h5_inner_region_cone_group)
         new_obj.mark_inner_nodes(spat_mesh)
