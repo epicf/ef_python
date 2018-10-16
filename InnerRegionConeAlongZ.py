@@ -107,12 +107,12 @@ class InnerRegionConeAlongZ(InnerRegion):
                                           self.axis_start_z, self.axis_end_z,
                                           self.start_outer_radius, self.end_outer_radius,
                                           x, y, z)
-        if not in_outer: return False
+        if in_outer: return False
         in_inner = self.point_inside_cone(self.axis_x, self.axis_y,
                                           self.axis_start_z, self.axis_end_z,
                                           self.start_inner_radius, self.end_inner_radius,
                                           x, y, z)
-        if in_inner: return False
+        if not in_inner: return False
         return True
 
 
