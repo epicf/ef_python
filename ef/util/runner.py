@@ -32,19 +32,19 @@ class EfRunner:
         os.chdir(workdir)
         command = self.command + " " + startfile
         print("command:", command)
-        # https://www.endpoint.com/blog/2015/01/28/getting-realtime-output-using-python
+        # https://stackoverflow.com/questions/4417546/constantly-print-subprocess-output-while-process-is-running
         process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
-        while True:
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
+        for stdout_line in iter(process.stdout.readline, None):
+            if stdout_line:
+                print(stdout_line.strip())
+            else:
                 break
-            if output:
-                print(output.strip())
-        rc = process.poll()
+        process.stdout.close()
+        ret_code = process.wait()
+        if ret_code:
+            print("warning: return code is", ret_code)
         os.chdir(current_dir)
-        return rc
-    # try instead
-    # https://stackoverflow.com/questions/4417546/constantly-print-subprocess-output-while-process-is-running
+        return ret_code
 
 
 def main():
