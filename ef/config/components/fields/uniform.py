@@ -28,4 +28,5 @@ class ExternalFieldUniformConf(NamedConfigSection):
     convert = ContentTuple(str, float, float, float)
 
     def make(self):
-        return ExternalFieldUniform(self.name, self.content)
+        return ExternalFieldUniform(self.name, self.content.electric_or_magnetic, self.content[1:])
+
