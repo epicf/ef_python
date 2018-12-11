@@ -1,8 +1,10 @@
 import logging
 from math import ceil
 
+from ef.util.data_class import DataClass
 
-class TimeGrid:
+
+class TimeGrid(DataClass):
     def __init__(self, total_time, time_step_size, time_save_step):
         if total_time <= 0:
             raise ValueError()
@@ -56,16 +58,6 @@ class TimeGrid:
     def update_to_next_step(self):
         self.current_node += 1
         self.current_time += self.time_step_size
-
-    def print(self):
-        print("### TimeGrid:")
-        print("Total time = {:.3E}".format(self.total_time))
-        print("Current time = {:.3E}".format(self.current_time))
-        print("Time step size = {:.3E}".format(self.time_step_size))
-        print("Time save step = {:.3E}".format(self.time_save_step))
-        print("Total nodes = {:d}".format(self.total_nodes))
-        print("Current node = {:d}".format(self.current_node))
-        print("Node to save = {:d}".format(self.node_to_save))
 
     def write_to_file(self, h5file):
         groupname = "/TimeGrid"

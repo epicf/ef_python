@@ -19,7 +19,7 @@ class TestDomain:
         parser = ConfigParser()
         parser.read_string(efconf.export_to_string())
         dom = Domain.init_from_config(parser)
-        assert type(dom.time_grid) == TimeGrid
+        assert dom.time_grid == TimeGrid(100, 1, 10)
         assert type(dom.spat_mesh) == SpatialMesh
         assert type(dom.inner_regions) == InnerRegionsManager
         assert dom.inner_regions.regions == []
