@@ -1,9 +1,12 @@
 import sys
 from math import ceil
+
 import numpy as np
+
 from Vec3d import Vec3d
 
-class SpatialMesh():
+
+class SpatialMesh:
 
     def __init__(self):
         self.x_volume_size = None
@@ -20,7 +23,6 @@ class SpatialMesh():
         self.potential = None
         self.electric_field = None
 
-
     @classmethod
     def init_from_config(cls, conf):
         new_obj = cls()
@@ -34,13 +36,11 @@ class SpatialMesh():
         SpatialMesh.mark_spatmesh_sec_as_used(conf)
         return new_obj
 
-
     @staticmethod
     def mark_spatmesh_sec_as_used(conf):
         # For now simply mark sections as 'used' instead of removing them.
         conf["SpatialMesh"]["used"] = "True"
         conf["BoundaryConditions"]["used"] = "True"
-
 
     @classmethod
     def init_from_h5(cls, h5group):
@@ -87,7 +87,6 @@ class SpatialMesh():
         #
         return new_obj
 
-
     def allocate_ongrid_values(self):
         nx = self.x_n_nodes
         ny = self.y_n_nodes
@@ -97,7 +96,6 @@ class SpatialMesh():
         self.potential = np.zeros((nx, ny, nz), dtype='f8')
         self.electric_field = np.full((nx, ny, nz), Vec3d.zero(), dtype=object)
 
-
     def check_correctness_of_related_config_fields(self, conf):
         self.grid_x_size_gt_zero(conf)
         self.grid_x_step_gt_zero_le_grid_x_size(conf)
@@ -105,7 +103,6 @@ class SpatialMesh():
         self.grid_y_step_gt_zero_le_grid_y_size(conf)
         self.grid_z_size_gt_zero(conf)
         self.grid_z_step_gt_zero_le_grid_z_size(conf)
-
 
     def init_x_grid(self, conf):
         spat_mesh_conf = conf["SpatialMesh"]
@@ -116,8 +113,7 @@ class SpatialMesh():
         if self.x_cell_size != spat_mesh_conf.getfloat("grid_x_step"):
             print("X_step was shrinked to {:.3f} from {:.3f} "
                   "to fit round number of cells".format(
-                      self.x_cell_size, spat_mesh_conf.getfloat("grid_x_step")))
-
+                self.x_cell_size, spat_mesh_conf.getfloat("grid_x_step")))
 
     def init_y_grid(self, conf):
         spat_mesh_conf = conf["SpatialMesh"]
@@ -128,8 +124,7 @@ class SpatialMesh():
         if self.y_cell_size != spat_mesh_conf.getfloat("grid_y_step"):
             print("Y_step was shrinked to {:.3f} from {:.3f} "
                   "to fit round number of cells".format(
-                      self.y_cell_size, spat_mesh_conf.getfloat("grid_y_step")))
-
+                self.y_cell_size, spat_mesh_conf.getfloat("grid_y_step")))
 
     def init_z_grid(self, conf):
         spat_mesh_conf = conf["SpatialMesh"]
@@ -140,8 +135,7 @@ class SpatialMesh():
         if self.z_cell_size != spat_mesh_conf.getfloat("grid_z_step"):
             print("Z_step was shrinked to {:.3f} from {:.3f} "
                   "to fit round number of cells".format(
-                      self.z_cell_size, spat_mesh_conf.getfloat("grid_z_step")))
-
+                self.z_cell_size, spat_mesh_conf.getfloat("grid_z_step")))
 
     def fill_node_coordinates(self):
         for i in range(self.x_n_nodes):
@@ -150,10 +144,8 @@ class SpatialMesh():
                     self.node_coordinates[i][j][k] = Vec3d(
                         i * self.x_cell_size, j * self.y_cell_size, k * self.z_cell_size)
 
-
     def clear_old_density_values(self):
         self.charge_density.fill(0)
-
 
     def set_boundary_conditions(self, conf):
         phi_left = conf["BoundaryConditions"].getfloat("boundary_phi_left")
@@ -169,31 +161,28 @@ class SpatialMesh():
         for i in range(nx):
             for k in range(nz):
                 self.potential[i][0][k] = phi_bottom
-                self.potential[i][ny-1][k] = phi_top
+                self.potential[i][ny - 1][k] = phi_top
         for j in range(ny):
             for k in range(nz):
                 self.potential[0][j][k] = phi_right
-                self.potential[nx-1][j][k] = phi_left
+                self.potential[nx - 1][j][k] = phi_left
         for i in range(nx):
             for j in range(ny):
                 self.potential[i][j][0] = phi_near
-                self.potential[i][j][nz-1] = phi_far
-
+                self.potential[i][j][nz - 1] = phi_far
 
     def is_potential_equal_on_boundaries(self):
         nx = self.x_n_nodes
         ny = self.y_n_nodes
         nz = self.z_n_nodes
         return \
-            (self.potential[0][2][2] == self.potential[nx-1][2][2] == \
-             self.potential[2][0][2] == self.potential[2][ny-1][2] == \
-             self.potential[2][2][0] == self.potential[2][2][nz-1])
-
+            (self.potential[0][2][2] == self.potential[nx - 1][2][2] == \
+             self.potential[2][0][2] == self.potential[2][ny - 1][2] == \
+             self.potential[2][2][0] == self.potential[2][2][nz - 1])
 
     def print(self):
         self.print_grid()
         self.print_ongrid_values()
-
 
     def print_grid(self):
         print("Grid:")
@@ -203,7 +192,6 @@ class SpatialMesh():
             self.x_cell_size, self.y_cell_size, self.z_cell_size))
         print("Total nodes: x = {:d}, y = {:d}, z = {:d}".format(
             self.x_n_nodes, self.y_n_nodes, self.z_n_nodes))
-
 
     def print_ongrid_values(self):
         nx = self.x_n_nodes
@@ -224,13 +212,11 @@ class SpatialMesh():
                         self.electric_field[i][j][k].y,
                         self.electric_field[i][j][k].z)
 
-
     def write_to_file(self, h5file):
         groupname = "/SpatialMesh"
         h5group = h5file.create_group(groupname)
         self.write_hdf5_attributes(h5group)
         self.write_hdf5_ongrid_values(h5group)
-
 
     def write_hdf5_attributes(self, h5group):
         h5group.attrs.create("x_volume_size", self.x_volume_size)
@@ -242,7 +228,6 @@ class SpatialMesh():
         h5group.attrs.create("x_n_nodes", self.x_n_nodes)
         h5group.attrs.create("y_n_nodes", self.y_n_nodes)
         h5group.attrs.create("z_n_nodes", self.z_n_nodes)
-
 
     def write_hdf5_ongrid_values(self, h5group):
         # todo: without compound datasets
@@ -276,42 +261,35 @@ class SpatialMesh():
         h5group.create_dataset("./electric_field_y", data=tmp_y)
         h5group.create_dataset("./electric_field_z", data=tmp_z)
 
-
     def grid_x_size_gt_zero(self, conf):
         if conf["SpatialMesh"].getfloat("grid_x_size") <= 0:
             raise ValueError("expect grid_x_size > 0")
 
-
     def grid_x_step_gt_zero_le_grid_x_size(self, conf):
         if (conf["SpatialMesh"].getfloat("grid_x_step") <= 0) or \
-           (conf["SpatialMesh"].getfloat("grid_x_step") > \
-            conf["SpatialMesh"].getfloat("grid_x_size")):
+                (conf["SpatialMesh"].getfloat("grid_x_step") > \
+                 conf["SpatialMesh"].getfloat("grid_x_size")):
             raise ValueError("Expect grid_x_step > 0 and grid_x_step <= grid_x_size")
-
 
     def grid_y_size_gt_zero(self, conf):
         if conf["SpatialMesh"].getfloat("grid_y_size") <= 0:
             raise ValueError("Expect grid_y_size > 0")
 
-
     def grid_y_step_gt_zero_le_grid_y_size(self, conf):
         if (conf["SpatialMesh"].getfloat("grid_y_step") <= 0) or \
-           (conf["SpatialMesh"].getfloat("grid_y_step") > \
-            conf["SpatialMesh"].getfloat("grid_y_size")):
+                (conf["SpatialMesh"].getfloat("grid_y_step") > \
+                 conf["SpatialMesh"].getfloat("grid_y_size")):
             raise ValueError("Expect grid_y_step > 0 and grid_y_step <= grid_y_size")
-
 
     def grid_z_size_gt_zero(self, conf):
         if conf["SpatialMesh"].getfloat("grid_z_size") <= 0:
             raise ValueError("Expect grid_z_size > 0")
 
-
     def grid_z_step_gt_zero_le_grid_z_size(self, conf):
         if (conf["SpatialMesh"].getfloat("grid_z_step") <= 0) or \
-           (conf["SpatialMesh"].getfloat("grid_z_step") > \
-            conf["SpatialMesh"].getfloat("grid_z_size")):
+                (conf["SpatialMesh"].getfloat("grid_z_step") > \
+                 conf["SpatialMesh"].getfloat("grid_z_size")):
             raise ValueError("Expect grid_z_step > 0 and grid_z_step <= grid_z_size")
-
 
     def node_number_to_coordinate_x(self, i):
         if i >= 0 and i < self.x_n_nodes:
@@ -321,7 +299,6 @@ class SpatialMesh():
                   "at node_number_to_coordinate_x".format(i))
             sys.exit(-1)
 
-
     def node_number_to_coordinate_y(self, j):
         if j >= 0 and j < self.y_n_nodes:
             return j * self.y_cell_size
@@ -330,7 +307,6 @@ class SpatialMesh():
                   "at node_number_to_coordinate_y".format(j))
             sys.exit(-1)
 
-
     def node_number_to_coordinate_z(self, k):
         if k >= 0 and k < self.z_n_nodes:
             return k * self.z_cell_size
@@ -338,7 +314,6 @@ class SpatialMesh():
             print("invalid node number k={:d} "
                   "at node_number_to_coordinate_z".format(k))
             sys.exit(-1)
-
 
     def global_idx_to_node_ijk(self, global_idx):
         # In row-major order: (used to save on disk)
