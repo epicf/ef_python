@@ -15,8 +15,8 @@ class TimeGrid(DataClass):
             raise ValueError()
         if time_step_size > total_time:
             raise ValueError()
-        self.total_time = total_time
-        self.total_nodes = ceil(total_time / time_step_size) + 1
+        self.total_time = float(total_time)
+        self.total_nodes = ceil(self.total_time / time_step_size) + 1
         self.time_step_size = self.total_time / (self.total_nodes - 1)
         if self.time_step_size != time_step_size:
             logging.warning("Reducing time step to {:.3E} from {:.3E} "
