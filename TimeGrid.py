@@ -1,6 +1,7 @@
 import logging
 from math import ceil
 
+from ef.config.components import time_grid
 from ef.util.data_class import DataClass
 
 
@@ -30,18 +31,13 @@ class TimeGrid(DataClass):
         self.current_time = 0.0
         self.current_node = 0
 
+    def to_component(self):
+        return time_grid.TimeGrid(self.total_time, self.time_save_step, self.time_step_size)
+
     @classmethod
     def init_from_config(cls, conf):
-        total_time = conf["TimeGrid"].getfloat("total_time")
-        time_step_size = conf["TimeGrid"].getfloat("time_step_size")
-        time_save_step = conf["TimeGrid"].getfloat("time_save_step")
-        TimeGrid.mark_timegrid_sec_as_used(conf)
-        return cls(total_time, time_step_size, time_save_step)
-
-    @staticmethod
-    def mark_timegrid_sec_as_used(conf):
-        # For now simply mark sections as 'used' instead of removing them.
-        conf["TimeGrid"]["used"] = "True"
+        time_config = time_grid.TimeGridConf.from_section(conf["TimeGrid"]).make()
+        return cls(time_config.total, time_config.step, time_config.save_step)
 
     @classmethod
     def init_from_h5(cls, h5group):

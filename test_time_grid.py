@@ -1,4 +1,5 @@
 from TimeGrid import TimeGrid
+from ef.config.components import time_grid
 
 
 class TestTimeGrid:
@@ -12,3 +13,7 @@ class TestTimeGrid:
                              "node_to_save = 10\n"
                              "current_time = 0.0\n"
                              "current_node = 0")
+
+    def test_component_link(self):
+        assert time_grid.TimeGrid().make() == TimeGrid(100.0, 1.0, 10.0)
+        assert time_grid.TimeGrid() == TimeGrid(100.0, 1.0, 10.0).to_component()
