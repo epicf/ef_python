@@ -1,7 +1,9 @@
 import logging
+from configparser import ConfigParser
+
+import h5py
 import numpy as np
 import pytest
-from configparser import ConfigParser
 from numpy.testing import assert_array_equal
 
 from SpatialMesh import SpatialMesh
@@ -122,3 +124,40 @@ class TestDefaultSpatialMesh:
         with pytest.raises(ValueError) as excinfo:
             SpatialMesh.do_init((10, 10, 10), (17, 2, 3), boundary_conditions.BoundaryConditions(3.14))
         assert excinfo.value.args == ('step_size cannot be bigger than grid_size',)
+
+    def test_init_h5(self, tmpdir):
+        fname = tmpdir.join('test_spatialmesh_init.h5')
+
+        mesh1 = SpatialMesh.do_init((10, 20, 30), (2, 1, 3), boundary_conditions.BoundaryConditions(3.14))
+        with h5py.File(fname, mode="w") as h5file:
+            mesh1.write_to_file(h5file)
+        with h5py.File(fname, mode="r") as h5file:
+            mesh2 = SpatialMesh.init_from_h5(h5file["/SpatialMesh"])
+        assert mesh1 == mesh2
+
+        mesh2 = SpatialMesh.do_init((10, 20, 30), (2, 1, 3), boundary_conditions.BoundaryConditions(3.14))
+        assert mesh1 == mesh2
+        mesh2.potential = np.random.ranf(mesh1.potential.shape)
+        assert mesh1 != mesh2
+
+        mesh2 = SpatialMesh.do_init((10, 20, 30), (2, 1, 3), boundary_conditions.BoundaryConditions(3.14))
+        assert mesh1 == mesh2
+        mesh2.charge_density = np.random.ranf(mesh1.charge_density.shape)
+        assert mesh1 != mesh2
+
+        mesh2 = SpatialMesh.do_init((10, 20, 30), (2, 1, 3), boundary_conditions.BoundaryConditions(3.14))
+        assert mesh1 == mesh2
+        mesh2.electric_field = np.vectorize(lambda v: Vec3d(*np.random.ranf((3,))))(mesh1.electric_field)
+        assert mesh1 != mesh2
+
+        mesh2 = SpatialMesh.do_init((10, 20, 30), (2, 1, 3), boundary_conditions.BoundaryConditions(3.14))
+        mesh2.potential = np.random.ranf(mesh1.potential.shape)
+        mesh2.charge_density = np.random.ranf(mesh1.charge_density.shape)
+        mesh2.electric_field = np.vectorize(lambda v: Vec3d(*np.random.ranf((3,))))(mesh1.electric_field)
+        assert mesh1 != mesh2
+
+        with h5py.File(fname, mode="w") as h5file:
+            mesh2.write_to_file(h5file)
+        with h5py.File(fname, mode="r") as h5file:
+            mesh1 = SpatialMesh.init_from_h5(h5file["/SpatialMesh"])
+        assert mesh1 == mesh2
