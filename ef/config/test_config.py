@@ -43,6 +43,7 @@ class TestEfConf:
         assert c1 == conf
 
     def test_conf_repr(self):
+        # noinspection PyUnresolvedReferences
         from numpy import array  # for use in eval
         conf = EfConf(sources=[ParticleSource()], inner_regions=(InnerRegion(),))
         s = repr(conf)
