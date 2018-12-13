@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from ef.util.data_class import DataClass, DataClassHashable
 
@@ -72,6 +73,7 @@ class TestDataClass:
         class ABh(self.AB, DataClassHashable):
             def __hash__(self):
                 return super().__hash__()
+
         x = ABh(1, 2)
         xf = ABh(1., 2.)
         y = ABh(2, 3)
