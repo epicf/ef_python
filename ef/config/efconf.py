@@ -2,8 +2,8 @@ import io
 from configparser import ConfigParser
 
 from ef.config.components import *
-from ef.config.data_class import DataClass
 from ef.config.section import ConfigSection
+from ef.util.data_class import DataClass
 
 
 class EfConf(DataClass):
