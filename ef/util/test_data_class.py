@@ -1,6 +1,6 @@
 import numpy as np
 
-from ef.util.data_class import DataClass
+from ef.util.data_class import DataClass, DataClassHashable
 
 
 class TestDataClass:
@@ -49,8 +49,6 @@ class TestDataClass:
         assert ab != (1, 2)
         assert ab != self.AB2(1, 2)
         assert ab != self.ABx(1, 2)
-        ab.x = 10
-        assert ab != AB(1, 2)
         assert AB([1, 2, 3], np.array([[4, 5, 6], [7, 8, 9]])) == \
                AB([1, 2, 3], np.array([[4, 5, 6], [7, 8, 9]]))
         assert AB([1, 2, 3], np.array([[4, 5, 6], [7, 8, 9]])) != \
@@ -59,6 +57,25 @@ class TestDataClass:
                AB([1, 2, 3], np.array([[4, 5, 6.], [7, 8, 9]]))
         assert AB(AB(1, 2), 5) == AB(AB(1, 2), 5)
         assert AB(AB(1, 3), 5) != AB(AB(1, 2), 5)
+        assert eval(repr(ab)) == ab
+        ab.x = 10
+        assert ab != AB(1, 2)
+
+    def test_hash(self):
+        class ABh(self.AB, DataClassHashable):
+            def __hash__(self):
+                return super().__hash__()
+        x = ABh(1, 2)
+        xf = ABh(1., 2.)
+        y = ABh(2, 3)
+        good = ABh((), ())
+        bad = ABh([], [])
+        assert len(set((x, xf))) == 1
+        assert len(set((x, y))) == 2
+        assert len(set((x, y, xf))) == 2
+        assert len(set((good, good, x))) == 2
+        with pytest.raises(TypeError):
+            set((bad, x))
 
     def test_nan(self):
         assert self.AB([1, 2, 3], np.array([[4, 5, np.NaN], [7, 8, 9]])) != \

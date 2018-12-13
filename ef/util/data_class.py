@@ -10,7 +10,7 @@ class DataClass:
 
         :return: A dict representation of object attributes that can be used to construct it.
         """
-        return vars(self)
+        return vars(self).copy()
 
     def __eq__(self, other):
         if self is other:
@@ -30,9 +30,6 @@ class DataClass:
                     return False
         return True
 
-    def __hash__(self):
-        return hash(tuple(sorted(self.dict.items())))
-
     def __repr__(self):
         cls = self.__class__.__name__
         args = ', '.join(f"{k}={v!r}" for k, v in self.dict.items())
@@ -42,3 +39,8 @@ class DataClass:
         cls = self.__class__.__name__
         args = '\n'.join(f"{k} = {v}" for k, v in self.dict.items())
         return f"### {cls}:\n{args}"
+
+
+class DataClassHashable(DataClass):
+    def __hash__(self):
+        return hash(tuple(sorted(self.dict.items())))
