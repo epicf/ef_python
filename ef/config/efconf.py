@@ -2,13 +2,11 @@ import io
 from configparser import ConfigParser
 
 from ef.config.components import *
-from ef.config.data_class import DataClass
 from ef.config.section import ConfigSection
+from ef.util.data_class import DataClass
 
 
 class EfConf(DataClass):
-    # repr_arg_separator = ',\n'
-
     def __init__(self, time_grid=TimeGrid(), spatial_mesh=SpatialMesh(), sources=(), inner_regions=(),
                  output_file=OutputFile(), boundary_conditions=BoundaryConditions(),
                  particle_interaction_model=ParticleInteractionModel(), external_fields=()):

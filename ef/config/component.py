@@ -1,4 +1,4 @@
-from ef.config.data_class import DataClass
+from ef.util.data_class import DataClass
 
 
 class ConfigComponent(DataClass):
