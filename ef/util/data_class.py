@@ -13,15 +13,15 @@ class DataClass:
         return vars(self)
 
     def __eq__(self, other):
+        if self is other:
+            return True
         if type(self) is not type(other):
             return NotImplemented
         if self.dict.keys() != other.dict.keys():
-            raise TypeError("Two instances of the same DataClass have different attribute lists. Error?")
+            return False
         for k, v in self.dict.items():
             w = other.dict[k]
-            if type(v) is not type(w):
-                return False
-            if isinstance(v, np.ndarray):
+            if isinstance(v, np.ndarray) or isinstance(w, np.ndarray):
                 # Warning: NaN != NaN, may cause problems if array has NaNs
                 if np.any(v != w):
                     return False
