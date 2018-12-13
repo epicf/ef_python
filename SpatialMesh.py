@@ -5,10 +5,10 @@ import numpy as np
 
 from Vec3d import Vec3d
 from ef.config.components import spatial_mesh, boundary_conditions
-from ef.util.data_class import DataClass
+from ef.util.serializable_h5 import SerializableH5
 
 
-class SpatialMesh(DataClass):
+class SpatialMesh(SerializableH5):
     def __init__(self, size, n_nodes, charge_density, potential, electric_field):
         self.size = size
         self.n_nodes = n_nodes
@@ -123,19 +123,7 @@ class SpatialMesh(DataClass):
 
     @classmethod
     def init_from_h5(cls, h5group):
-        size = np.array([h5group.attrs[f"{i}_volume_size"] for i in 'xyz'])
-        n_nodes = np.array([h5group.attrs[f"{i}_n_nodes"] for i in 'xyz'])
-
-        charge_density = np.reshape(h5group["./charge_density"], n_nodes)
-        potential = np.reshape(h5group["./potential"], n_nodes)
-        electric_field = np.stack([np.reshape(h5group[f"./electric_field_{c}"], n_nodes) for c in "xyz"], -1)
-        new_obj = cls(size, n_nodes, charge_density, potential, electric_field)
-        if (new_obj.cell != np.array([h5group.attrs[f"{i}_cell_size"] for i in 'xyz'])).any():
-            raise ValueError("hdf5 volume_size, cell_size and n_nodes values are incompatible")
-        for i, c in enumerate("xyz"):
-            if (new_obj._node_coordinates[:, :, :, i].ravel(order='C') != h5group[f"./node_coordinates_{c}"]).any():
-                raise ValueError(f"hdf5 node_coordinates are incorrect")
-        return new_obj
+        return cls.load_h5(h5group)
 
     def clear_old_density_values(self):
         self.charge_density.fill(0)
@@ -181,11 +169,4 @@ class SpatialMesh(DataClass):
     def write_to_file(self, h5file):
         groupname = "/SpatialMesh"
         h5group = h5file.create_group(groupname)
-        for c in "xyz":
-            for attr in f"{c}_volume_size", f"{c}_cell_size", f"{c}_n_nodes":
-                h5group.attrs.create(attr, getattr(self, attr))
-        h5group.create_dataset("./potential", data=self.potential.ravel(order='C'))
-        h5group.create_dataset("./charge_density", data=self.charge_density.ravel(order='C'))
-        for i, c in enumerate("xyz"):
-            h5group.create_dataset(f"./node_coordinates_{c}", data=self._node_coordinates[:, :, :, i].ravel(order='C'))
-            h5group.create_dataset(f"./electric_field_{c}", data=self._electric_field[:, :, :, i].ravel(order='C'))
+        self.save_h5(h5group)
