@@ -35,6 +35,7 @@ class ConfigSection(DataClass):
                                  format(tuple(missing), section.name))
 
         data = {arg: cls.convert._asdict()[arg](section[arg]) for arg in cls.convert._fields}
+        section["used"] = "True"
         return cls(**data)
 
     def add_section_to_parser(self, conf):

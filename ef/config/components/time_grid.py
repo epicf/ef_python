@@ -5,6 +5,8 @@ from collections import namedtuple
 from ef.config.section import ConfigSection
 from ef.config.component import ConfigComponent
 
+import TimeGrid as TG
+
 
 class TimeGrid(ConfigComponent):
     def __init__(self, total=100.0, save_step=10.0, step=1.0):
@@ -14,6 +16,9 @@ class TimeGrid(ConfigComponent):
 
     def to_conf(self):
         return TimeGridConf(self.total, self.save_step, self.step)
+
+    def make(self):
+        return TG.TimeGrid(self.total, self.step, self.save_step)
 
     def visualize(self, visualizer):
         pass

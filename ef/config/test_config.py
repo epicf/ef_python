@@ -49,3 +49,12 @@ class TestEfConf:
         s = repr(conf)
         c1 = eval(s)
         assert c1 == conf
+
+
+class TestPrint:
+    def test_time_grid(self):
+        assert repr(TimeGrid()) == "TimeGrid(total=100.0, save_step=10.0, step=1.0)"
+        assert str(TimeGrid()) == ("### TimeGrid:\n"
+                                   "total = 100.0\n"
+                                   "save_step = 10.0\n"
+                                   "step = 1.0")

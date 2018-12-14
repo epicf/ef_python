@@ -13,38 +13,44 @@ from ParticleSourcesManager import ParticleSourcesManager
 
 class Domain:
 
-    def __init__(self):
-        self.time_grid = None
-        self.spat_mesh = None
-        self.inner_regions = None
-        self.particle_to_mesh_map = None
-        self.field_solver = None
-        self.particle_sources = None
-        self.external_fields = None
-        self.particle_interaction_model = None
-        self.output_filename_prefix = None
-        self.output_filename_suffix = None
+    def __init__(self, time_grid, spat_mesh, inner_regions, particle_to_mesh_map, field_solver, particle_sources,
+                 external_fields, particle_interaction_model, output_filename_prefix, outut_filename_suffix):
+        self.time_grid = time_grid
+        self.spat_mesh = spat_mesh
+        self.inner_regions = inner_regions
+        self.particle_to_mesh_map = particle_to_mesh_map
+        self.field_solver = field_solver
+        self.particle_sources = particle_sources
+        self.external_fields = external_fields
+        self.particle_interaction_model = particle_interaction_model
+        self.output_filename_prefix = output_filename_prefix
+        self.output_filename_suffix = outut_filename_suffix
 
     @classmethod
     def init_from_config(cls, conf):
-        new_obj = cls()
-        new_obj.time_grid = TimeGrid.init_from_config(conf)
-        new_obj.spat_mesh = SpatialMesh.init_from_config(conf)
-        new_obj.inner_regions = InnerRegionsManager.init_from_config(
-            conf, new_obj.spat_mesh)
-        new_obj.particle_to_mesh_map = ParticleToMeshMap()
-        new_obj.field_solver = FieldSolver(new_obj.spat_mesh, new_obj.inner_regions)
-        new_obj.particle_sources = ParticleSourcesManager.init_from_config(conf)
-        new_obj.external_fields = ExternalFieldsManager.init_from_config(conf)
-        new_obj.particle_interaction_model = ParticleInteractionModel.init_from_config(conf)
-        new_obj.get_output_filename_prefix_and_suffix(conf)
+        time_grid = TimeGrid.init_from_config(conf)
+        spat_mesh = SpatialMesh.init_from_config(conf)
+        inner_regions = InnerRegionsManager.init_from_config(
+            conf, spat_mesh)
+        particle_to_mesh_map = ParticleToMeshMap()
+        field_solver = FieldSolver(spat_mesh, inner_regions)
+        particle_sources = ParticleSourcesManager.init_from_config(conf)
+        external_fields = ExternalFieldsManager.init_from_config(conf)
+        particle_interaction_model = ParticleInteractionModel.init_from_config(
+            conf)
+        output_filename_prefix, output_filename_suffix = Domain.get_output_filename_prefix_and_suffix(conf)
+        output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
         Domain.check_and_print_unused_conf_sections(conf)
-        return new_obj
+        return cls(time_grid, spat_mesh, inner_regions, particle_to_mesh_map, field_solver, particle_sources,
+                   external_fields, particle_interaction_model, output_filename_prefix, output_filename_suffix)
 
-    def get_output_filename_prefix_and_suffix(self, conf):
-        self.output_filename_prefix = conf["OutputFilename"]["output_filename_prefix"]
-        self.output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
+    @staticmethod
+    def get_output_filename_prefix_and_suffix(conf):
+        output_filename_prefix = conf["OutputFilename"]["output_filename_prefix"]
+        output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
+        # TODO: a "get" should not write anything!
         Domain.mark_outputfilename_sec_as_used(conf)
+        return output_filename_prefix, output_filename_suffix
 
     @staticmethod
     def mark_outputfilename_sec_as_used(conf):
@@ -65,22 +71,22 @@ class Domain:
 
     @classmethod
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
-        new_obj = cls()
-        new_obj.time_grid = TimeGrid.init_from_h5(h5file["/TimeGrid"])
-        new_obj.spat_mesh = SpatialMesh.init_from_h5(h5file["/SpatialMesh"])
-        new_obj.inner_regions = InnerRegionsManager.init_from_h5(
-            h5file["/InnerRegions"], new_obj.spat_mesh)
-        new_obj.particle_to_mesh_map = ParticleToMeshMap()
-        new_obj.field_solver = FieldSolver(new_obj.spat_mesh, new_obj.inner_regions)
-        new_obj.particle_sources = ParticleSourcesManager.init_from_h5(
+        time_grid = TimeGrid.init_from_h5(h5file["/TimeGrid"])
+        spat_mesh = SpatialMesh.init_from_h5(h5file["/SpatialMesh"])
+        inner_regions = InnerRegionsManager.init_from_h5(
+            h5file["/InnerRegions"], spat_mesh)
+        particle_to_mesh_map = ParticleToMeshMap()
+        field_solver = FieldSolver(spat_mesh, inner_regions)
+        particle_sources = ParticleSourcesManager.init_from_h5(
             h5file["/ParticleSources"])
-        new_obj.external_fields = ExternalFieldsManager.init_from_h5(
+        external_fields = ExternalFieldsManager.init_from_h5(
             h5file["/ExternalFields"])
-        new_obj.particle_interaction_model = ParticleInteractionModel.init_from_h5(
+        particle_interaction_model = ParticleInteractionModel.init_from_h5(
             h5file["/ParticleInteractionModel"])
-        new_obj.output_filename_prefix = filename_prefix
-        new_obj.output_filename_suffix = filename_suffix
-        return new_obj
+        output_filename_prefix = filename_prefix
+        output_filename_suffix = filename_suffix
+        return cls(time_grid, spat_mesh, inner_regions, particle_to_mesh_map, field_solver, particle_sources,
+                   external_fields, particle_interaction_model, output_filename_prefix, output_filename_suffix)
 
     def start_pic_simulation(self):
         self.eval_and_write_fields_without_particles()
