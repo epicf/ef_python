@@ -6,18 +6,19 @@ from ef.util.serializable_h5 import SerializableH5
 
 
 class TimeGrid(SerializableH5):
-    def __init__(self, total_time, time_step_size, time_save_step, current_time=0.0, current_node=0):
+    def __init__(self, total_time, time_step_size, time_save_step,
+                 current_time=0.0, current_node=0):
         if total_time <= 0:
-            raise ValueError()
-        if time_save_step < time_step_size:
-            raise ValueError()
+            raise ValueError("Expect total_time > 0")
         if time_step_size <= 0:
-            raise ValueError()
+            raise ValueError("Expect time_step_size > 0")
         if time_step_size > total_time:
-            raise ValueError()
+            raise ValueError("Expect time_step_size <= total_time")
+        if time_save_step < time_step_size:
+            raise ValueError("Expect time_save_step >= time_step_size")
         self.total_time = float(total_time)
-        self._total_nodes = ceil(self.total_time / time_step_size) + 1
-        self.time_step_size = self.total_time / (self._total_nodes - 1)
+        self.total_nodes = ceil(self.total_time / time_step_size) + 1
+        self.time_step_size = self.total_time / (self.total_nodes - 1)
         if self.time_step_size != time_step_size:
             logging.warning("Reducing time step to {:.3E} from {:.3E} "
                             "to fit a whole number of cells."
@@ -27,7 +28,7 @@ class TimeGrid(SerializableH5):
             logging.warning("Reducing save time step to {:.3E} from {:.3E} "
                             "to fit a whole number of cells."
                             .format(self.time_save_step, time_save_step))
-        self._node_to_save = int(self.time_save_step / self.time_step_size)
+        self.node_to_save = int(self.time_save_step / self.time_step_size)
         self.current_time = current_time
         self.current_node = current_node
 

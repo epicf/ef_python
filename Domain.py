@@ -13,8 +13,10 @@ from ParticleSourcesManager import ParticleSourcesManager
 
 class Domain:
 
-    def __init__(self, time_grid, spat_mesh, inner_regions, particle_to_mesh_map, field_solver, particle_sources,
-                 external_fields, particle_interaction_model, output_filename_prefix, outut_filename_suffix):
+    def __init__(self, time_grid, spat_mesh, inner_regions,
+                 particle_to_mesh_map, field_solver, particle_sources,
+                 external_fields, particle_interaction_model,
+                 output_filename_prefix, outut_filename_suffix):
         self.time_grid = time_grid
         self.spat_mesh = spat_mesh
         self.inner_regions = inner_regions
@@ -36,13 +38,14 @@ class Domain:
         field_solver = FieldSolver(spat_mesh, inner_regions)
         particle_sources = ParticleSourcesManager.init_from_config(conf)
         external_fields = ExternalFieldsManager.init_from_config(conf)
-        particle_interaction_model = ParticleInteractionModel.init_from_config(
-            conf)
-        output_filename_prefix, output_filename_suffix = Domain.get_output_filename_prefix_and_suffix(conf)
-        output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
+        particle_interaction_model = ParticleInteractionModel.init_from_config(conf)
+        output_filename_prefix, output_filename_suffix = \
+            Domain.get_output_filename_prefix_and_suffix(conf)
         Domain.check_and_print_unused_conf_sections(conf)
-        return cls(time_grid, spat_mesh, inner_regions, particle_to_mesh_map, field_solver, particle_sources,
-                   external_fields, particle_interaction_model, output_filename_prefix, output_filename_suffix)
+        return cls(time_grid, spat_mesh, inner_regions,
+                   particle_to_mesh_map, field_solver, particle_sources,
+                   external_fields, particle_interaction_model,
+                   output_filename_prefix, output_filename_suffix)
 
     @staticmethod
     def get_output_filename_prefix_and_suffix(conf):
@@ -85,8 +88,10 @@ class Domain:
             h5file["/ParticleInteractionModel"])
         output_filename_prefix = filename_prefix
         output_filename_suffix = filename_suffix
-        return cls(time_grid, spat_mesh, inner_regions, particle_to_mesh_map, field_solver, particle_sources,
-                   external_fields, particle_interaction_model, output_filename_prefix, output_filename_suffix)
+        return cls(time_grid, spat_mesh, inner_regions,
+                   particle_to_mesh_map, field_solver, particle_sources,
+                   external_fields, particle_interaction_model,
+                   output_filename_prefix, output_filename_suffix)
 
     def start_pic_simulation(self):
         self.eval_and_write_fields_without_particles()
@@ -223,8 +228,10 @@ class Domain:
         self.particle_interaction_model.write_to_file(h5file)
         h5file.close()
 
-    def construct_output_filename(self, output_filename_prefix,
-                                  current_time_step, output_filename_suffix):
+    @staticmethod
+    def construct_output_filename(output_filename_prefix,
+                                  current_time_step,
+                                  output_filename_suffix):
         filename = output_filename_prefix + \
                    "{:07d}".format(current_time_step) + \
                    output_filename_suffix
