@@ -1,11 +1,11 @@
 import sys
 
+
 class ParticleInteractionModel():
 
     def __init__(self):
         self.noninteracting = self.binary = self.pic = False
         self.particle_interaction_model = None
-
 
     @classmethod
     def init_from_config(cls, conf):
@@ -15,12 +15,10 @@ class ParticleInteractionModel():
         ParticleInteractionModel.mark_partintmodel_sec_as_used(conf)
         return new_obj
 
-
     @staticmethod
     def mark_partintmodel_sec_as_used(conf):
         # For now simply mark sections as 'used' instead of removing them.
         conf["ParticleInteractionModel"]["used"] = "True"
-
 
     def check_correctness_of_related_config_fields(self, conf):
         conf_part = conf["ParticleInteractionModel"]
@@ -32,7 +30,6 @@ class ParticleInteractionModel():
             print("Aborting")
             sys.exit(-1)
 
-
     def get_values_from_config(self, conf):
         conf_part = conf["ParticleInteractionModel"]
         self.particle_interaction_model = conf_part["particle_interaction_model"]
@@ -42,7 +39,6 @@ class ParticleInteractionModel():
             self.binary = True
         elif self.particle_interaction_model == "PIC":
             self.pic = True
-
 
     @classmethod
     def init_from_h5(cls, h5group):
@@ -56,10 +52,8 @@ class ParticleInteractionModel():
             new_obj.pic = True
         return new_obj
 
-
     def __str__(self):
         return "particle_interaction_model = {}".format(self.particle_interaction_model)
-
 
     def print(self):
         print("### ParticleInteractionModel:")
@@ -67,7 +61,6 @@ class ParticleInteractionModel():
         print("self.noninteracting = {}".format(self.noninteracting))
         print("self.binary = {}".format(self.binary))
         print("self.pic = {}".format(self.pic))
-
 
     def write_to_file(self, h5file):
         groupname = "/ParticleInteractionModel"
