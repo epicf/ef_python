@@ -1,14 +1,13 @@
-__all__ = ['TimeGrid', 'TimeGridSection']
+__all__ = ['TimeGridConf', 'TimeGridSection']
 
 from collections import namedtuple
 
-from ef.config.section import ConfigSection
+import TimeGrid
 from ef.config.component import ConfigComponent
+from ef.config.section import ConfigSection
 
-import TimeGrid as TG
 
-
-class TimeGrid(ConfigComponent):
+class TimeGridConf(ConfigComponent):
     def __init__(self, total=100.0, save_step=10.0, step=1.0):
         self.total = total
         self.save_step = save_step
@@ -18,7 +17,7 @@ class TimeGrid(ConfigComponent):
         return TimeGridSection(self.total, self.save_step, self.step)
 
     def make(self):
-        return TG.TimeGrid(self.total, self.step, self.save_step)
+        return TimeGrid.TimeGrid(self.total, self.step, self.save_step)
 
     def visualize(self, visualizer):
         pass
@@ -30,4 +29,4 @@ class TimeGridSection(ConfigSection):
     convert = ContentTuple(float, float, float)
 
     def make(self):
-        return TimeGrid(*self.content)
+        return TimeGridConf(*self.content)

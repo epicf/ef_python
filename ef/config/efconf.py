@@ -13,7 +13,7 @@ from ef.util.data_class import DataClass
 
 
 class EfConf(DataClass):
-    def __init__(self, time_grid=TimeGrid(), spatial_mesh=SpatialMesh(), sources=(), inner_regions=(),
+    def __init__(self, time_grid=TimeGridConf(), spatial_mesh=SpatialMesh(), sources=(), inner_regions=(),
                  output_file=OutputFile(), boundary_conditions=BoundaryConditions(),
                  particle_interaction_model=ParticleInteractionModel(), external_fields=()):
         self.time_grid = time_grid
@@ -27,12 +27,12 @@ class EfConf(DataClass):
 
     @classmethod
     def from_components(cls, components):
-        parents = {'time_grid': TimeGrid, 'spatial_mesh': SpatialMesh,
+        parents = {'time_grid': TimeGridConf, 'spatial_mesh': SpatialMesh,
                    'sources': ParticleSource, 'inner_regions': InnerRegion,
                    'output_file': OutputFile, 'boundary_conditions': BoundaryConditions,
                    'particle_interaction_model': ParticleInteractionModel,
                    'external_fields': Field}
-        singletons = TimeGrid, SpatialMesh, OutputFile, BoundaryConditions, ParticleInteractionModel
+        singletons = TimeGridConf, SpatialMesh, OutputFile, BoundaryConditions, ParticleInteractionModel
         kwargs = {}
         for arg, parent in parents.items():
             children = [c for c in components if isinstance(c, parent)]

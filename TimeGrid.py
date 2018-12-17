@@ -40,7 +40,7 @@ class TimeGrid(SerializableH5):
         return d
 
     def to_component(self):
-        return time_grid.TimeGrid(self.total_time, self.time_save_step, self.time_step_size)
+        return time_grid.TimeGridConf(self.total_time, self.time_save_step, self.time_step_size)
 
     def update_to_next_step(self):
         self.current_node += 1

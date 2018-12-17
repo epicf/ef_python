@@ -17,13 +17,13 @@ class TestTimeGrid:
                              "current_node = 0")
 
     def test_component_link(self):
-        assert time_grid.TimeGrid().make() == TimeGrid(100.0, 1.0, 10.0)
-        assert time_grid.TimeGrid() == TimeGrid(100.0, 1.0, 10.0).to_component()
-        assert time_grid.TimeGrid() == TimeGrid(100, 1, 10).to_component()
+        assert time_grid.TimeGridConf().make() == TimeGrid(100.0, 1.0, 10.0)
+        assert time_grid.TimeGridConf() == TimeGrid(100.0, 1.0, 10.0).to_component()
+        assert time_grid.TimeGridConf() == TimeGrid(100, 1, 10).to_component()
         # should config component also store parameters as float?
-        assert time_grid.TimeGrid(123.0, 13.0, 3.0) != TimeGrid(123, 3, 13).to_component()
-        assert time_grid.TimeGrid(123, 13, 3) != TimeGrid(123, 3, 13).to_component()
-        assert time_grid.TimeGrid(123, 13, 3).make() == TimeGrid(123, 3, 13)
+        assert time_grid.TimeGridConf(123.0, 13.0, 3.0) != TimeGrid(123, 3, 13).to_component()
+        assert time_grid.TimeGridConf(123, 13, 3) != TimeGrid(123, 3, 13).to_component()
+        assert time_grid.TimeGridConf(123, 13, 3).make() == TimeGrid(123, 3, 13)
 
     def test_init_h5(self, tmpdir):
         fname = tmpdir.join('test_timegrid_init.h5')

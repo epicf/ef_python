@@ -5,7 +5,7 @@ from ef.config.efconf import EfConf
 from ef.config.section import ConfigSection
 
 comp_list = [BoundaryConditions, InnerRegion, OutputFile, ParticleInteractionModel,
-             ParticleSource, SpatialMesh, TimeGrid, ExternalFieldUniform]
+             ParticleSource, SpatialMesh, TimeGridConf, ExternalFieldUniform]
 
 
 def test_components_to_conf_and_back():
@@ -28,7 +28,7 @@ def test_minimal_example():
     parser = ConfigParser()
     parser.read("examples/minimal_working_example/minimal_conf.conf")
     components = [conf.make() for conf in ConfigSection.parser_to_confs(parser)]
-    assert components == [TimeGrid(1e-7, 1e-9, 1e-9), SpatialMesh((5, 5, 15), (0.5, 0.5, 1.5)),
+    assert components == [TimeGridConf(1e-7, 1e-9, 1e-9), SpatialMesh((5, 5, 15), (0.5, 0.5, 1.5)),
                           ParticleInteractionModel('noninteracting'), BoundaryConditions(0),
                           ExternalFieldUniform('mgn_uni', 'magnetic'),
                           ExternalFieldUniform('el_uni', 'electric'),
@@ -53,8 +53,8 @@ class TestEfConf:
 
 class TestPrint:
     def test_time_grid(self):
-        assert repr(TimeGrid()) == "TimeGrid(total=100.0, save_step=10.0, step=1.0)"
-        assert str(TimeGrid()) == ("### TimeGrid:\n"
+        assert repr(TimeGridConf()) == "TimeGridConf(total=100.0, save_step=10.0, step=1.0)"
+        assert str(TimeGridConf()) == ("### TimeGridConf:\n"
                                    "total = 100.0\n"
                                    "save_step = 10.0\n"
                                    "step = 1.0")
