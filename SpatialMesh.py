@@ -117,8 +117,8 @@ class SpatialMesh(SerializableH5):
 
     @classmethod
     def init_from_config(cls, conf):
-        mesh_config = spatial_mesh.SpatialMeshConf.from_section(conf["SpatialMesh"]).make()
-        boundary_config = boundary_conditions.BoundaryConditionsConf.from_section(conf["BoundaryConditions"]).make()
+        mesh_config = spatial_mesh.SpatialMeshConf._from_section(conf["SpatialMesh"]).make()
+        boundary_config = boundary_conditions.BoundaryConditionsConf._from_section(conf["BoundaryConditions"]).make()
         return cls.do_init(mesh_config.size, mesh_config.step, boundary_config)
 
     @classmethod

@@ -44,7 +44,7 @@ class TimeGrid(SerializableH5):
 
     @classmethod
     def init_from_config(cls, conf):
-        time_config = time_grid.TimeGridConf.from_section(conf["TimeGrid"]).make()
+        time_config = time_grid.TimeGridConf._from_section(conf["TimeGrid"]).make()
         return cls(time_config.total, time_config.step, time_config.save_step)
 
     @classmethod

@@ -14,14 +14,17 @@ class ConfigSection(DataClass):
     def parser_to_confs(conf):
         if ConfigSection._section_map is None:
             ConfigSection._section_map = {c.section: c for c in get_all_subclasses(ConfigSection)}
-        return [ConfigSection._section_map[section.split('.')[0]].from_section(conf[section]) for section in
-                conf.sections()]
+        return [ConfigSection.from_section(section, conf[section]) for section in conf.sections()]
 
     def __init__(self, *args, **kwargs):
         self.content = self.ContentTuple(*args, **kwargs)
 
+    @staticmethod
+    def from_section(section_name, section_content):
+        return ConfigSection._section_map[section_name.split('.')[0]]._from_section(section_content)
+
     @classmethod
-    def from_section(cls, section):
+    def _from_section(cls, section):
         if section.name != cls.section:
             raise ValueError("Unexpected config section name: {}".format(section.name))
         if set(section.keys()) != set(cls.ContentTuple._fields):
@@ -54,7 +57,7 @@ class NamedConfigSection(ConfigSection):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def from_section(cls, section):
+    def _from_section(cls, section):
         category, name = section.name.split('.', 1)
         if category != cls.section:
             raise ValueError("Unexpected config section name: {}".format(section.name))
