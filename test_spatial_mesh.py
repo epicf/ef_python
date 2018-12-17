@@ -24,7 +24,7 @@ class TestDefaultSpatialMesh:
 
     def test_init(self, capsys):
         parser = ConfigParser()
-        spatial_mesh.SpatialMesh((4, 2, 3), (2, 1, 3)).to_conf().add_section_to_parser(parser)
+        spatial_mesh.SpatialMeshConf((4, 2, 3), (2, 1, 3)).to_conf().add_section_to_parser(parser)
         boundary_conditions.BoundaryConditions(3.14).to_conf().add_section_to_parser(parser)
         mesh = SpatialMesh.init_from_config(parser)
         assert mesh.x_volume_size == 4.
