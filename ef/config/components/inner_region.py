@@ -3,9 +3,10 @@ __all__ = ["InnerRegion", "InnerRegionBoxConf", "InnerRegionCylinderConf",
 
 from collections import namedtuple
 
+import InnerRegion as _InnerRegion
+from ef.config.component import ConfigComponent
 from ef.config.components.shapes import Box, Cylinder, Tube, Sphere, Cone
 from ef.config.section import NamedConfigSection
-from ef.config.component import ConfigComponent
 
 
 class InnerRegion(ConfigComponent):
@@ -34,11 +35,14 @@ class InnerRegion(ConfigComponent):
             shape_args = list(self.shape.origin) + [self.shape.r]
             cls = InnerRegionSphereConf
         elif type(self.shape) is Cone:
-            shape_args = list(self.shape.start) +  list(self.shape.start_radii) + list(self.shape.end_radii)
+            shape_args = list(self.shape.start) + list(self.shape.start_radii) + list(self.shape.end_radii)
             cls = InnerRegionConeAlongZConf
         else:
             raise TypeError("Config can not represent inner region shape", self.shape)
         return cls(self.name, *(shape_args + [self.potential]))
+
+    def make(self):
+        return _InnerRegion.InnerRegion()
 
 
 class InnerRegionBoxConf(NamedConfigSection):
@@ -84,7 +88,7 @@ class InnerRegionTubeConf(NamedConfigSection):
 class InnerRegionSphereConf(NamedConfigSection):
     section = "Inner_region_sphere"
     ContentTuple = namedtuple("InnerRegionSphereTuple", ('sphere_origin_x', 'sphere_origin_y',
-                                                           'sphere_origin_z', 'sphere_radius', 'potential'))
+                                                         'sphere_origin_z', 'sphere_radius', 'potential'))
     convert = ContentTuple(*[float] * 5)
 
     def make(self):

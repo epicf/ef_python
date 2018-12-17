@@ -8,13 +8,12 @@ from Vec3d import Vec3d
 
 class ParticleSourcesManager:
 
-    def __init__(self):
-        self.sources = None
+    def __init__(self, sources=()):
+        self.sources = list(sources)
 
     @classmethod
     def init_from_config(cls, conf):
         new_obj = cls()
-        new_obj.sources = []
         for sec_name in conf.sections():
             if ParticleSourceBox.is_box_source(sec_name):
                 new_obj.sources.append(
@@ -44,7 +43,6 @@ class ParticleSourcesManager:
     @classmethod
     def init_from_h5(cls, h5_sources_group):
         new_obj = cls()
-        new_obj.sources = []
         for src_group_name in h5_sources_group.keys():
             new_obj.parse_hdf5_particle_source(h5_sources_group[src_group_name])
         return new_obj

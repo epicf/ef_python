@@ -8,15 +8,13 @@ from Vec3d import Vec3d
 
 class ExternalFieldsManager():
 
-    def __init__(self):
-        self.electric = []
-        self.magnetic = []
+    def __init__(self, electric=(), magnetic=()):
+        self.electric = list(electric)
+        self.magnetic = list(magnetic)
 
     @classmethod
     def init_from_config(cls, conf):
         new_obj = cls()
-        new_obj.electric = []
-        new_obj.magnetic = []
         for sec_name in conf:
             field = None
             if ExternalFieldUniform.is_relevant_config_part(sec_name):
@@ -41,8 +39,6 @@ class ExternalFieldsManager():
     @classmethod
     def init_from_h5(cls, h5_external_fields_group):
         new_obj = cls()
-        new_obj.electric = []
-        new_obj.magnetic = []
         for field_name in h5_external_fields_group.keys():
             current_field_grpid = h5_external_fields_group[field_name]
             new_obj.parse_hdf5_external_field(current_field_grpid)

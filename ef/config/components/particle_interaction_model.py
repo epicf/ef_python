@@ -4,6 +4,7 @@ from collections import namedtuple
 
 from ef.config.section import ConfigSection
 from ef.config.component import ConfigComponent
+from ParticleInteractionModel import ParticleInteractionModel as _ParticleInteractionModel
 
 
 class ParticleInteractionModel(ConfigComponent):
@@ -14,6 +15,9 @@ class ParticleInteractionModel(ConfigComponent):
 
     def to_conf(self):
         return ParticleInteractionModelConf(self.model)
+
+    def make(self):
+        return _ParticleInteractionModel.do_init()
 
 
 class ParticleInteractionModelConf(ConfigSection):

@@ -4,8 +4,9 @@ from collections import namedtuple
 
 import numpy as np
 
-from ef.config.section import ConfigSection
+import SpatialMesh as _SpatialMesh
 from ef.config.component import ConfigComponent
+from ef.config.section import ConfigSection
 
 
 class SpatialMesh(ConfigComponent):
@@ -20,6 +21,9 @@ class SpatialMesh(ConfigComponent):
         X, Y, Z = self.size
         x, y, z = self.step
         return SpatialMeshConf(X, x, Y, y, Z, z)
+
+    def make(self, boundary_conditions):
+        return _SpatialMesh.SpatialMesh.do_init(self.size, self.step, boundary_conditions)
 
 
 class SpatialMeshConf(ConfigSection):

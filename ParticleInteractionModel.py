@@ -7,6 +7,13 @@ class ParticleInteractionModel():
         self.noninteracting = self.binary = self.pic = False
         self.particle_interaction_model = None
 
+    @staticmethod
+    def do_init():
+        m = ParticleInteractionModel()
+        m.pic = True
+        m.particle_interaction_model = 'PIC'
+        return m
+
     @classmethod
     def init_from_config(cls, conf):
         new_obj = cls()

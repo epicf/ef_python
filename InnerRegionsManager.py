@@ -9,8 +9,8 @@ from InnerRegionTube import InnerRegionTube
 
 class InnerRegionsManager():
 
-    def __init__(self):
-        self.regions = []
+    def __init__(self, regions=()):
+        self.regions = list(regions)
 
     @classmethod
     def init_from_config(cls, conf, spat_mesh):

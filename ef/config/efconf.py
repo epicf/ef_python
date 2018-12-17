@@ -1,6 +1,12 @@
 import io
 from configparser import ConfigParser
 
+import Domain
+from ExternalFieldsManager import ExternalFieldsManager
+from FieldSolver import FieldSolver
+from InnerRegionsManager import InnerRegionsManager
+from ParticleSourcesManager import ParticleSourcesManager
+from ParticleToMeshMap import ParticleToMeshMap
 from ef.config.components import *
 from ef.config.section import ConfigSection
 from ef.util.data_class import DataClass
@@ -69,7 +75,8 @@ class EfConf(DataClass):
 
     def get_potentials(self):
         bc = self.boundary_conditions
-        return [bc.left, bc.right, bc.top, bc.bottom, bc.near, bc.far] + [region.potential for region in self.inner_regions]
+        return [bc.left, bc.right, bc.top, bc.bottom, bc.near, bc.far] + [region.potential for region in
+                                                                          self.inner_regions]
 
     def to_sections(self):
         return [c.to_conf() for c in self.components]
@@ -97,6 +104,16 @@ class EfConf(DataClass):
         iostr = io.StringIO()
         self.export_to_file(iostr)
         return iostr.getvalue()
+
+    def make(self):
+        mesh = self.spatial_mesh.make(self.boundary_conditions)
+        regions = InnerRegionsManager([ir.make() for ir in self.inner_regions])
+        return Domain.Domain(self.time_grid.make(), mesh, regions, ParticleToMeshMap(), FieldSolver(mesh, regions),
+                             ParticleSourcesManager([s.make() for s in self.sources]),
+                             ExternalFieldsManager(
+                                 [s.make() for s in self.external_fields if s.electic_or_magnetic == 'electric'],
+                                 [s.make() for s in self.external_fields if s.electic_or_magnetic == 'magnetic']),
+                             self.particle_interaction_model.make(), self.output_file.prefix, self.output_file.suffix)
 
 
 def main():
