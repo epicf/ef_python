@@ -1,10 +1,8 @@
 import logging
-import sys
 
 import numpy as np
 
 from Vec3d import Vec3d
-from ef.config.components import spatial_mesh, boundary_conditions
 from ef.util.serializable_h5 import SerializableH5
 
 
@@ -114,12 +112,6 @@ class SpatialMesh(SerializableH5):
                             f"{self.cell[i]:.3f} from {step_size[i]:.3f} "
                             f"to fit in a round number of cells.")
         return self
-
-    @classmethod
-    def init_from_config(cls, conf):
-        mesh_config = spatial_mesh.SpatialMeshSection._from_section(conf["SpatialMesh"]).make()
-        boundary_config = boundary_conditions.BoundaryConditionsSection._from_section(conf["BoundaryConditions"]).make()
-        return cls.do_init(mesh_config.size, mesh_config.step, boundary_config)
 
     def clear_old_density_values(self):
         self.charge_density.fill(0)
