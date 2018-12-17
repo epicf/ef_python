@@ -42,15 +42,6 @@ class TimeGrid(SerializableH5):
     def to_component(self):
         return time_grid.TimeGrid(self.total_time, self.time_save_step, self.time_step_size)
 
-    @classmethod
-    def init_from_config(cls, conf):
-        time_config = time_grid.TimeGridConf._from_section(conf["TimeGrid"]).make()
-        return cls(time_config.total, time_config.step, time_config.save_step)
-
-    @classmethod
-    def init_from_h5(cls, h5group):
-        return cls.load_h5(h5group)
-
     def update_to_next_step(self):
         self.current_node += 1
         self.current_time += self.time_step_size

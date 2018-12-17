@@ -61,8 +61,8 @@ class Domain:
 
     @classmethod
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
-        time_grid = TimeGrid.init_from_h5(h5file["/TimeGrid"])
-        spat_mesh = SpatialMesh.init_from_h5(h5file["/SpatialMesh"])
+        time_grid = TimeGrid.load_h5(h5file["/TimeGrid"])
+        spat_mesh = SpatialMesh.load_h5(h5file["/SpatialMesh"])
         inner_regions = InnerRegionsManager.init_from_h5(
             h5file["/InnerRegions"], spat_mesh)
         particle_to_mesh_map = ParticleToMeshMap()

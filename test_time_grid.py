@@ -31,5 +31,5 @@ class TestTimeGrid:
         with h5py.File(fname, mode="w") as h5file:
             grid1.write_to_file(h5file)
         with h5py.File(fname, mode="r") as h5file:
-            grid2 = TimeGrid.init_from_h5(h5file["/TimeGrid"])
+            grid2 = TimeGrid.load_h5(h5file["/TimeGrid"])
         assert grid1 == grid2

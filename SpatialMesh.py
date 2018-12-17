@@ -121,10 +121,6 @@ class SpatialMesh(SerializableH5):
         boundary_config = boundary_conditions.BoundaryConditionsConf._from_section(conf["BoundaryConditions"]).make()
         return cls.do_init(mesh_config.size, mesh_config.step, boundary_config)
 
-    @classmethod
-    def init_from_h5(cls, h5group):
-        return cls.load_h5(h5group)
-
     def clear_old_density_values(self):
         self.charge_density.fill(0)
 
