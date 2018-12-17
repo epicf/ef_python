@@ -14,8 +14,8 @@ from ef.util.data_class import DataClass
 
 class EfConf(DataClass):
     def __init__(self, time_grid=TimeGridConf(), spatial_mesh=SpatialMeshConf(), sources=(), inner_regions=(),
-                 output_file=OutputFile(), boundary_conditions=BoundaryConditions(),
-                 particle_interaction_model=ParticleInteractionModel(), external_fields=()):
+                 output_file=OutputFileConf(), boundary_conditions=BoundaryConditionsConf(),
+                 particle_interaction_model=ParticleInteractionModelConf(), external_fields=()):
         self.time_grid = time_grid
         self.spatial_mesh = spatial_mesh
         self.sources = list(sources)
@@ -28,11 +28,11 @@ class EfConf(DataClass):
     @classmethod
     def from_components(cls, components):
         parents = {'time_grid': TimeGridConf, 'spatial_mesh': SpatialMeshConf,
-                   'sources': ParticleSource, 'inner_regions': InnerRegion,
-                   'output_file': OutputFile, 'boundary_conditions': BoundaryConditions,
-                   'particle_interaction_model': ParticleInteractionModel,
-                   'external_fields': Field}
-        singletons = TimeGridConf, SpatialMeshConf, OutputFile, BoundaryConditions, ParticleInteractionModel
+                   'sources': ParticleSourceConf, 'inner_regions': InnerRegionConf,
+                   'output_file': OutputFileConf, 'boundary_conditions': BoundaryConditionsConf,
+                   'particle_interaction_model': ParticleInteractionModelConf,
+                   'external_fields': FieldConf}
+        singletons = TimeGridConf, SpatialMeshConf, OutputFileConf, BoundaryConditionsConf, ParticleInteractionModelConf
         kwargs = {}
         for arg, parent in parents.items():
             children = [c for c in components if isinstance(c, parent)]

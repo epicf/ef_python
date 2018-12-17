@@ -1,7 +1,7 @@
 from InnerRegion import InnerRegion
 from Node import Node
 from SpatialMesh import SpatialMesh
-from ef.config.components import BoundaryConditions
+from ef.config.components import BoundaryConditionsConf
 
 
 class TestInnerRegion:
@@ -13,7 +13,7 @@ class TestInnerRegion:
         assert ir.inner_nodes_not_at_domain_edge == []
 
     def test_mark_inner_nodes(self):
-        mesh = SpatialMesh.do_init((8, 8, 8), (2, 2, 2), BoundaryConditions(0))
+        mesh = SpatialMesh.do_init((8, 8, 8), (2, 2, 2), BoundaryConditionsConf(0))
         ir = InnerRegion()
         ir.check_if_point_inside = lambda x, y, z: x > 5 and y == z + 2
         ir.mark_inner_nodes(mesh)

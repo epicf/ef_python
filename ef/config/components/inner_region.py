@@ -1,15 +1,15 @@
-__all__ = ["InnerRegion", "InnerRegionBoxSection", "InnerRegionCylinderSection",
+__all__ = ["InnerRegionConf", "InnerRegionBoxSection", "InnerRegionCylinderSection",
            "InnerRegionTubeSection", "InnerRegionSphereSection", "InnerRegionConeAlongZSection"]
 
 from collections import namedtuple
 
-import InnerRegion as _InnerRegion
+import InnerRegion
 from ef.config.component import ConfigComponent
 from ef.config.components.shapes import Box, Cylinder, Tube, Sphere, Cone
 from ef.config.section import NamedConfigSection
 
 
-class InnerRegion(ConfigComponent):
+class InnerRegionConf(ConfigComponent):
     def __init__(self, name="InnerRegion1", shape=Box(), potential=0):
         self.name = name
         self.shape = shape
@@ -42,7 +42,7 @@ class InnerRegion(ConfigComponent):
         return cls(self.name, *(shape_args + [self.potential]))
 
     def make(self):
-        return _InnerRegion.InnerRegion()
+        return InnerRegion.InnerRegion()
 
 
 class InnerRegionBoxSection(NamedConfigSection):
@@ -55,7 +55,7 @@ class InnerRegionBoxSection(NamedConfigSection):
     def make(self):
         l, r, b, t, n, f = self.content[:6]
         box = Box((r, b, n), (l - r, t - b, f - n))
-        return InnerRegion(self.name, box, self.content.potential)
+        return InnerRegionConf(self.name, box, self.content.potential)
 
 
 class InnerRegionCylinderSection(NamedConfigSection):
@@ -68,7 +68,7 @@ class InnerRegionCylinderSection(NamedConfigSection):
 
     def make(self):
         cylinder = Cylinder(self.content[:3], self.content[3:6], self.content.cylinder_radius)
-        return InnerRegion(self.name, cylinder, self.content.potential)
+        return InnerRegionConf(self.name, cylinder, self.content.potential)
 
 
 class InnerRegionTubeSection(NamedConfigSection):
@@ -82,7 +82,7 @@ class InnerRegionTubeSection(NamedConfigSection):
 
     def make(self):
         tube = Tube(self.content[:3], self.content[3:6], self.content.tube_inner_radius, self.content.tube_outer_radius)
-        return InnerRegion(self.name, tube, self.content.potential)
+        return InnerRegionConf(self.name, tube, self.content.potential)
 
 
 class InnerRegionSphereSection(NamedConfigSection):
@@ -93,7 +93,7 @@ class InnerRegionSphereSection(NamedConfigSection):
 
     def make(self):
         sphere = Sphere(self.content[:3], self.content.sphere_radius)
-        return InnerRegion(self.name, sphere, self.content.potential)
+        return InnerRegionConf(self.name, sphere, self.content.potential)
 
 
 class InnerRegionConeAlongZSection(NamedConfigSection):
@@ -115,4 +115,4 @@ class InnerRegionConeAlongZSection(NamedConfigSection):
                      self.content.cone_start_outer_radius),
                     (self.content.cone_end_inner_radius,
                      self.content.cone_end_outer_radius))
-        return InnerRegion(self.name, cone, self.content.potential)
+        return InnerRegionConf(self.name, cone, self.content.potential)

@@ -1,13 +1,13 @@
-__all__ = ["ExternalFieldFromFile", "ExternalFieldFromFileSection"]
+__all__ = ["ExternalFieldFromFileConf", "ExternalFieldFromFileSection"]
 
 
 from collections import namedtuple
 
-from ef.config.components.fields.field import Field
+from ef.config.components.fields.field import FieldConf
 from ef.config.section import NamedConfigSection
 
 
-class ExternalFieldFromFile(Field):
+class ExternalFieldFromFileConf(FieldConf):
     def __init__(self, name="mgn_field_from_file",
                  electric_or_magnetic='magnetic',
                  filename=None):
@@ -28,4 +28,4 @@ class ExternalFieldFromFileSection(NamedConfigSection):
 
 
     def make(self):
-        return ExternalFieldFromFile(self.name, self.content)
+        return ExternalFieldFromFileConf(self.name, self.content)

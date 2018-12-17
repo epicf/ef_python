@@ -1,4 +1,4 @@
-__all__ = ["BoundaryConditions", "BoundaryConditionsSection"]
+__all__ = ["BoundaryConditionsConf", "BoundaryConditionsSection"]
 
 from collections import namedtuple
 
@@ -8,7 +8,7 @@ from ef.config.component import ConfigComponent
 from ef.config.section import ConfigSection
 
 
-class BoundaryConditions(ConfigComponent):
+class BoundaryConditionsConf(ConfigComponent):
     def __init__(self, right=None, left=None, bottom=None, top=None, near=None, far=None):
         args = [right, left, bottom, top, near, far]
         provided_args = [float(x) for x in args if x is not None]
@@ -38,4 +38,4 @@ class BoundaryConditionsSection(ConfigSection):
     convert = ContentTuple(*[float] * 6)
 
     def make(self):
-        return BoundaryConditions(*self.content)
+        return BoundaryConditionsConf(*self.content)

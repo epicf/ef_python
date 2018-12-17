@@ -1,14 +1,14 @@
-__all__ = ["ExternalFieldUniform", "ExternalFieldUniformSection"]
+__all__ = ["ExternalFieldUniformConf", "ExternalFieldUniformSection"]
 
 from collections import namedtuple
 
 import numpy as np
 
-from ef.config.components.fields.field import Field
+from ef.config.components.fields.field import FieldConf
 from ef.config.section import NamedConfigSection
 
 
-class ExternalFieldUniform(Field):
+class ExternalFieldUniformConf(FieldConf):
     def __init__(self, name="ExternalFieldUniform_1",
                  electric_or_magnetic="magnetic",
                  field=(0, 0, 0)):
@@ -27,5 +27,5 @@ class ExternalFieldUniformSection(NamedConfigSection):
     convert = ContentTuple(str, float, float, float)
 
     def make(self):
-        return ExternalFieldUniform(self.name, self.content.electric_or_magnetic, self.content[1:])
+        return ExternalFieldUniformConf(self.name, self.content.electric_or_magnetic, self.content[1:])
 

@@ -1,4 +1,4 @@
-__all__ = ["OutputFile", "OutputFilenameSection"]
+__all__ = ["OutputFileConf", "OutputFilenameSection"]
 
 from collections import namedtuple
 
@@ -6,7 +6,7 @@ from ef.config.section import ConfigSection
 from ef.config.component import ConfigComponent
 
 
-class OutputFile(ConfigComponent):
+class OutputFileConf(ConfigComponent):
     def __init__(self, prefix="out_", suffix=".h5"):
         self.prefix = prefix
         self.suffix = suffix
@@ -21,4 +21,4 @@ class OutputFilenameSection(ConfigSection):
     convert = ContentTuple(str, str)
 
     def make(self):
-        return OutputFile(*self.content)
+        return OutputFileConf(*self.content)

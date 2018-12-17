@@ -1,4 +1,4 @@
-__all__ = ["ParticleSource", "ParticleSourceBoxSection", "ParticleSourceCylinderSection", "ParticleSourceTubeSection"]
+__all__ = ["ParticleSourceConf", "ParticleSourceBoxSection", "ParticleSourceCylinderSection", "ParticleSourceTubeSection"]
 
 from collections import namedtuple
 
@@ -9,7 +9,7 @@ from ef.config.section import NamedConfigSection
 from ef.config.component import ConfigComponent
 
 
-class ParticleSource(ConfigComponent):
+class ParticleSourceConf(ConfigComponent):
     def __init__(self, name='ParticleSource1', shape=Box(),
                  initial_particles=500,
                  particles_to_generate_each_step=500,
@@ -66,7 +66,7 @@ class ParticleSourceBoxSection(NamedConfigSection):
     def make(self):
         l, r, b, t, n, f = self.content[:6]
         box = Box((r, b, n), (l - r, t - b, f - n))
-        return ParticleSource._from_content(self.name, box, self.content)
+        return ParticleSourceConf._from_content(self.name, box, self.content)
 
 
 class ParticleSourceCylinderSection(NamedConfigSection):
@@ -83,7 +83,7 @@ class ParticleSourceCylinderSection(NamedConfigSection):
 
     def make(self):
         cylinder = Cylinder(self.content[:3], self.content[3:6], self.content.cylinder_radius)
-        return ParticleSource(self.name, cylinder, self.content)
+        return ParticleSourceConf(self.name, cylinder, self.content)
 
 
 class ParticleSourceTubeSection(NamedConfigSection):
@@ -100,4 +100,4 @@ class ParticleSourceTubeSection(NamedConfigSection):
 
     def make(self):
         tube = Tube(self.content[:3], self.content[3:6], self.content.tube_inner_radius, self.content.tube_outer_radius)
-        return ParticleSource(self.name, tube, self.content)
+        return ParticleSourceConf(self.name, tube, self.content)
