@@ -32,6 +32,13 @@ class TimeGrid(SerializableH5):
         self.current_time = current_time
         self.current_node = current_node
 
+    @property
+    def dict(self):
+        d = super().dict
+        del d['total_nodes']
+        del d['node_to_save']
+        return d
+
     def to_component(self):
         return time_grid.TimeGrid(self.total_time, self.time_save_step, self.time_step_size)
 
