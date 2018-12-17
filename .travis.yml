@@ -9,4 +9,4 @@ python:
   - "3.7"
   - "3.7-dev"
 script:
-  - pytest
+  - python -m pytest --ignore libs/
