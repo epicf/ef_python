@@ -1,4 +1,4 @@
-__all__ = ["ParticleSource", "ParticleSourceBoxConf", "ParticleSourceCylinderConf", "ParticleSourceTubeConf"]
+__all__ = ["ParticleSource", "ParticleSourceBoxSection", "ParticleSourceCylinderSection", "ParticleSourceTubeSection"]
 
 from collections import namedtuple
 
@@ -40,20 +40,20 @@ class ParticleSource(ConfigComponent):
             r, b, n = self.shape.origin
             l, t, f = self.shape.origin + self.shape.size
             shape_args = [l, r, b, t, n, f]
-            cls = ParticleSourceBoxConf
+            cls = ParticleSourceBoxSection
         elif type(self.shape) is Cylinder:
             shape_args = list(self.shape.start) + list(self.shape.end) + [self.shape.r]
-            cls = ParticleSourceCylinderConf
+            cls = ParticleSourceCylinderSection
         elif type(self.shape) is Tube:
             shape_args = list(self.shape.start) + list(self.shape.end) + [self.shape.r, self.shape.R]
-            cls = ParticleSourceTubeConf
+            cls = ParticleSourceTubeSection
         else:
             raise TypeError("Shape of particle source not supported by config")
         return cls(self.name, *(shape_args + [self.initial_particles, self.particles_to_generate_each_step] +
                                 list(self.momentum) + [self.temperature, self.charge, self.mass]))
 
 
-class ParticleSourceBoxConf(NamedConfigSection):
+class ParticleSourceBoxSection(NamedConfigSection):
     section = "ParticleSourceBox"
     ContentTuple = namedtuple("ParticleSourceBoxTuple", ('box_x_left', 'box_x_right', 'box_y_bottom',
                                                          'box_y_top', 'box_z_near', 'box_z_far',
@@ -69,7 +69,7 @@ class ParticleSourceBoxConf(NamedConfigSection):
         return ParticleSource._from_content(self.name, box, self.content)
 
 
-class ParticleSourceCylinderConf(NamedConfigSection):
+class ParticleSourceCylinderSection(NamedConfigSection):
     section = "ParticleSourceCylinder"
     ContentTuple = namedtuple("ParticleSourceCylinderTuple", ('cylinder_axis_start_x', 'cylinder_axis_start_y',
                                                               'cylinder_axis_start_z', 'cylinder_axis_end_x',
@@ -86,7 +86,7 @@ class ParticleSourceCylinderConf(NamedConfigSection):
         return ParticleSource(self.name, cylinder, self.content)
 
 
-class ParticleSourceTubeConf(NamedConfigSection):
+class ParticleSourceTubeSection(NamedConfigSection):
     section = "ParticleSourceTube"
     ContentTuple = namedtuple("ParticleSourceTubeTuple", ('tube_axis_start_x', 'tube_axis_start_y',
                                                           'tube_axis_start_z', 'tube_axis_end_x',

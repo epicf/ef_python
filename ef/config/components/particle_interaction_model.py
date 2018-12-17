@@ -1,4 +1,4 @@
-__all__ = ["ParticleInteractionModel", "ParticleInteractionModelConf"]
+__all__ = ["ParticleInteractionModel", "ParticleInteractionModelSection"]
 
 from collections import namedtuple
 
@@ -14,13 +14,13 @@ class ParticleInteractionModel(ConfigComponent):
         self.model = model
 
     def to_conf(self):
-        return ParticleInteractionModelConf(self.model)
+        return ParticleInteractionModelSection(self.model)
 
     def make(self):
         return _ParticleInteractionModel.do_init()
 
 
-class ParticleInteractionModelConf(ConfigSection):
+class ParticleInteractionModelSection(ConfigSection):
     section = "ParticleInteractionModel"
     ContentTuple = namedtuple("ParticleInteractionModelTuple", ('particle_interaction_model',))
     convert = ContentTuple(str)

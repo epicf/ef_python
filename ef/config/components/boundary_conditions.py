@@ -1,4 +1,4 @@
-__all__ = ["BoundaryConditions", "BoundaryConditionsConf"]
+__all__ = ["BoundaryConditions", "BoundaryConditionsSection"]
 
 from collections import namedtuple
 
@@ -22,7 +22,7 @@ class BoundaryConditions(ConfigComponent):
             raise ValueError("Wrong number of arguments to BoundaryConditions.__init__()", len(provided_args))
 
     def to_conf(self):
-        return BoundaryConditionsConf(self.right, self.left, self.bottom, self.top, self.near, self.far)
+        return BoundaryConditionsSection(self.right, self.left, self.bottom, self.top, self.near, self.far)
 
     def visualize(self, visualizer, volume_size=(1, 1, 1)):
         visualizer.draw_box(np.array(volume_size, np.float), wireframe=True,
@@ -30,7 +30,7 @@ class BoundaryConditions(ConfigComponent):
         # TODO: visualize non-uniform conditions
 
 
-class BoundaryConditionsConf(ConfigSection):
+class BoundaryConditionsSection(ConfigSection):
     section = "BoundaryConditions"
     ContentTuple = namedtuple("BoundaryConditionsTuple",
                               ('boundary_phi_right', 'boundary_phi_left', 'boundary_phi_bottom',

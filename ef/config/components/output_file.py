@@ -1,4 +1,4 @@
-__all__ = ["OutputFile", "OutputFilenameConf"]
+__all__ = ["OutputFile", "OutputFilenameSection"]
 
 from collections import namedtuple
 
@@ -12,10 +12,10 @@ class OutputFile(ConfigComponent):
         self.suffix = suffix
 
     def to_conf(self):
-        return OutputFilenameConf(self.prefix, self.suffix)
+        return OutputFilenameSection(self.prefix, self.suffix)
 
 
-class OutputFilenameConf(ConfigSection):
+class OutputFilenameSection(ConfigSection):
     section = "OutputFilename"
     ContentTuple = namedtuple("OutputFileNameTuple", ('output_filename_prefix', 'output_filename_suffix'))
     convert = ContentTuple(str, str)

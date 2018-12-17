@@ -1,4 +1,4 @@
-__all__ = ["ExternalFieldUniform", "ExternalFieldUniformConf"]
+__all__ = ["ExternalFieldUniform", "ExternalFieldUniformSection"]
 
 from collections import namedtuple
 
@@ -17,10 +17,10 @@ class ExternalFieldUniform(Field):
         self.field = np.array(field, np.float)
 
     def to_conf(self):
-        return ExternalFieldUniformConf(self.name, self.electric_or_magnetic, *self.field)
+        return ExternalFieldUniformSection(self.name, self.electric_or_magnetic, *self.field)
 
 
-class ExternalFieldUniformConf(NamedConfigSection):
+class ExternalFieldUniformSection(NamedConfigSection):
     section = "ExternalFieldUniform"
     ContentTuple = namedtuple("ExternalFieldUniform",
                               ('electric_or_magnetic', 'field_x', 'field_y', 'field_z'))

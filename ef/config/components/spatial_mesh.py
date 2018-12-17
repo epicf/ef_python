@@ -1,4 +1,4 @@
-__all__ = ['SpatialMesh', 'SpatialMeshConf']
+__all__ = ['SpatialMesh', 'SpatialMeshSection']
 
 from collections import namedtuple
 
@@ -20,13 +20,13 @@ class SpatialMesh(ConfigComponent):
     def to_conf(self):
         X, Y, Z = self.size
         x, y, z = self.step
-        return SpatialMeshConf(X, x, Y, y, Z, z)
+        return SpatialMeshSection(X, x, Y, y, Z, z)
 
     def make(self, boundary_conditions):
         return _SpatialMesh.SpatialMesh.do_init(self.size, self.step, boundary_conditions)
 
 
-class SpatialMeshConf(ConfigSection):
+class SpatialMeshSection(ConfigSection):
     section = "SpatialMesh"
     ContentTuple = namedtuple("SpatialMeshTuple", ('grid_x_size', 'grid_x_step', 'grid_y_size',
                                                    'grid_y_step', 'grid_z_size', 'grid_z_step'))

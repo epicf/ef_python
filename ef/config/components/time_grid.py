@@ -1,4 +1,4 @@
-__all__ = ['TimeGrid', 'TimeGridConf']
+__all__ = ['TimeGrid', 'TimeGridSection']
 
 from collections import namedtuple
 
@@ -15,7 +15,7 @@ class TimeGrid(ConfigComponent):
         self.step = step
 
     def to_conf(self):
-        return TimeGridConf(self.total, self.save_step, self.step)
+        return TimeGridSection(self.total, self.save_step, self.step)
 
     def make(self):
         return TG.TimeGrid(self.total, self.step, self.save_step)
@@ -24,7 +24,7 @@ class TimeGrid(ConfigComponent):
         pass
 
 
-class TimeGridConf(ConfigSection):
+class TimeGridSection(ConfigSection):
     section = "TimeGrid"
     ContentTuple = namedtuple("TimeGridTuple", ('total_time', 'time_save_step', 'time_step_size'))
     convert = ContentTuple(float, float, float)
