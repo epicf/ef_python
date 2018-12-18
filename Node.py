@@ -1,4 +1,7 @@
-class Node():
+from ef.util.data_class import DataClassHashable
+
+
+class Node(DataClassHashable):
 
     def __init__(self, xx, yy, zz):
         # x, y, z are indices not coordinates
