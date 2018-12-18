@@ -1,12 +1,14 @@
 import os
 import random
 from math import sqrt
+
 import numpy as np
 
-from Vec3d import Vec3d
 from Particle import Particle
+from Vec3d import Vec3d
 
-class ParticleSource():
+
+class ParticleSource:
 
     def __init__(self):
         self.name = None
@@ -21,12 +23,10 @@ class ParticleSource():
         self.rnd_state = None
         self.geometry_type = None
 
-
     def read_particles_and_source_pars_from_config(
             self, conf, this_source_config_part, sec_name):
         self.check_correctness_of_related_config_fields(conf, this_source_config_part)
         self.set_parameters_from_config(this_source_config_part, sec_name)
-
 
     def read_particles_and_source_pars_from_h5(self, h5group):
         self.read_hdf5_source_parameters(h5group)
@@ -35,10 +35,9 @@ class ParticleSource():
         # Instead of saving/loading it's state to file just
         # reinit with different seed.
         tmp = random.getstate()
-        random.seed() # system time is used by default
+        random.seed()  # system time is used by default
         self.rnd_state = random.getstate()
         random.setstate(tmp)
-
 
     def check_correctness_of_related_config_fields(self, conf, this_source_config_part):
         self.initial_number_of_particles_gt_zero(
@@ -48,9 +47,8 @@ class ParticleSource():
         self.temperature_gt_zero(conf, this_source_config_part)
         self.mass_gt_zero(conf, this_source_config_part)
 
-
     def set_parameters_from_config(self, this_source_config_part, sec_name):
-        self.name = sec_name[sec_name.rfind(".") + 1 :]
+        self.name = sec_name[sec_name.rfind(".") + 1:]
         self.initial_number_of_particles = \
             this_source_config_part.getint("initial_number_of_particles")
         self.particles_to_generate_each_step = \
@@ -63,12 +61,11 @@ class ParticleSource():
         self.mass = this_source_config_part.getfloat("mass")
         #
         tmp = random.getstate()
-        random.seed() # system time is used by default
+        random.seed()  # system time is used by default
         self.rnd_state = random.getstate()
         random.setstate(tmp)
         # Initial id
         self.max_id = 0
-
 
     def read_hdf5_source_parameters(self, h5group):
         self.name = os.path.basename(h5group.name)
@@ -84,7 +81,6 @@ class ParticleSource():
             h5group.attrs["particles_to_generate_each_step"]
         self.max_id = h5group.attrs["max_id"]
 
-
     def read_hdf5_particles(self, h5group):
         id_buf = h5group["./particle_id"]
         x_buf = h5group["./position_x"]
@@ -96,23 +92,20 @@ class ParticleSource():
         #
         self.particles = []
         for (i, x, y, z, px, py, pz) in \
-            zip(id_buf, x_buf, y_buf, z_buf, px_buf, py_buf, pz_buf):
+                zip(id_buf, x_buf, y_buf, z_buf, px_buf, py_buf, pz_buf):
             pos = Vec3d(x, y, z)
             mom = Vec3d(px, py, pz)
             self.particles.append(Particle(i, self.charge, self.mass, pos, mom))
             self.particles[-1].momentum_is_half_time_step_shifted = True
 
-
     def generate_initial_particles(self):
-        #particles.reserve(initial_number_of_particles)
+        # particles.reserve(initial_number_of_particles)
         self.particles = []
         self.generate_num_of_particles(self.initial_number_of_particles)
 
-
     def generate_each_step(self):
-        #particles.reserve(particles.size() + particles_to_generate_each_step);
+        # particles.reserve(particles.size() + particles_to_generate_each_step);
         self.generate_num_of_particles(self.particles_to_generate_each_step)
-
 
     def generate_num_of_particles(self, num_of_particles):
         vec_of_ids = self.populate_vec_of_ids(num_of_particles)
@@ -123,14 +116,12 @@ class ParticleSource():
             self.particles.append(
                 Particle(vec_of_ids[i], self.charge, self.mass, pos, mom))
 
-
     def populate_vec_of_ids(self, num_of_particles):
         vec_of_ids = []
         for i in range(num_of_particles):
             self.max_id += 1
             vec_of_ids.append(self.max_id)
         return vec_of_ids
-
 
     def random_in_range(self, low, up):
         tmp = random.getstate()
@@ -140,11 +131,9 @@ class ParticleSource():
         random.setstate(tmp)
         return r
 
-
     def uniform_position_in_source(self):
         # virtual method
         raise NotImplementedError()
-
 
     def maxwell_momentum_distr(self, mean_momentum, temperature, mass):
         maxwell_gauss_std_mean_x = mean_momentum.x
@@ -161,14 +150,12 @@ class ParticleSource():
         random.setstate(tmp)
         #
         mom = Vec3d(px, py, pz)
-        mom = mom.times_scalar(1.0) # recheck
+        mom = mom.times_scalar(1.0)  # recheck
         return mom
-
 
     def update_particles_position(self, dt):
         for p in self.particles:
             p.update_position(dt)
-
 
     def print_particles(self):
         print("Source name: " + self.name)
@@ -179,14 +166,12 @@ class ParticleSource():
         print("Source name: {}, N of particles: {}".format(
             self.name, len(self.particles)))
 
-
     def write_to_file(self, h5group):
         print("Source name = {}, number of particles = {}".format(
             self.name, len(self.particles)))
         this_source_h5group = h5group.create_group("./" + self.name)
         self.write_hdf5_particles(this_source_h5group)
         self.write_hdf5_source_parameters(this_source_h5group)
-
 
     def write_hdf5_particles(self, this_source_h5group):
         id_buf = np.empty(len(self.particles), dtype='i8')
@@ -214,7 +199,6 @@ class ParticleSource():
         this_source_h5group.create_dataset("./momentum_y", data=py_buf)
         this_source_h5group.create_dataset("./momentum_z", data=pz_buf)
 
-
     def write_hdf5_source_parameters(self, this_source_h5group):
         this_source_h5group.attrs["geometry_type"] = self.geometry_type
         this_source_h5group.attrs.create("temperature", self.temperature)
@@ -229,21 +213,17 @@ class ParticleSource():
                                          self.particles_to_generate_each_step)
         this_source_h5group.attrs.create("max_id", self.max_id)
 
-
     def initial_number_of_particles_gt_zero(self, conf, this_source_config_part):
         if this_source_config_part.getint("initial_number_of_particles") <= 0:
             raise ValueError("initial_number_of_particles <= 0")
-
 
     def particles_to_generate_each_step_ge_zero(self, conf, this_source_config_part):
         if this_source_config_part.getint("particles_to_generate_each_step") < 0:
             raise ValueError("particles_to_generate_each_step < 0")
 
-
     def temperature_gt_zero(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("temperature") < 0:
             raise ValueError("temperature < 0")
-
 
     def mass_gt_zero(self, conf, this_source_config_part):
         if this_source_config_part.getfloat("mass") < 0:
