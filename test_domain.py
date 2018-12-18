@@ -20,7 +20,7 @@ class TestDomain:
         parser.read_string(efconf.export_to_string())
         dom = Domain.init_from_config(parser)
         assert dom.time_grid == TimeGrid(100, 1, 10)
-        assert type(dom.spat_mesh) == SpatialMesh
+        assert dom.spat_mesh == SpatialMesh.do_init((10, 10, 10), (1, 1, 1), BoundaryConditionsConf(0))
         assert type(dom.inner_regions) == InnerRegionsManager
         assert dom.inner_regions.regions == []
         assert type(dom.particle_to_mesh_map) == ParticleToMeshMap
