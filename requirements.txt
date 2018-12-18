@@ -3,5 +3,6 @@ h5py
 matplotlib
 sympy
 pytest
+pytest-mock
 scipy
 jupyter
