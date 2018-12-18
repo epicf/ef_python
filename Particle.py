@@ -39,21 +39,3 @@ class Particle(SerializableH5):
     def boris_update_momentum_no_mgn(self, dt, total_el_field):
         dp = total_el_field.times_scalar(self.charge * dt)
         self.momentum = self.momentum.add(dp)
-
-    def print_long(self):
-        print("Particle: ")
-        print("id: {},".format(self.particle_id))
-        print("charge = {:.3f}, mass = {:.3f}, ".format(self.charge, self.mass))
-        print("pos(x,y,z) = ({:.2f}, {:.2f}, {:.2f})".format(self.position.x,
-                                                             self.position.y,
-                                                             self.position.z))
-        print("momentum(px,py,pz) = ({:.2f}, {:.2f}, {:.2f})".format(self.momentum.x,
-                                                                     self.momentum.y,
-                                                                     self.momentum.z))
-
-    def print_short(self):
-        print("id: {} x = {:.2f} y = {:.2f} z = {:.2f} "
-              "px = {:.2f} py = {:.2f} pz = {:.2f}"
-              .format(self.particle_id,
-                      self.position.x, self.position.y, self.position.z,
-                      self.momentum.x, self.momentum.y, self.momentum.z))

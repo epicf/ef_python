@@ -173,7 +173,7 @@ class ParticleSource():
     def print_particles(self):
         print("Source name: " + self.name)
         for p in self.particles:
-            p.print_short()
+            print(repr(p))
 
     def print_num_of_particles(self):
         print("Source name: {}, N of particles: {}".format(
