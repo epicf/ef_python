@@ -3,8 +3,8 @@ from ef.util.serializable_h5 import SerializableH5
 
 
 class Particle(SerializableH5):
-    def __init__(self, id, charge, mass, position, momentum, momentum_is_half_time_step_shifted=False):
-        self.id = id
+    def __init__(self, particle_id, charge, mass, position, momentum, momentum_is_half_time_step_shifted=False):
+        self.particle_id = particle_id
         self.charge = charge
         self.mass = mass
         self.position = position
@@ -42,7 +42,7 @@ class Particle(SerializableH5):
 
     def print_long(self):
         print("Particle: ")
-        print("id: {},".format(self.id))
+        print("id: {},".format(self.particle_id))
         print("charge = {:.3f}, mass = {:.3f}, ".format(self.charge, self.mass))
         print("pos(x,y,z) = ({:.2f}, {:.2f}, {:.2f})".format(self.position.x,
                                                              self.position.y,
@@ -54,6 +54,6 @@ class Particle(SerializableH5):
     def print_short(self):
         print("id: {} x = {:.2f} y = {:.2f} z = {:.2f} "
               "px = {:.2f} py = {:.2f} pz = {:.2f}"
-              .format(self.id,
+              .format(self.particle_id,
                       self.position.x, self.position.y, self.position.z,
                       self.momentum.x, self.momentum.y, self.momentum.z))

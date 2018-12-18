@@ -198,7 +198,7 @@ class ParticleSource():
         pz_buf = np.empty_like(x_buf)
         #
         for i, p in enumerate(self.particles):
-            id_buf[i] = p.id
+            id_buf[i] = p.particle_id
             x_buf[i] = p.position.x
             y_buf[i] = p.position.y
             z_buf[i] = p.position.z
