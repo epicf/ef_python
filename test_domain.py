@@ -9,7 +9,7 @@ from ParticleSourcesManager import ParticleSourcesManager
 from ParticleToMeshMap import ParticleToMeshMap
 from SpatialMesh import SpatialMesh
 from TimeGrid import TimeGrid
-from ef.config.components import BoundaryConditions
+from ef.config.components import BoundaryConditionsConf
 from ef.config.efconf import EfConf
 
 

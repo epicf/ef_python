@@ -1,25 +1,29 @@
-__all__ = ["ParticleInteractionModel", "ParticleInteractionModelConf"]
+__all__ = ["ParticleInteractionModelConf", "ParticleInteractionModelSection"]
 
 from collections import namedtuple
 
-from ef.config.section import ConfigSection
+import ParticleInteractionModel
 from ef.config.component import ConfigComponent
+from ef.config.section import ConfigSection
 
 
-class ParticleInteractionModel(ConfigComponent):
+class ParticleInteractionModelConf(ConfigComponent):
     def __init__(self, model="PIC"):
         if model not in ("PIC", 'noninteracting', 'binary'):
             raise ValueError("Unexpected particle interaction model: {}".format(model))
         self.model = model
 
     def to_conf(self):
-        return ParticleInteractionModelConf(self.model)
+        return ParticleInteractionModelSection(self.model)
+
+    def make(self):
+        return ParticleInteractionModel.ParticleInteractionModel.do_init()
 
 
-class ParticleInteractionModelConf(ConfigSection):
+class ParticleInteractionModelSection(ConfigSection):
     section = "ParticleInteractionModel"
     ContentTuple = namedtuple("ParticleInteractionModelTuple", ('particle_interaction_model',))
     convert = ContentTuple(str)
 
     def make(self):
-        return ParticleInteractionModel(self.content.particle_interaction_model)
+        return ParticleInteractionModelConf(self.content.particle_interaction_model)

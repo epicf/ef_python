@@ -1,14 +1,15 @@
-__all__ = ['SpatialMesh', 'SpatialMeshConf']
+__all__ = ['SpatialMeshConf', 'SpatialMeshSection']
 
 from collections import namedtuple
 
 import numpy as np
 
-from ef.config.section import ConfigSection
+import SpatialMesh
 from ef.config.component import ConfigComponent
+from ef.config.section import ConfigSection
 
 
-class SpatialMesh(ConfigComponent):
+class SpatialMeshConf(ConfigComponent):
     def __init__(self, size=(10, 10, 10), step=(1, 1, 1)):
         self.size = np.array(size, np.float)
         self.step = np.array(step, np.float)
@@ -19,14 +20,17 @@ class SpatialMesh(ConfigComponent):
     def to_conf(self):
         X, Y, Z = self.size
         x, y, z = self.step
-        return SpatialMeshConf(X, x, Y, y, Z, z)
+        return SpatialMeshSection(X, x, Y, y, Z, z)
+
+    def make(self, boundary_conditions):
+        return SpatialMesh.SpatialMesh.do_init(self.size, self.step, boundary_conditions)
 
 
-class SpatialMeshConf(ConfigSection):
+class SpatialMeshSection(ConfigSection):
     section = "SpatialMesh"
     ContentTuple = namedtuple("SpatialMeshTuple", ('grid_x_size', 'grid_x_step', 'grid_y_size',
                                                    'grid_y_step', 'grid_z_size', 'grid_z_step'))
     convert = ContentTuple(*[float] * 6)
 
     def make(self):
-        return SpatialMesh(self.content[::2], self.content[1::2])
+        return SpatialMeshConf(self.content[::2], self.content[1::2])

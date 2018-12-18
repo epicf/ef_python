@@ -4,8 +4,8 @@ from ef.config.components import *
 from ef.config.efconf import EfConf
 from ef.config.section import ConfigSection
 
-comp_list = [BoundaryConditions, InnerRegion, OutputFile, ParticleInteractionModel,
-             ParticleSource, SpatialMesh, TimeGrid, ExternalFieldUniform]
+comp_list = [BoundaryConditionsConf, InnerRegionConf, OutputFileConf, ParticleInteractionModelConf,
+             ParticleSourceConf, SpatialMeshConf, TimeGridConf, ExternalFieldUniformConf]
 
 
 def test_components_to_conf_and_back():
@@ -28,16 +28,16 @@ def test_minimal_example():
     parser = ConfigParser()
     parser.read("examples/minimal_working_example/minimal_conf.conf")
     components = [conf.make() for conf in ConfigSection.parser_to_confs(parser)]
-    assert components == [TimeGrid(1e-7, 1e-9, 1e-9), SpatialMesh((5, 5, 15), (0.5, 0.5, 1.5)),
-                          ParticleInteractionModel('noninteracting'), BoundaryConditions(0),
-                          ExternalFieldUniform('mgn_uni', 'magnetic'),
-                          ExternalFieldUniform('el_uni', 'electric'),
-                          OutputFile('example_', '.h5')]
+    assert components == [TimeGridConf(1e-7, 1e-9, 1e-9), SpatialMeshConf((5, 5, 15), (0.5, 0.5, 1.5)),
+                          ParticleInteractionModelConf('noninteracting'), BoundaryConditionsConf(0),
+                          ExternalFieldUniformConf('mgn_uni', 'magnetic'),
+                          ExternalFieldUniformConf('el_uni', 'electric'),
+                          OutputFileConf('example_', '.h5')]
 
 
 class TestEfConf:
     def test_conf_export(self):
-        conf = EfConf(sources=[ParticleSource()], inner_regions=(InnerRegion(),))
+        conf = EfConf(sources=[ParticleSourceConf()], inner_regions=(InnerRegionConf(),))
         s = conf.export_to_string()
         c1 = EfConf.from_string(s)
         assert c1 == conf
@@ -45,7 +45,7 @@ class TestEfConf:
     def test_conf_repr(self):
         # noinspection PyUnresolvedReferences
         from numpy import array  # for use in eval
-        conf = EfConf(sources=[ParticleSource()], inner_regions=(InnerRegion(),))
+        conf = EfConf(sources=[ParticleSourceConf()], inner_regions=(InnerRegionConf(),))
         s = repr(conf)
         c1 = eval(s)
         assert c1 == conf
@@ -53,8 +53,12 @@ class TestEfConf:
 
 class TestPrint:
     def test_time_grid(self):
-        assert repr(TimeGrid()) == "TimeGrid(total=100.0, save_step=10.0, step=1.0)"
-        assert str(TimeGrid()) == ("### TimeGrid:\n"
+        assert repr(TimeGridConf()) == "TimeGridConf(total=100.0, save_step=10.0, step=1.0)"
+        assert str(TimeGridConf()) == ("### TimeGridConf:\n"
                                    "total = 100.0\n"
                                    "save_step = 10.0\n"
                                    "step = 1.0")
+
+
+def test_potentials():
+    assert EfConf().get_potentials() == [0., 0., 0., 0., 0., 0.]

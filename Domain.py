@@ -1,14 +1,16 @@
 import sys
+
 import h5py
 
-from TimeGrid import TimeGrid
-from SpatialMesh import SpatialMesh
-from InnerRegionsManager import InnerRegionsManager
-from ParticleToMeshMap import ParticleToMeshMap
-from FieldSolver import FieldSolver
 from ExternalFieldsManager import ExternalFieldsManager
+from FieldSolver import FieldSolver
+from InnerRegionsManager import InnerRegionsManager
 from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSourcesManager import ParticleSourcesManager
+from ParticleToMeshMap import ParticleToMeshMap
+from SpatialMesh import SpatialMesh
+from TimeGrid import TimeGrid
+from ef.config import efconf
 
 
 class Domain:
@@ -28,24 +30,9 @@ class Domain:
         self.output_filename_prefix = output_filename_prefix
         self.output_filename_suffix = outut_filename_suffix
 
-    @classmethod
-    def init_from_config(cls, conf):
-        time_grid = TimeGrid.init_from_config(conf)
-        spat_mesh = SpatialMesh.init_from_config(conf)
-        inner_regions = InnerRegionsManager.init_from_config(
-            conf, spat_mesh)
-        particle_to_mesh_map = ParticleToMeshMap()
-        field_solver = FieldSolver(spat_mesh, inner_regions)
-        particle_sources = ParticleSourcesManager.init_from_config(conf)
-        external_fields = ExternalFieldsManager.init_from_config(conf)
-        particle_interaction_model = ParticleInteractionModel.init_from_config(conf)
-        output_filename_prefix, output_filename_suffix = \
-            Domain.get_output_filename_prefix_and_suffix(conf)
-        Domain.check_and_print_unused_conf_sections(conf)
-        return cls(time_grid, spat_mesh, inner_regions,
-                   particle_to_mesh_map, field_solver, particle_sources,
-                   external_fields, particle_interaction_model,
-                   output_filename_prefix, output_filename_suffix)
+    @staticmethod
+    def init_from_config(conf):
+        return efconf.EfConf.from_configparser(conf).make()
 
     @staticmethod
     def get_output_filename_prefix_and_suffix(conf):
@@ -74,8 +61,8 @@ class Domain:
 
     @classmethod
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
-        time_grid = TimeGrid.init_from_h5(h5file["/TimeGrid"])
-        spat_mesh = SpatialMesh.init_from_h5(h5file["/SpatialMesh"])
+        time_grid = TimeGrid.load_h5(h5file["/TimeGrid"])
+        spat_mesh = SpatialMesh.load_h5(h5file["/SpatialMesh"])
         inner_regions = InnerRegionsManager.init_from_h5(
             h5file["/InnerRegions"], spat_mesh)
         particle_to_mesh_map = ParticleToMeshMap()

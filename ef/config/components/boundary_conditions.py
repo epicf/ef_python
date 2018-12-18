@@ -1,4 +1,4 @@
-__all__ = ["BoundaryConditions", "BoundaryConditionsConf"]
+__all__ = ["BoundaryConditionsConf", "BoundaryConditionsSection"]
 
 from collections import namedtuple
 
@@ -8,7 +8,7 @@ from ef.config.component import ConfigComponent
 from ef.config.section import ConfigSection
 
 
-class BoundaryConditions(ConfigComponent):
+class BoundaryConditionsConf(ConfigComponent):
     def __init__(self, right=None, left=None, bottom=None, top=None, near=None, far=None):
         args = [right, left, bottom, top, near, far]
         provided_args = [float(x) for x in args if x is not None]
@@ -22,7 +22,7 @@ class BoundaryConditions(ConfigComponent):
             raise ValueError("Wrong number of arguments to BoundaryConditions.__init__()", len(provided_args))
 
     def to_conf(self):
-        return BoundaryConditionsConf(self.right, self.left, self.bottom, self.top, self.near, self.far)
+        return BoundaryConditionsSection(self.right, self.left, self.bottom, self.top, self.near, self.far)
 
     def visualize(self, visualizer, volume_size=(1, 1, 1)):
         visualizer.draw_box(np.array(volume_size, np.float), wireframe=True,
@@ -30,7 +30,7 @@ class BoundaryConditions(ConfigComponent):
         # TODO: visualize non-uniform conditions
 
 
-class BoundaryConditionsConf(ConfigSection):
+class BoundaryConditionsSection(ConfigSection):
     section = "BoundaryConditions"
     ContentTuple = namedtuple("BoundaryConditionsTuple",
                               ('boundary_phi_right', 'boundary_phi_left', 'boundary_phi_bottom',
@@ -38,4 +38,4 @@ class BoundaryConditionsConf(ConfigSection):
     convert = ContentTuple(*[float] * 6)
 
     def make(self):
-        return BoundaryConditions(*self.content)
+        return BoundaryConditionsConf(*self.content)

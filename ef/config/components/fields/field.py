@@ -1,8 +1,7 @@
-__all__ = ["Field"]
+__all__ = ["FieldConf"]
 
 from ef.config.component import ConfigComponent
 
 
-class Field(ConfigComponent):
+class FieldConf(ConfigComponent):
     pass
-
