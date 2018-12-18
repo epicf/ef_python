@@ -18,8 +18,3 @@ class ParticleInteractionModel(SerializableH5):
         if particle_interaction_model not in ("PIC", 'noninteracting', 'binary'):
             raise ValueError(f"Unexpected particle interaction model: {particle_interaction_model}")
         self.particle_interaction_model = particle_interaction_model
-
-    def write_to_file(self, h5file):
-        groupname = "/ParticleInteractionModel"
-        h5group = h5file.create_group(groupname)
-        self.save_h5(h5group)

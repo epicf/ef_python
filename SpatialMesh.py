@@ -153,8 +153,3 @@ class SpatialMesh(SerializableH5):
                         self._electric_field[i][j][k][0],
                         self._electric_field[i][j][k][1],
                         self._electric_field[i][j][k][2])
-
-    def write_to_file(self, h5file):
-        groupname = "/SpatialMesh"
-        h5group = h5file.create_group(groupname)
-        self.save_h5(h5group)
