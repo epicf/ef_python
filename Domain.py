@@ -39,7 +39,7 @@ class Domain:
             conf, spat_mesh)
         particle_to_mesh_map = ParticleToMeshMap()
         field_solver = FieldSolver(spat_mesh, inner_regions)
-        particle_sources = ParticleSourcesManager.init_from_config(conf)
+        particle_sources = ParticleSourcesManager([s.make() for s in ef.sources])
         external_fields = ExternalFieldsManager.init_from_config(conf)
         particle_interaction_model = ef.particle_interaction_model.make()
         output_filename_prefix, output_filename_suffix = \
@@ -83,8 +83,7 @@ class Domain:
             h5file["/InnerRegions"], spat_mesh)
         particle_to_mesh_map = ParticleToMeshMap()
         field_solver = FieldSolver(spat_mesh, inner_regions)
-        particle_sources = ParticleSourcesManager.init_from_h5(
-            h5file["/ParticleSources"])
+        particle_sources = ParticleSourcesManager.load_h5(h5file["/ParticleSources"])
         external_fields = ExternalFieldsManager.init_from_h5(
             h5file["/ExternalFields"])
         particle_interaction_model = ParticleInteractionModel.init_from_h5(
@@ -98,6 +97,7 @@ class Domain:
 
     def start_pic_simulation(self):
         self.eval_and_write_fields_without_particles()
+        self.particle_sources.generate_initial_particles()
         self.prepare_recently_generated_particles_for_boris_integration()
         self.write_step_to_save()
         self.run_pic()
@@ -225,7 +225,7 @@ class Domain:
             self.time_grid.current_node, file_name_to_write))
         self.time_grid.save_h5(h5file.create_group("/TimeGrid"))
         self.spat_mesh.save_h5(h5file.create_group("/SpatialMesh"))
-        self.particle_sources.write_to_file(h5file)
+        self.particle_sources.save_h5(h5file)
         self.inner_regions.write_to_file(h5file)
         self.external_fields.write_to_file(h5file)
         self.particle_interaction_model.save_h5(h5file.create_group("/ParticleInteractionModel"))

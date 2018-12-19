@@ -1,9 +1,9 @@
 from math import sqrt
 
-from ef.util.data_class import DataClass
+from ef.util.serializable_h5 import SerializableH5
 
 
-class Vec3d(DataClass):
+class Vec3d(SerializableH5):
     def __init__(self, x, y, z):
         self.x = x
         self.y = y
