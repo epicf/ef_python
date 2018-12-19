@@ -35,8 +35,7 @@ class Domain:
         ef = efconf.EfConf.from_configparser(conf)
         time_grid = ef.time_grid.make()
         spat_mesh = ef.spatial_mesh.make(ef.boundary_conditions)
-        inner_regions = InnerRegionsManager.init_from_config(
-            conf, spat_mesh)
+        inner_regions = InnerRegionsManager([r.make() for r in ef.inner_regions])
         particle_to_mesh_map = ParticleToMeshMap()
         particle_sources = ParticleSourcesManager([s.make() for s in ef.sources])
         external_fields = ExternalFieldsManager.init_from_config(conf)
@@ -78,8 +77,7 @@ class Domain:
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
         time_grid = TimeGrid.load_h5(h5file["/TimeGrid"])
         spat_mesh = SpatialMesh.load_h5(h5file["/SpatialMesh"])
-        inner_regions = InnerRegionsManager.init_from_h5(
-            h5file["/InnerRegions"], spat_mesh)
+        inner_regions = InnerRegionsManager.load_h5(h5file["/InnerRegionsManager"])
         particle_to_mesh_map = ParticleToMeshMap.load_h5(h5file["/ParticleToMeshMap"])
         particle_sources = ParticleSourcesManager.load_h5(h5file["/ParticleSources"])
         external_fields = ExternalFieldsManager.init_from_h5(
@@ -223,7 +221,7 @@ class Domain:
         self.time_grid.save_h5(h5file.create_group("/TimeGrid"))
         self.spat_mesh.save_h5(h5file.create_group("/SpatialMesh"))
         self.particle_sources.save_h5(h5file)
-        self.inner_regions.write_to_file(h5file)
+        self.inner_regions.save_h5(h5file.create_group("/InnerRegionsManager"))
         self.external_fields.write_to_file(h5file)
         self.particle_interaction_model.save_h5(h5file.create_group("/ParticleInteractionModel"))
         h5file.close()
@@ -266,5 +264,5 @@ class Domain:
             print("Writing initial fields to file " + file_name_to_write)
         self.spat_mesh.save_h5(h5file.create_group("/SpatialMesh"))
         self.external_fields.write_to_file(h5file)
-        self.inner_regions.write_to_file(h5file)
+        self.inner_regions.save_h5(h5file.create_group("/InnerRegionsManager"))
         h5file.close()
