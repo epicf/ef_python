@@ -1,6 +1,5 @@
-from Vec3d import Vec3d
-
 from ExternalField import ExternalField
+from Vec3d import Vec3d
 
 
 class ExternalFieldUniform(ExternalField):
@@ -8,7 +7,6 @@ class ExternalFieldUniform(ExternalField):
     def __init__(self):
         super().__init__()
         self.uniform_field_vec = None
-
 
     @classmethod
     def init_from_config(cls, field_conf, field_conf_name):
@@ -19,17 +17,14 @@ class ExternalFieldUniform(ExternalField):
         new_obj.get_values_from_config(field_conf)
         return new_obj
 
-
     def check_correctness_of_related_config_fields(self, field_conf):
         pass
         # nothing to check here
-
 
     def get_values_from_config(self, field_conf):
         self.uniform_field_vec = Vec3d(field_conf.getfloat("field_x"),
                                        field_conf.getfloat("field_y"),
                                        field_conf.getfloat("field_z"))
-
 
     @classmethod
     def init_from_h5(cls, h5_field_group):
@@ -42,16 +37,13 @@ class ExternalFieldUniform(ExternalField):
         new_obj.uniform_field_vec = Vec3d(Fx, Fy, Fz)
         return new_obj
 
-
     def field_at_particle_position(self, particle, current_time):
         return self.uniform_field_vec
-
 
     def write_hdf5_field_parameters(self, current_field_group):
         current_field_group.attrs.create("field_x", self.uniform_field_vec.x)
         current_field_group.attrs.create("field_y", self.uniform_field_vec.y)
         current_field_group.attrs.create("field_z", self.uniform_field_vec.z)
-
 
     @classmethod
     def is_relevant_config_part(cls, field_name):
