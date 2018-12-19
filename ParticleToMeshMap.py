@@ -1,9 +1,10 @@
 from math import ceil
 
 from Vec3d import Vec3d
+from ef.util.serializable_h5 import SerializableH5
 
 
-class ParticleToMeshMap():
+class ParticleToMeshMap(SerializableH5):
 
     @classmethod
     def weight_particles_charge_to_mesh(cls, spat_mesh, particle_sources):
