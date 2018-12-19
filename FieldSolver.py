@@ -336,7 +336,7 @@ class FieldSolver:
                     else:
                         ez = - central_difference(phi[i][j][k-1], phi[i][j][k+1], dz)
                     #
-                    spat_mesh.electric_field[i][j][k] = Vec3d(ex, ey, ez)
+                    spat_mesh._electric_field[i, j, k] = (ex, ey, ez)
 
 
     def clear(self):

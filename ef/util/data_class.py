@@ -37,7 +37,7 @@ class DataClass:
 
     def __str__(self):
         cls = self.__class__.__name__
-        args = '\n'.join(f"{k} = {v}" for k, v in vars(self).items())
+        args = '\n'.join(f"{k} = {v!r}" for k, v in vars(self).items())
         return f"### {cls}:\n{args}"
 
 
