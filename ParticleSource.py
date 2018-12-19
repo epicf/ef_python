@@ -8,10 +8,10 @@ from ef.util.serializable_h5 import SerializableH5
 
 class ParticleSource(SerializableH5):
 
-    def __init__(self, name, shape, initial_particles, particles_to_generate_each_step, mean_momentum, temperature,
-                 charge, mass, particles=[], max_id=0):
-        if initial_particles <= 0:
-            raise ValueError("initial_particles <= 0")
+    def __init__(self, name, shape, initial_number_of_particles, particles_to_generate_each_step, mean_momentum, temperature,
+                 charge, mass, particles=(), max_id=0):
+        if initial_number_of_particles <= 0:
+            raise ValueError("initial_number_of_particles <= 0")
         if particles_to_generate_each_step < 0:
             raise ValueError("particles_to_generate_each_step < 0")
         if temperature < 0:
@@ -20,14 +20,14 @@ class ParticleSource(SerializableH5):
             raise ValueError("mass < 0")
         self.name = name
         self.shape = shape
-        self.initial_number_of_particles = initial_particles
+        self.initial_number_of_particles = initial_number_of_particles
         self.particles_to_generate_each_step = particles_to_generate_each_step
         self.mean_momentum = mean_momentum
         self.temperature = temperature
         self.charge = charge
         self.mass = mass
-        self.particles = []
-        self.max_id = 0
+        self.particles = list(particles)
+        self.max_id = max_id
         # Random number generator
         # Instead of saving/loading it's state to file just
         # reinit with different seed.
@@ -35,6 +35,9 @@ class ParticleSource(SerializableH5):
         random.seed()  # system time is used by default
         self._rnd_state = random.getstate()
         random.setstate(tmp)
+
+    def generate_initial_particles(self):
+        # particles.reserve(initial_number_of_particles)
         self.generate_num_of_particles(self.initial_number_of_particles)
 
     def generate_each_step(self):
