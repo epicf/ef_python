@@ -1,4 +1,7 @@
-__all__ = ["ParticleSourceConf", "ParticleSourceBoxSection", "ParticleSourceCylinderSection", "ParticleSourceTubeSection"]
+import ParticleSource
+
+__all__ = ["ParticleSourceConf", "ParticleSourceBoxSection", "ParticleSourceCylinderSection",
+           "ParticleSourceTubeSection"]
 
 from collections import namedtuple
 
@@ -51,6 +54,11 @@ class ParticleSourceConf(ConfigComponent):
             raise TypeError("Shape of particle source not supported by config")
         return cls(self.name, *(shape_args + [self.initial_particles, self.particles_to_generate_each_step] +
                                 list(self.momentum) + [self.temperature, self.charge, self.mass]))
+
+    def make(self):
+        return ParticleSource.ParticleSource(self.name, self.shape, self.initial_particles,
+                                             self.particles_to_generate_each_step, self.momentum, self.temperature,
+                                             self.charge, self.mass)
 
 
 class ParticleSourceBoxSection(NamedConfigSection):

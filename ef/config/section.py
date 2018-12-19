@@ -72,4 +72,5 @@ class NamedConfigSection(ConfigSection):
                                  format(tuple(missing), section.name))
 
         data = {arg: cls.convert._asdict()[arg](section[arg]) for arg in cls.convert._fields}
+        section["used"] = "True"
         return cls(name, **data)

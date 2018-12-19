@@ -1,12 +1,10 @@
 import sys
 
-from ParticleSourceBox import ParticleSourceBox
-from ParticleSourceCylinder import ParticleSourceCylinder
-from ParticleSourceTube import ParticleSourceTube
 from Vec3d import Vec3d
+from ef.util.serializable_h5 import SerializableH5
 
 
-class ParticleSourcesManager:
+class ParticleSourcesManager(SerializableH5):
 
     def __init__(self, sources=()):
         self.sources = list(sources)
@@ -66,7 +64,7 @@ class ParticleSourcesManager:
     def write_to_file(self, h5file):
         h5group = h5file.create_group("/ParticleSources")
         for src in self.sources:
-            src.write_to_file(h5group)
+            src.save_h5(h5group)
 
     def generate_each_step(self):
         for src in self.sources:

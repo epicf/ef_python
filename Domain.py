@@ -39,7 +39,7 @@ class Domain:
             conf, spat_mesh)
         particle_to_mesh_map = ParticleToMeshMap()
         field_solver = FieldSolver(spat_mesh, inner_regions)
-        particle_sources = ParticleSourcesManager.init_from_config(conf)
+        particle_sources = ParticleSourcesManager([s.make() for s in ef.sources])
         external_fields = ExternalFieldsManager.init_from_config(conf)
         particle_interaction_model = ef.particle_interaction_model.make()
         output_filename_prefix, output_filename_suffix = \

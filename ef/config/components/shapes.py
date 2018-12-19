@@ -1,5 +1,7 @@
 from math import sqrt, copysign
 
+from ef.util.serializable_h5 import SerializableH5
+
 __all__ = ['Shape', 'Box', 'Cylinder', 'Tube', 'Sphere', 'Cone']
 
 import numpy as np
@@ -8,7 +10,7 @@ from ef.config.component import ConfigComponent
 from Vec3d import Vec3d
 
 
-class Shape(ConfigComponent):
+class Shape(ConfigComponent, SerializableH5):
     def visualize(self, visualizer, **kwargs):
         raise NotImplementedError()
 
