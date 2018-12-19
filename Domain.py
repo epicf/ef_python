@@ -16,14 +16,14 @@ from ef.config import efconf
 class Domain:
 
     def __init__(self, time_grid, spat_mesh, inner_regions,
-                 particle_to_mesh_map, field_solver, particle_sources,
+                 particle_to_mesh_map, particle_sources,
                  external_fields, particle_interaction_model,
                  output_filename_prefix, outut_filename_suffix):
         self.time_grid = time_grid
         self.spat_mesh = spat_mesh
         self.inner_regions = inner_regions
         self.particle_to_mesh_map = particle_to_mesh_map
-        self.field_solver = field_solver
+        self._field_solver = FieldSolver(spat_mesh, inner_regions)
         self.particle_sources = particle_sources
         self.external_fields = external_fields
         self.particle_interaction_model = particle_interaction_model
@@ -38,7 +38,6 @@ class Domain:
         inner_regions = InnerRegionsManager.init_from_config(
             conf, spat_mesh)
         particle_to_mesh_map = ParticleToMeshMap()
-        field_solver = FieldSolver(spat_mesh, inner_regions)
         particle_sources = ParticleSourcesManager([s.make() for s in ef.sources])
         external_fields = ExternalFieldsManager.init_from_config(conf)
         particle_interaction_model = ef.particle_interaction_model.make()
@@ -46,7 +45,7 @@ class Domain:
             Domain.get_output_filename_prefix_and_suffix(conf)
         Domain.check_and_print_unused_conf_sections(conf)
         return cls(time_grid, spat_mesh, inner_regions,
-                   particle_to_mesh_map, field_solver, particle_sources,
+                   particle_to_mesh_map, particle_sources,
                    external_fields, particle_interaction_model,
                    output_filename_prefix, output_filename_suffix)
 
@@ -82,7 +81,6 @@ class Domain:
         inner_regions = InnerRegionsManager.init_from_h5(
             h5file["/InnerRegions"], spat_mesh)
         particle_to_mesh_map = ParticleToMeshMap.load_h5(h5file["/ParticleToMeshMap"])
-        field_solver = FieldSolver(spat_mesh, inner_regions)
         particle_sources = ParticleSourcesManager.load_h5(h5file["/ParticleSources"])
         external_fields = ExternalFieldsManager.init_from_h5(
             h5file["/ExternalFields"])
@@ -90,7 +88,7 @@ class Domain:
         output_filename_prefix = filename_prefix
         output_filename_suffix = filename_suffix
         return cls(time_grid, spat_mesh, inner_regions,
-                   particle_to_mesh_map, field_solver, particle_sources,
+                   particle_to_mesh_map, particle_sources,
                    external_fields, particle_interaction_model,
                    output_filename_prefix, output_filename_suffix)
 
@@ -133,8 +131,8 @@ class Domain:
             self.spat_mesh, self.particle_sources)
 
     def eval_potential_and_fields(self):
-        self.field_solver.eval_potential(self.spat_mesh, self.inner_regions)
-        self.field_solver.eval_fields_from_potential(self.spat_mesh)
+        self._field_solver.eval_potential(self.spat_mesh, self.inner_regions)
+        self._field_solver.eval_fields_from_potential(self.spat_mesh)
 
     def push_particles(self):
         dt = self.time_grid.time_step_size
