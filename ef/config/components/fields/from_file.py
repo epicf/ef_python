@@ -1,5 +1,6 @@
-__all__ = ["ExternalFieldFromFileConf", "ExternalFieldFromFileSection"]
+import ExternalFieldFromFile
 
+__all__ = ["ExternalFieldFromFileConf", "ExternalFieldFromFileSection"]
 
 from collections import namedtuple
 
@@ -15,9 +16,11 @@ class ExternalFieldFromFileConf(FieldConf):
         self.electric_or_magnetic = electric_or_magnetic
         self.filename = filename
 
-
     def to_conf(self):
         return ExternalFieldFromFileSection(self.name, self.electric_or_magnetic, self.filename)
+
+    def make(self):
+        return ExternalFieldFromFile.ExternalFieldFromFile(self.name, self.electric_or_magnetic, self.filename)
 
 
 class ExternalFieldFromFileSection(NamedConfigSection):
@@ -25,7 +28,6 @@ class ExternalFieldFromFileSection(NamedConfigSection):
     ContentTuple = namedtuple("ExternalFieldFromFile",
                               ('electric_or_magnetic', 'field_filename'))
     convert = ContentTuple(str, str)
-
 
     def make(self):
         return ExternalFieldFromFileConf(self.name, self.content)

@@ -24,7 +24,7 @@ class TestDomain:
         assert type(dom.inner_regions) == InnerRegionsManager
         assert dom.inner_regions.regions == []
         assert dom.particle_to_mesh_map == ParticleToMeshMap()
-        assert type(dom.field_solver) == FieldSolver
+        assert type(dom._field_solver) == FieldSolver
         assert type(dom.particle_sources) == ParticleSourcesManager
         assert dom.particle_sources.sources == []
         assert type(dom.external_fields) == ExternalFieldsManager

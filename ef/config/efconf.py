@@ -111,8 +111,8 @@ class EfConf(DataClass):
         return Domain.Domain(self.time_grid.make(), mesh, regions, ParticleToMeshMap(), FieldSolver(mesh, regions),
                              ParticleSourcesManager([s.make() for s in self.sources]),
                              ExternalFieldsManager(
-                                 [s.make() for s in self.external_fields if s.electic_or_magnetic == 'electric'],
-                                 [s.make() for s in self.external_fields if s.electic_or_magnetic == 'magnetic']),
+                                 [s.make() for s in self.external_fields if s.electric_or_magnetic == 'electric'],
+                                 [s.make() for s in self.external_fields if s.electric_or_magnetic == 'magnetic']),
                              self.particle_interaction_model.make(), self.output_file.prefix, self.output_file.suffix)
 
 
