@@ -15,12 +15,13 @@ class TestDefaultSpatialMesh:
     def test_print(self, capsys):
         mesh = SpatialMesh.do_init((10, 20, 30), (2, 1, 3), BoundaryConditionsConf(3.14))
         mesh.print()
-        assert capsys.readouterr().out == ("Grid:\n"
-                                           "Length: x = 10.000, y = 20.000, z = 30.000\n"
-                                           "Cell size: x = 2.000, y = 1.000, z = 3.000\n"
-                                           "Total nodes: x = 6, y = 21, z = 11\n"
-                                           "x_node   y_node   z_node | charge_density | potential | electric_field(x,y,z)\n")
-        assert capsys.readouterr().err == ""
+        out, err = capsys.readouterr()
+        assert out == ("Grid:\n"
+                       "Length: x = 10.000, y = 20.000, z = 30.000\n"
+                       "Cell size: x = 2.000, y = 1.000, z = 3.000\n"
+                       "Total nodes: x = 6, y = 21, z = 11\n"
+                       "x_node   y_node   z_node | charge_density | potential | electric_field(x,y,z)\n")
+        assert err == ""
 
     def test_config(self, capsys):
         parser = ConfigParser()
@@ -50,13 +51,15 @@ class TestDefaultSpatialMesh:
         assert_array_equal(mesh.potential, potential)
         assert_array_equal(mesh._electric_field, np.zeros((3, 3, 2, 3)))
         assert_array_equal(mesh.electric_field, np.full((3, 3, 2), Vec3d.zero()))
-        assert capsys.readouterr().out == ""
-        assert capsys.readouterr().err == ""
+        out, err = capsys.readouterr()
+        assert out == ""
+        assert err == ""
 
     def test_do_init_warnings(self, capsys, caplog):
         mesh = SpatialMesh.do_init((12, 12, 12), (5, 5, 7), BoundaryConditionsConf(0))
-        assert capsys.readouterr().out == ""
-        assert capsys.readouterr().err == ""
+        out, err = capsys.readouterr()
+        assert out == ""
+        assert err == ""
         assert caplog.record_tuples == [
             ('root', logging.WARNING,
              "X step on spatial grid was reduced to 4.000 from 5.000 to fit in a round number of cells."),
