@@ -81,13 +81,12 @@ class Domain:
         spat_mesh = SpatialMesh.load_h5(h5file["/SpatialMesh"])
         inner_regions = InnerRegionsManager.init_from_h5(
             h5file["/InnerRegions"], spat_mesh)
-        particle_to_mesh_map = ParticleToMeshMap()
+        particle_to_mesh_map = ParticleToMeshMap.load_h5(h5file["/ParticleToMeshMap"])
         field_solver = FieldSolver(spat_mesh, inner_regions)
         particle_sources = ParticleSourcesManager.load_h5(h5file["/ParticleSources"])
         external_fields = ExternalFieldsManager.init_from_h5(
             h5file["/ExternalFields"])
-        particle_interaction_model = ParticleInteractionModel.init_from_h5(
-            h5file["/ParticleInteractionModel"])
+        particle_interaction_model = ParticleInteractionModel.load_h5(h5file["/ParticleInteractionModel"])
         output_filename_prefix = filename_prefix
         output_filename_suffix = filename_suffix
         return cls(time_grid, spat_mesh, inner_regions,

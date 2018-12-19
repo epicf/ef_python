@@ -23,7 +23,7 @@ class TestDomain:
         assert dom.spat_mesh == SpatialMesh.do_init((10, 10, 10), (1, 1, 1), BoundaryConditionsConf(0))
         assert type(dom.inner_regions) == InnerRegionsManager
         assert dom.inner_regions.regions == []
-        assert type(dom.particle_to_mesh_map) == ParticleToMeshMap
+        assert dom.particle_to_mesh_map == ParticleToMeshMap()
         assert type(dom.field_solver) == FieldSolver
         assert type(dom.particle_sources) == ParticleSourcesManager
         assert dom.particle_sources.sources == []
