@@ -16,9 +16,10 @@ def check_warnings(out, before, after, warning_counts=(0, 1, 2),
     assert warnings in ("".join([warning_text] * c) for c in warning_counts)
 
 
-def test_main(mocker, capsys, tmpdir):
+def test_main(mocker, capsys, tmpdir, monkeypatch):
+    monkeypatch.chdir(tmpdir)
     config = tmpdir.join("test_main.conf")
-    EfConf(time_grid=TimeGridConf(10, 5, 1)).export_to_fname(str(config))
+    EfConf(time_grid=TimeGridConf(10, 5, 1)).export_to_fname("test_main.conf")
     mocker.patch("sys.argv", ["main.py", str(config)])
     main()
     expected_before = f"""Config file is:  {config}
@@ -65,34 +66,29 @@ Writing step 10 to file out_0000010.h5
     check_warnings(out, expected_before, expected_after)
 
 
-def run_example(fname, mocker, capsys, tmpdir):
-    tmp = tmpdir.join(basename(fname))
-    copyfile(fname, tmp)
-    mocker.patch("sys.argv", ["main.py", str(tmp)])
+@pytest.mark.parametrize("fname", [
+    "examples/minimal_working_example/minimal_conf.conf",
+    pytest.param("examples/single_particle_in_free_space/single_particle_in_free_space.conf",
+                 marks=pytest.mark.slowish),
+    pytest.param("examples/single_particle_in_magnetic_field/single_particle_in_magnetic_field.conf",
+                 marks=pytest.mark.slowish),
+    pytest.param("examples/single_particle_in_magnetic_field/large_time_step.conf",
+                 marks=pytest.mark.slowish),
+    pytest.param("examples/tube_source_test/contour.conf",
+                 marks=pytest.mark.slow),
+    pytest.param("examples/single_particle_in_radial_electric_field/single_particle_in_radial_electric_field.conf",
+                 marks=pytest.mark.slow),
+    pytest.param("examples/ribbon_beam_contour/contour_bin.conf",
+                 marks=pytest.mark.slow),
+    pytest.param("examples/ribbon_beam_contour/contour.conf",
+                 marks=pytest.mark.slow),
+    pytest.param("examples/drift_tube_potential/pot.conf",
+                 marks=pytest.mark.slow),
+])
+def test_example(fname, mocker, capsys, tmpdir, monkeypatch):
+    copyfile(fname, tmpdir.join(basename(fname)))
+    monkeypatch.chdir(tmpdir)
+    mocker.patch("sys.argv", ["main.py", str(basename(fname))])
     main()
     out, err = capsys.readouterr()
     assert err == ""
-
-
-def test_fast_examples(mocker, capsys, tmpdir):
-    run_example("examples/minimal_working_example/minimal_conf.conf", mocker, capsys, tmpdir)
-
-
-@pytest.mark.slowish
-def test_medium_examples(mocker, capsys, tmpdir):
-    run_example("examples/single_particle_in_free_space/single_particle_in_free_space.conf", mocker, capsys, tmpdir)
-    run_example("examples/single_particle_in_magnetic_field/single_particle_in_magnetic_field.conf",
-                mocker, capsys, tmpdir)
-    run_example("examples/single_particle_in_magnetic_field/large_time_step.conf", mocker, capsys, tmpdir)
-    pass
-
-
-@pytest.mark.slow
-def test_slow_examples(mocker, capsys, tmpdir):
-    run_example("examples/tube_source_test/contour.conf", mocker, capsys, tmpdir)
-    run_example("examples/single_particle_in_radial_electric_field/single_particle_in_radial_electric_field.conf",
-                 mocker, capsys, tmpdir)
-    run_example("examples/ribbon_beam_contour/contour_bin.conf", mocker, capsys, tmpdir)
-    run_example("examples/ribbon_beam_contour/contour.conf", mocker, capsys, tmpdir)
-    run_example("examples/drift_tube_potential/pot.conf", mocker, capsys, tmpdir)
-    pass
