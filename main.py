@@ -6,6 +6,7 @@ import configparser
 import h5py
 
 from Domain import Domain
+from ef.config.efconf import EfConf
 
 
 def main():
@@ -34,7 +35,7 @@ def construct_domain(config_or_h5_file):
         conf = configparser.ConfigParser()
         conf.read(config_or_h5_file)
         echo_config(config_or_h5_file, conf)
-        dom = Domain.init_from_config(conf)
+        dom = EfConf.from_configparser(conf).make()
         continue_from_h5 = False
     return dom, continue_from_h5
 

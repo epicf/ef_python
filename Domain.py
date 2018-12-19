@@ -1,17 +1,10 @@
 import h5py
 
-from ExternalFieldsManager import ExternalFieldsManager
 from FieldSolver import FieldSolver
-from InnerRegionsManager import InnerRegionsManager
-from ParticleInteractionModel import ParticleInteractionModel
-from ParticleSourcesManager import ParticleSourcesManager
-from ParticleToMeshMap import ParticleToMeshMap
-from SpatialMesh import SpatialMesh
-from TimeGrid import TimeGrid
-from ef.config.efconf import EfConf
+from ef.util.serializable_h5 import SerializableH5
 
 
-class Domain:
+class Domain(SerializableH5):
 
     def __init__(self, time_grid, spat_mesh, inner_regions,
                  particle_to_mesh_map, particle_sources,
@@ -25,30 +18,15 @@ class Domain:
         self.particle_sources = particle_sources
         self.external_fields = external_fields
         self.particle_interaction_model = particle_interaction_model
-        self.output_filename_prefix = output_filename_prefix
-        self.output_filename_suffix = outut_filename_suffix
-
-    @classmethod
-    def init_from_config(cls, conf):
-        ef = EfConf.from_configparser(conf)
-        return ef.make()
+        self._output_filename_prefix = output_filename_prefix
+        self._output_filename_suffix = outut_filename_suffix
 
     @classmethod
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
-        time_grid = TimeGrid.load_h5(h5file["/TimeGrid"])
-        spat_mesh = SpatialMesh.load_h5(h5file["/SpatialMesh"])
-        inner_regions = InnerRegionsManager.load_h5(h5file["/InnerRegionsManager"])
-        particle_to_mesh_map = ParticleToMeshMap.load_h5(h5file["/ParticleToMeshMap"])
-        particle_sources = ParticleSourcesManager.load_h5(h5file["/ParticleSources"])
-        external_fields = ExternalFieldsManager.load_h5(
-            h5file["/ExternalFields"])
-        particle_interaction_model = ParticleInteractionModel.load_h5(h5file["/ParticleInteractionModel"])
-        output_filename_prefix = filename_prefix
-        output_filename_suffix = filename_suffix
-        return cls(time_grid, spat_mesh, inner_regions,
-                   particle_to_mesh_map, particle_sources,
-                   external_fields, particle_interaction_model,
-                   output_filename_prefix, output_filename_suffix)
+        domain = cls.load_h5(h5file)
+        domain._output_filename_prefix = filename_prefix
+        domain._output_filename_suffix = filename_suffix
+        return domain
 
     def start_pic_simulation(self):
         self.eval_and_write_fields_without_particles()
@@ -167,8 +145,8 @@ class Domain:
 
     def write(self):
         file_name_to_write = self.construct_output_filename(
-            self.output_filename_prefix, self.time_grid.current_node,
-            self.output_filename_suffix)
+            self._output_filename_prefix, self.time_grid.current_node,
+            self._output_filename_suffix)
         h5file = h5py.File(file_name_to_write, mode="w")
         if not h5file:
             print("Error: can't open file " + file_name_to_write + \
@@ -176,14 +154,8 @@ class Domain:
             print("Recheck \'output_filename_prefix\' key in config file.")
             print("Make sure the directory you want to save to exists.")
             print("Writing initial fields to file " + file_name_to_write)
-        print("Writing step {} to file {}".format(
-            self.time_grid.current_node, file_name_to_write))
-        self.time_grid.save_h5(h5file.create_group("/TimeGrid"))
-        self.spat_mesh.save_h5(h5file.create_group("/SpatialMesh"))
-        self.particle_sources.save_h5(h5file)
-        self.inner_regions.save_h5(h5file.create_group("/InnerRegionsManager"))
-        self.external_fields.save_h5(h5file.create_group("/ExternalFields"))
-        self.particle_interaction_model.save_h5(h5file.create_group("/ParticleInteractionModel"))
+        print("Writing step {} to file {}".format(self.time_grid.current_node, file_name_to_write))
+        self.save_h5(h5file)
         h5file.close()
 
     @staticmethod
@@ -212,7 +184,7 @@ class Domain:
     def eval_and_write_fields_without_particles(self):
         self.spat_mesh.clear_old_density_values()
         self.eval_potential_and_fields()
-        file_name_to_write = self.output_filename_prefix + "fieldsWithoutParticles" + self.output_filename_suffix
+        file_name_to_write = self._output_filename_prefix + "fieldsWithoutParticles" + self._output_filename_suffix
         h5file = h5py.File(file_name_to_write, mode="w")
         if not h5file:
             print("Error: can't open file " + file_name_to_write + \
@@ -220,7 +192,7 @@ class Domain:
             print("Recheck \'output_filename_prefix\' key in config file.")
             print("Make sure the directory you want to save to exists.")
             print("Writing initial fields to file " + file_name_to_write)
-        self.spat_mesh.save_h5(h5file.create_group("/SpatialMesh"))
-        self.external_fields.save_h5(h5file.create_group("/ExternalFields"))
-        self.inner_regions.save_h5(h5file.create_group("/InnerRegionsManager"))
+        self.spat_mesh.save_h5(h5file.create_group("spat_mesh"))
+        self.external_fields.save_h5(h5file.create_group("external_fields"))
+        self.inner_regions.save_h5(h5file.create_group("inner_regions"))
         h5file.close()
