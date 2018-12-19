@@ -30,9 +30,25 @@ class Domain:
         self.output_filename_prefix = output_filename_prefix
         self.output_filename_suffix = outut_filename_suffix
 
-    @staticmethod
-    def init_from_config(conf):
-        return efconf.EfConf.from_configparser(conf).make()
+    @classmethod
+    def init_from_config(cls, conf):
+        ef = efconf.EfConf.from_configparser(conf)
+        time_grid = ef.time_grid.make()
+        spat_mesh = ef.spatial_mesh.make(ef.boundary_conditions)
+        inner_regions = InnerRegionsManager.init_from_config(
+            conf, spat_mesh)
+        particle_to_mesh_map = ParticleToMeshMap()
+        field_solver = FieldSolver(spat_mesh, inner_regions)
+        particle_sources = ParticleSourcesManager.init_from_config(conf)
+        external_fields = ExternalFieldsManager.init_from_config(conf)
+        particle_interaction_model = ParticleInteractionModel.init_from_config(conf)
+        output_filename_prefix, output_filename_suffix = \
+            Domain.get_output_filename_prefix_and_suffix(conf)
+        Domain.check_and_print_unused_conf_sections(conf)
+        return cls(time_grid, spat_mesh, inner_regions,
+                   particle_to_mesh_map, field_solver, particle_sources,
+                   external_fields, particle_interaction_model,
+                   output_filename_prefix, output_filename_suffix)
 
     @staticmethod
     def get_output_filename_prefix_and_suffix(conf):
