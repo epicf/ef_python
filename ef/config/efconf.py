@@ -3,7 +3,6 @@ from configparser import ConfigParser
 
 import Domain
 from ExternalFieldsManager import ExternalFieldsManager
-from FieldSolver import FieldSolver
 from InnerRegionsManager import InnerRegionsManager
 from ParticleSourcesManager import ParticleSourcesManager
 from ParticleToMeshMap import ParticleToMeshMap
@@ -106,14 +105,17 @@ class EfConf(DataClass):
         return iostr.getvalue()
 
     def make(self):
+        grid = self.time_grid.make()
         mesh = self.spatial_mesh.make(self.boundary_conditions)
         regions = InnerRegionsManager([ir.make() for ir in self.inner_regions])
-        return Domain.Domain(self.time_grid.make(), mesh, regions, ParticleToMeshMap(), FieldSolver(mesh, regions),
-                             ParticleSourcesManager([s.make() for s in self.sources]),
-                             ExternalFieldsManager(
-                                 [s.make() for s in self.external_fields if s.electric_or_magnetic == 'electric'],
-                                 [s.make() for s in self.external_fields if s.electric_or_magnetic == 'magnetic']),
-                             self.particle_interaction_model.make(), self.output_file.prefix, self.output_file.suffix)
+        sources = ParticleSourcesManager([s.make() for s in self.sources])
+        ex_fields = ExternalFieldsManager(
+            [s.make() for s in self.external_fields if s.electric_or_magnetic == 'electric'],
+            [s.make() for s in self.external_fields if s.electric_or_magnetic == 'magnetic'])
+        model = self.particle_interaction_model.make()
+        return Domain.Domain(grid, mesh, regions, ParticleToMeshMap(),
+                             sources, ex_fields, model,
+                             self.output_file.prefix, self.output_file.suffix)
 
 
 def main():

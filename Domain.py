@@ -1,5 +1,3 @@
-import sys
-
 import h5py
 
 from ExternalFieldsManager import ExternalFieldsManager
@@ -10,7 +8,7 @@ from ParticleSourcesManager import ParticleSourcesManager
 from ParticleToMeshMap import ParticleToMeshMap
 from SpatialMesh import SpatialMesh
 from TimeGrid import TimeGrid
-from ef.config import efconf
+from ef.config.efconf import EfConf
 
 
 class Domain:
@@ -32,48 +30,8 @@ class Domain:
 
     @classmethod
     def init_from_config(cls, conf):
-        ef = efconf.EfConf.from_configparser(conf)
-        time_grid = ef.time_grid.make()
-        spat_mesh = ef.spatial_mesh.make(ef.boundary_conditions)
-        inner_regions = InnerRegionsManager([r.make() for r in ef.inner_regions])
-        particle_to_mesh_map = ParticleToMeshMap()
-        particle_sources = ParticleSourcesManager([s.make() for s in ef.sources])
-        external_fields = ExternalFieldsManager(
-            [s.make() for s in ef.external_fields if s.electric_or_magnetic == 'electric'],
-            [s.make() for s in ef.external_fields if s.electric_or_magnetic == 'magnetic'])
-        particle_interaction_model = ef.particle_interaction_model.make()
-        output_filename_prefix, output_filename_suffix = \
-            Domain.get_output_filename_prefix_and_suffix(conf)
-        Domain.check_and_print_unused_conf_sections(conf)
-        return cls(time_grid, spat_mesh, inner_regions,
-                   particle_to_mesh_map, particle_sources,
-                   external_fields, particle_interaction_model,
-                   output_filename_prefix, output_filename_suffix)
-
-    @staticmethod
-    def get_output_filename_prefix_and_suffix(conf):
-        output_filename_prefix = conf["OutputFilename"]["output_filename_prefix"]
-        output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
-        # TODO: a "get" should not write anything!
-        Domain.mark_outputfilename_sec_as_used(conf)
-        return output_filename_prefix, output_filename_suffix
-
-    @staticmethod
-    def mark_outputfilename_sec_as_used(conf):
-        # For now simply mark sections as 'used' instead of removing them.
-        conf["OutputFilename"]["used"] = "True"
-
-    @staticmethod
-    def check_and_print_unused_conf_sections(conf):
-        found_unused = False
-        for sec_name in conf.sections():
-            if not conf[sec_name].getboolean("used"):
-                print("!!!! Warning: unused config section: ", sec_name)
-                found_unused = True
-        if found_unused:
-            print("If you don't need these sections, please, comment them explicitly.")
-            print("Aborting.")
-            sys.exit(-1)
+        ef = EfConf.from_configparser(conf)
+        return ef.make()
 
     @classmethod
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
@@ -254,9 +212,7 @@ class Domain:
     def eval_and_write_fields_without_particles(self):
         self.spat_mesh.clear_old_density_values()
         self.eval_potential_and_fields()
-        file_name_to_write = self.output_filename_prefix + \
-                             "fieldsWithoutParticles" + \
-                             self.output_filename_suffix
+        file_name_to_write = self.output_filename_prefix + "fieldsWithoutParticles" + self.output_filename_suffix
         h5file = h5py.File(file_name_to_write, mode="w")
         if not h5file:
             print("Error: can't open file " + file_name_to_write + \
