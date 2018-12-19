@@ -1,3 +1,5 @@
+import ExternalFieldUniform
+
 __all__ = ["ExternalFieldUniformConf", "ExternalFieldUniformSection"]
 
 from collections import namedtuple
@@ -19,6 +21,8 @@ class ExternalFieldUniformConf(FieldConf):
     def to_conf(self):
         return ExternalFieldUniformSection(self.name, self.electric_or_magnetic, *self.field)
 
+    def make(self):
+        return ExternalFieldUniform.ExternalFieldUniform(self.name, self.electric_or_magnetic, self.field)
 
 class ExternalFieldUniformSection(NamedConfigSection):
     section = "ExternalFieldUniform"

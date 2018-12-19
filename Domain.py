@@ -38,7 +38,9 @@ class Domain:
         inner_regions = InnerRegionsManager([r.make() for r in ef.inner_regions])
         particle_to_mesh_map = ParticleToMeshMap()
         particle_sources = ParticleSourcesManager([s.make() for s in ef.sources])
-        external_fields = ExternalFieldsManager.init_from_config(conf)
+        external_fields = ExternalFieldsManager(
+            [s.make() for s in ef.external_fields if s.electric_or_magnetic == 'electric'],
+            [s.make() for s in ef.external_fields if s.electric_or_magnetic == 'magnetic'])
         particle_interaction_model = ef.particle_interaction_model.make()
         output_filename_prefix, output_filename_suffix = \
             Domain.get_output_filename_prefix_and_suffix(conf)
@@ -80,7 +82,7 @@ class Domain:
         inner_regions = InnerRegionsManager.load_h5(h5file["/InnerRegionsManager"])
         particle_to_mesh_map = ParticleToMeshMap.load_h5(h5file["/ParticleToMeshMap"])
         particle_sources = ParticleSourcesManager.load_h5(h5file["/ParticleSources"])
-        external_fields = ExternalFieldsManager.init_from_h5(
+        external_fields = ExternalFieldsManager.load_h5(
             h5file["/ExternalFields"])
         particle_interaction_model = ParticleInteractionModel.load_h5(h5file["/ParticleInteractionModel"])
         output_filename_prefix = filename_prefix
@@ -222,7 +224,7 @@ class Domain:
         self.spat_mesh.save_h5(h5file.create_group("/SpatialMesh"))
         self.particle_sources.save_h5(h5file)
         self.inner_regions.save_h5(h5file.create_group("/InnerRegionsManager"))
-        self.external_fields.write_to_file(h5file)
+        self.external_fields.save_h5(h5file.create_group("/ExternalFields"))
         self.particle_interaction_model.save_h5(h5file.create_group("/ParticleInteractionModel"))
         h5file.close()
 
@@ -263,6 +265,6 @@ class Domain:
             print("Make sure the directory you want to save to exists.")
             print("Writing initial fields to file " + file_name_to_write)
         self.spat_mesh.save_h5(h5file.create_group("/SpatialMesh"))
-        self.external_fields.write_to_file(h5file)
+        self.external_fields.save_h5(h5file.create_group("/ExternalFields"))
         self.inner_regions.save_h5(h5file.create_group("/InnerRegionsManager"))
         h5file.close()

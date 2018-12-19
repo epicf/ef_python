@@ -9,9 +9,11 @@ from Vec3d import Vec3d
 
 class ExternalFieldFromFile(ExternalField):
 
-    def __init__(self):
-        super().__init__()
-        self.field_filename = None
+    def __init__(self, name, electric_or_magnetic, field_filename):
+        super().__init__(name, electric_or_magnetic)
+        self.field_filename = field_filename
+        if not os.path.exists(field_filename):
+            raise FileNotFoundError("Field file not found")
         self.field_from_file = None
         self.x_start = None
         self.y_start = None
@@ -28,23 +30,7 @@ class ExternalFieldFromFile(ExternalField):
         self.x_n_nodes = None
         self.y_n_nodes = None
         self.z_n_nodes = None
-
-    @classmethod
-    def init_from_config(cls, field_conf, field_conf_name):
-        new_obj = cls()
-        new_obj.init_common_parameters_from_config(field_conf, field_conf_name)
-        new_obj.field_type = "from_file"
-        new_obj.check_correctness_of_related_config_fields(field_conf)
-        new_obj.get_values_from_config(field_conf)
-        new_obj.read_field_from_file()
-        return new_obj
-
-    def check_correctness_of_related_config_fields(self, field_conf):
-        if not os.path.exists(field_conf["field_filename"]):
-            raise FileNotFoundError("Field file not found")
-
-    def get_values_from_config(self, field_conf):
-        self.field_filename = field_conf["field_filename"]
+        self.read_field_from_file()
 
     def read_field_from_file(self):
         mesh = np.loadtxt(self.field_filename)
@@ -132,17 +118,6 @@ class ExternalFieldFromFile(ExternalField):
                  (z >= self.z_start) and (z <= self.z_end)
         return inside
 
-    @classmethod
-    def init_from_h5(cls, h5_field_group):
-        new_obj = cls()
-        new_obj.init_common_parameters_from_h5(h5_field_group)
-        new_obj.field_type = "from_file"
-        new_obj.field_filename = h5_field_group.attrs["field_filename"]
-        if not os.path.exists(new_obj.field_filename):
-            raise FileNotFoundError("Field file not found")
-        new_obj.read_field_from_file()
-        return new_obj
-
     def field_at_particle_position(self, particle, current_time):
         if self.inside_mesh(particle.position):
             field = self.field_from_grid(particle)
@@ -214,10 +189,3 @@ class ExternalFieldFromFile(ExternalField):
         next_node = ceil(x_in_grid_units)
         weight = 1.0 - (next_node - x_in_grid_units)
         return (next_node, weight)
-
-    def write_hdf5_field_parameters(self, current_field_group):
-        current_field_group.attrs["field_filename"] = self.field_filename
-
-    @classmethod
-    def is_relevant_config_part(cls, field_name):
-        return "ExternalFieldFromFile" in field_name
