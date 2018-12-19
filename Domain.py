@@ -41,7 +41,7 @@ class Domain:
         field_solver = FieldSolver(spat_mesh, inner_regions)
         particle_sources = ParticleSourcesManager.init_from_config(conf)
         external_fields = ExternalFieldsManager.init_from_config(conf)
-        particle_interaction_model = ParticleInteractionModel.init_from_config(conf)
+        particle_interaction_model = ef.particle_interaction_model.make()
         output_filename_prefix, output_filename_suffix = \
             Domain.get_output_filename_prefix_and_suffix(conf)
         Domain.check_and_print_unused_conf_sections(conf)
@@ -223,12 +223,12 @@ class Domain:
             print("Writing initial fields to file " + file_name_to_write)
         print("Writing step {} to file {}".format(
             self.time_grid.current_node, file_name_to_write))
-        self.time_grid.write_to_file(h5file)
-        self.spat_mesh.write_to_file(h5file)
+        self.time_grid.save_h5(h5file.create_group("/TimeGrid"))
+        self.spat_mesh.save_h5(h5file.create_group("/SpatialMesh"))
         self.particle_sources.write_to_file(h5file)
         self.inner_regions.write_to_file(h5file)
         self.external_fields.write_to_file(h5file)
-        self.particle_interaction_model.write_to_file(h5file)
+        self.particle_interaction_model.save_h5(h5file.create_group("/ParticleInteractionModel"))
         h5file.close()
 
     @staticmethod
@@ -267,7 +267,7 @@ class Domain:
             print("Recheck \'output_filename_prefix\' key in config file.")
             print("Make sure the directory you want to save to exists.")
             print("Writing initial fields to file " + file_name_to_write)
-        self.spat_mesh.write_to_file(h5file)
+        self.spat_mesh.save_h5(h5file.create_group("/SpatialMesh"))
         self.external_fields.write_to_file(h5file)
         self.inner_regions.write_to_file(h5file)
         h5file.close()

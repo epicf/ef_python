@@ -1,75 +1,32 @@
-import sys
+from enum import Enum, auto
+
+from ef.util.serializable_h5 import SerializableH5
 
 
-class ParticleInteractionModel():
+class Model(Enum):
+    noninteracting = auto()
+    binary = auto()
+    PIC = auto()
 
-    def __init__(self):
-        self.noninteracting = self.binary = self.pic = False
-        self.particle_interaction_model = None
+    def __repr__(self):
+        return f"Model.{self.name}"
 
-    @staticmethod
-    def do_init():
-        m = ParticleInteractionModel()
-        m.pic = True
-        m.particle_interaction_model = 'PIC'
-        return m
 
-    @classmethod
-    def init_from_config(cls, conf):
-        new_obj = cls()
-        new_obj.check_correctness_of_related_config_fields(conf)
-        new_obj.get_values_from_config(conf)
-        ParticleInteractionModel.mark_partintmodel_sec_as_used(conf)
-        return new_obj
+class ParticleInteractionModel(SerializableH5):
+    @property
+    def noninteracting(self):
+        return self.particle_interaction_model == Model.noninteracting
 
-    @staticmethod
-    def mark_partintmodel_sec_as_used(conf):
-        # For now simply mark sections as 'used' instead of removing them.
-        conf["ParticleInteractionModel"]["used"] = "True"
+    @property
+    def binary(self):
+        return self.particle_interaction_model == Model.binary
 
-    def check_correctness_of_related_config_fields(self, conf):
-        conf_part = conf["ParticleInteractionModel"]
-        model = conf_part["particle_interaction_model"]
-        # 'PIC' or 'noninteracting' or 'binary'
-        if model != "noninteracting" and model != "binary" and model != "PIC":
-            print("Error: wrong value of 'particle_interaction_model': {}".format(model))
-            print("Allowed values : 'noninteracting', 'binary', 'PIC'")
-            print("Aborting")
-            sys.exit(-1)
+    @property
+    def pic(self):
+        return self.particle_interaction_model == Model.PIC
 
-    def get_values_from_config(self, conf):
-        conf_part = conf["ParticleInteractionModel"]
-        self.particle_interaction_model = conf_part["particle_interaction_model"]
-        if self.particle_interaction_model == "noninteracting":
-            self.noninteracting = True
-        elif self.particle_interaction_model == "binary":
-            self.binary = True
-        elif self.particle_interaction_model == "PIC":
-            self.pic = True
-
-    @classmethod
-    def init_from_h5(cls, h5group):
-        new_obj = cls()
-        new_obj.particle_interaction_model = h5group.attrs["particle_interaction_model"]
-        if new_obj.particle_interaction_model == "noninteracting":
-            new_obj.noninteracting = True
-        elif new_obj.particle_interaction_model == "binary":
-            new_obj.binary = True
-        elif new_obj.particle_interaction_model == "PIC":
-            new_obj.pic = True
-        return new_obj
-
-    def __str__(self):
-        return "particle_interaction_model = {}".format(self.particle_interaction_model)
-
-    def print(self):
-        print("### ParticleInteractionModel:")
-        print(self)
-        print("self.noninteracting = {}".format(self.noninteracting))
-        print("self.binary = {}".format(self.binary))
-        print("self.pic = {}".format(self.pic))
-
-    def write_to_file(self, h5file):
-        groupname = "/ParticleInteractionModel"
-        h5group = h5file.create_group(groupname)
-        h5group.attrs["particle_interaction_model"] = self.particle_interaction_model
+    def __init__(self, particle_interaction_model=Model.PIC):
+        if isinstance(particle_interaction_model, Model):
+            self.particle_interaction_model = particle_interaction_model
+        else:
+            self.particle_interaction_model = Model[particle_interaction_model]

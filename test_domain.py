@@ -4,7 +4,7 @@ from Domain import Domain
 from ExternalFieldsManager import ExternalFieldsManager
 from FieldSolver import FieldSolver
 from InnerRegionsManager import InnerRegionsManager
-from ParticleInteractionModel import ParticleInteractionModel
+from ParticleInteractionModel import ParticleInteractionModel, Model
 from ParticleSourcesManager import ParticleSourcesManager
 from ParticleToMeshMap import ParticleToMeshMap
 from SpatialMesh import SpatialMesh
@@ -30,8 +30,6 @@ class TestDomain:
         assert type(dom.external_fields) == ExternalFieldsManager
         assert dom.external_fields.electric == []
         assert dom.external_fields.magnetic == []
-        assert type(dom.particle_interaction_model) == ParticleInteractionModel
-        assert dom.particle_interaction_model.particle_interaction_model == "PIC"
-        assert dom.particle_interaction_model.pic == True
+        assert dom.particle_interaction_model == ParticleInteractionModel("PIC")
         assert dom.output_filename_prefix == "out_"
         assert dom.output_filename_suffix == ".h5"

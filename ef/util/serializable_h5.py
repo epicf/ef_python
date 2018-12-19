@@ -1,3 +1,5 @@
+from enum import Enum
+
 import numpy as np
 from h5py import Dataset, Group
 
@@ -36,6 +38,8 @@ class SerializableH5(DataClass):
         elif isinstance(value, list):
             for i, v in enumerate(value):
                 cls._save_value(group.create_group(i), v)
+        elif isinstance(value, Enum):
+            group.attrs[key] = value.name
         else:
             group.attrs[key] = value
 

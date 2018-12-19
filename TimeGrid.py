@@ -45,8 +45,3 @@ class TimeGrid(SerializableH5):
     def update_to_next_step(self):
         self.current_node += 1
         self.current_time += self.time_step_size
-
-    def write_to_file(self, h5file):
-        groupname = "/TimeGrid"
-        h5group = h5file.create_group(groupname)
-        self.save_h5(h5group)
