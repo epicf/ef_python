@@ -77,7 +77,7 @@ Writing step 10 to file out_0000010.h5
     pytest.param("examples/tube_source_test/contour.conf",
                  marks=pytest.mark.slow),
     pytest.param("examples/single_particle_in_radial_electric_field/single_particle_in_radial_electric_field.conf",
-                 marks=pytest.mark.slow),
+                 marks=pytest.mark.slowish),
     pytest.param("examples/ribbon_beam_contour/contour_bin.conf",
                  marks=pytest.mark.slow),
     pytest.param("examples/ribbon_beam_contour/contour.conf",
