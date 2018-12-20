@@ -51,7 +51,7 @@ class ParticleSourceConf(ConfigComponent):
             shape_args = list(self.shape.start) + list(self.shape.end) + [self.shape.r, self.shape.R]
             cls = ParticleSourceTubeSection
         else:
-            raise TypeError("Shape of particle source not supported by config")
+            raise TypeError(f"Shape {type(self.shape)} of particle source not supported by config")
         return cls(self.name, *(shape_args + [self.initial_particles, self.particles_to_generate_each_step] +
                                 list(self.momentum) + [self.temperature, self.charge, self.mass]))
 
