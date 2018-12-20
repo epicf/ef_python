@@ -172,7 +172,7 @@ class FieldSolver:
 
     def zero_nondiag_for_nodes_inside_objects(self, nx, ny, nz, inner_regions):
         for ir in inner_regions.regions:
-            for node in ir.inner_nodes_not_at_domain_edge:
+            for node in ir._inner_nodes_not_at_domain_edge:
                 row_idx = self.node_ijk_to_global_index_in_matrix(
                     node.x, node.y, node.z, nx, ny, nz)
                 csr_row_start = self.A.indptr[row_idx]
