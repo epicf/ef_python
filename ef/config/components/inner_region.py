@@ -42,7 +42,7 @@ class InnerRegionConf(ConfigComponent):
         return cls(self.name, *(shape_args + [self.potential]))
 
     def make(self):
-        return InnerRegion.InnerRegion()
+        return InnerRegion.InnerRegion(self.name, self.shape, self.potential)
 
 
 class InnerRegionBoxSection(NamedConfigSection):
