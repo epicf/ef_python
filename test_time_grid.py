@@ -29,7 +29,7 @@ class TestTimeGrid:
         fname = tmpdir.join('test_timegrid_init.h5')
         grid1 = TimeGrid(100, 1, 10)
         with h5py.File(fname, mode="w") as h5file:
-            grid1.write_to_file(h5file)
+            grid1.save_h5(h5file.create_group("/gr"))
         with h5py.File(fname, mode="r") as h5file:
-            grid2 = TimeGrid.load_h5(h5file["/TimeGrid"])
+            grid2 = TimeGrid.load_h5(h5file["/gr"])
         assert grid1 == grid2

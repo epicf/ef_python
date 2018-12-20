@@ -1,4 +1,7 @@
-__all__ = ["ParticleSourceConf", "ParticleSourceBoxSection", "ParticleSourceCylinderSection", "ParticleSourceTubeSection"]
+import ParticleSource
+
+__all__ = ["ParticleSourceConf", "ParticleSourceBoxSection", "ParticleSourceCylinderSection",
+           "ParticleSourceTubeSection"]
 
 from collections import namedtuple
 
@@ -48,9 +51,14 @@ class ParticleSourceConf(ConfigComponent):
             shape_args = list(self.shape.start) + list(self.shape.end) + [self.shape.r, self.shape.R]
             cls = ParticleSourceTubeSection
         else:
-            raise TypeError("Shape of particle source not supported by config")
+            raise TypeError(f"Shape {type(self.shape)} of particle source not supported by config")
         return cls(self.name, *(shape_args + [self.initial_particles, self.particles_to_generate_each_step] +
                                 list(self.momentum) + [self.temperature, self.charge, self.mass]))
+
+    def make(self):
+        return ParticleSource.ParticleSource(self.name, self.shape, self.initial_particles,
+                                             self.particles_to_generate_each_step, self.momentum, self.temperature,
+                                             self.charge, self.mass)
 
 
 class ParticleSourceBoxSection(NamedConfigSection):
@@ -83,7 +91,7 @@ class ParticleSourceCylinderSection(NamedConfigSection):
 
     def make(self):
         cylinder = Cylinder(self.content[:3], self.content[3:6], self.content.cylinder_radius)
-        return ParticleSourceConf(self.name, cylinder, self.content)
+        return ParticleSourceConf._from_content(self.name, cylinder, self.content)
 
 
 class ParticleSourceTubeSection(NamedConfigSection):
@@ -100,4 +108,4 @@ class ParticleSourceTubeSection(NamedConfigSection):
 
     def make(self):
         tube = Tube(self.content[:3], self.content[3:6], self.content.tube_inner_radius, self.content.tube_outer_radius)
-        return ParticleSourceConf(self.name, tube, self.content)
+        return ParticleSourceConf._from_content(self.name, tube, self.content)

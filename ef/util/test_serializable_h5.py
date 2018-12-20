@@ -17,8 +17,9 @@ def test_serializable_h5(tmpdir):
         a.save_h5(h5)
     with h5py.File(fname, "r") as h5:
         assert A.load_h5(h5) == a
-    a = A(np.arange(100), A(np.array(((1., 2.), (3., 4.))), 'hello'))
+    a = A(np.arange(100), A(np.array(((1., 2.), (3., 4.))), list('hello')))
     with h5py.File(fname, "w") as h5:
         a.save_h5(h5)
     with h5py.File(fname, "r") as h5:
-        assert A.load_h5(h5) == a
+        b = A.load_h5(h5)
+        assert b == a

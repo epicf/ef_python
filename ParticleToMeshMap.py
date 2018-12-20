@@ -1,7 +1,10 @@
 from math import ceil
-from Vec3d import Vec3d
 
-class ParticleToMeshMap():  
+from Vec3d import Vec3d
+from ef.util.serializable_h5 import SerializableH5
+
+
+class ParticleToMeshMap(SerializableH5):
 
     @classmethod
     def weight_particles_charge_to_mesh(cls, spat_mesh, particle_sources):
@@ -22,31 +25,30 @@ class ParticleToMeshMap():
                 tlf_j, tlf_y_weight = next_node_num_and_weight(p.position.y, dy)
                 tlf_k, tlf_z_weight = next_node_num_and_weight(p.position.z, dz)
                 spat_mesh.charge_density[tlf_i][tlf_j][tlf_k] += \
-                        tlf_x_weight * tlf_y_weight * tlf_z_weight \
-                        * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i-1][tlf_j][tlf_k] += \
-                        (1.0 - tlf_x_weight) * tlf_y_weight * tlf_z_weight \
-                        * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i][tlf_j-1][tlf_k] += \
-                        tlf_x_weight * (1.0 - tlf_y_weight) * tlf_z_weight \
-                        * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i-1][tlf_j-1][tlf_k] += \
-                        (1.0 - tlf_x_weight) * (1.0 - tlf_y_weight) * tlf_z_weight \
-                        * p.charge / volume_around_node
+                    tlf_x_weight * tlf_y_weight * tlf_z_weight \
+                    * p.charge / volume_around_node
+                spat_mesh.charge_density[tlf_i - 1][tlf_j][tlf_k] += \
+                    (1.0 - tlf_x_weight) * tlf_y_weight * tlf_z_weight \
+                    * p.charge / volume_around_node
+                spat_mesh.charge_density[tlf_i][tlf_j - 1][tlf_k] += \
+                    tlf_x_weight * (1.0 - tlf_y_weight) * tlf_z_weight \
+                    * p.charge / volume_around_node
+                spat_mesh.charge_density[tlf_i - 1][tlf_j - 1][tlf_k] += \
+                    (1.0 - tlf_x_weight) * (1.0 - tlf_y_weight) * tlf_z_weight \
+                    * p.charge / volume_around_node
                 spat_mesh.charge_density[tlf_i][tlf_j][tlf_k - 1] += \
-                        tlf_x_weight * tlf_y_weight * (1.0 - tlf_z_weight) \
-                        * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i-1][tlf_j][tlf_k - 1] += \
-                        (1.0 - tlf_x_weight) * tlf_y_weight * (1.0 - tlf_z_weight) \
-                        * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i][tlf_j-1][tlf_k - 1] += \
-                        tlf_x_weight * (1.0 - tlf_y_weight) * (1.0 - tlf_z_weight) \
-                        * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i-1][tlf_j-1][tlf_k - 1] += \
-                        (1.0 - tlf_x_weight) * (1.0 - tlf_y_weight) * \
-                        (1.0 - tlf_z_weight) \
-                        * p.charge / volume_around_node
-
+                    tlf_x_weight * tlf_y_weight * (1.0 - tlf_z_weight) \
+                    * p.charge / volume_around_node
+                spat_mesh.charge_density[tlf_i - 1][tlf_j][tlf_k - 1] += \
+                    (1.0 - tlf_x_weight) * tlf_y_weight * (1.0 - tlf_z_weight) \
+                    * p.charge / volume_around_node
+                spat_mesh.charge_density[tlf_i][tlf_j - 1][tlf_k - 1] += \
+                    tlf_x_weight * (1.0 - tlf_y_weight) * (1.0 - tlf_z_weight) \
+                    * p.charge / volume_around_node
+                spat_mesh.charge_density[tlf_i - 1][tlf_j - 1][tlf_k - 1] += \
+                    (1.0 - tlf_x_weight) * (1.0 - tlf_y_weight) * \
+                    (1.0 - tlf_z_weight) \
+                    * p.charge / volume_around_node
 
     @classmethod
     def field_at_particle_position(cls, spat_mesh, p):
@@ -65,7 +67,7 @@ class ParticleToMeshMap():
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # trf
-        field_from_node = spat_mesh.electric_field[tlf_i-1][tlf_j][tlf_k].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j][tlf_k].times_scalar(
             1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
@@ -77,38 +79,37 @@ class ParticleToMeshMap():
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # brf
-        field_from_node = spat_mesh.electric_field[tlf_i-1][tlf_j-1][tlf_k].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j - 1][tlf_k].times_scalar(
             1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # tln
-        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j][tlf_k-1].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j][tlf_k - 1].times_scalar(
             tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # trn
-        field_from_node = spat_mesh.electric_field[tlf_i-1][tlf_j][tlf_k-1].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j][tlf_k - 1].times_scalar(
             1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # bln
-        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j - 1][tlf_k-1].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j - 1][tlf_k - 1].times_scalar(
             tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # brn
-        field_from_node = spat_mesh.electric_field[tlf_i-1][tlf_j-1][tlf_k-1].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j - 1][tlf_k - 1].times_scalar(
             1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         #
         return total_field
-
 
     @classmethod
     def force_on_particle(cls, spat_mesh, p):
@@ -127,7 +128,7 @@ class ParticleToMeshMap():
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # trf
-        field_from_node = spat_mesh.electric_field[tlf_i-1][tlf_j][tlf_k].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j][tlf_k].times_scalar(
             1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
@@ -139,31 +140,31 @@ class ParticleToMeshMap():
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # brf
-        field_from_node = spat_mesh.electric_field[tlf_i-1][tlf_j-1][tlf_k].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j - 1][tlf_k].times_scalar(
             1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # tln
-        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j][tlf_k-1].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j][tlf_k - 1].times_scalar(
             tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # trn
-        field_from_node = spat_mesh.electric_field[tlf_i-1][tlf_j][tlf_k-1].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j][tlf_k - 1].times_scalar(
             1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # bln
-        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j - 1][tlf_k-1].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j - 1][tlf_k - 1].times_scalar(
             tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
         total_field = total_field.add(field_from_node)
         # brn
-        field_from_node = spat_mesh.electric_field[tlf_i-1][tlf_j-1][tlf_k-1].times_scalar(
+        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j - 1][tlf_k - 1].times_scalar(
             1.0 - tlf_x_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
         field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)

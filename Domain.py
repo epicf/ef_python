@@ -1,103 +1,36 @@
-import sys
-
 import h5py
 
-from ExternalFieldsManager import ExternalFieldsManager
 from FieldSolver import FieldSolver
-from InnerRegionsManager import InnerRegionsManager
-from ParticleInteractionModel import ParticleInteractionModel
-from ParticleSourcesManager import ParticleSourcesManager
-from ParticleToMeshMap import ParticleToMeshMap
-from SpatialMesh import SpatialMesh
-from TimeGrid import TimeGrid
-from ef.config import efconf
+from ef.util.serializable_h5 import SerializableH5
 
 
-class Domain:
+class Domain(SerializableH5):
 
     def __init__(self, time_grid, spat_mesh, inner_regions,
-                 particle_to_mesh_map, field_solver, particle_sources,
+                 particle_to_mesh_map, particle_sources,
                  external_fields, particle_interaction_model,
                  output_filename_prefix, outut_filename_suffix):
         self.time_grid = time_grid
         self.spat_mesh = spat_mesh
         self.inner_regions = inner_regions
         self.particle_to_mesh_map = particle_to_mesh_map
-        self.field_solver = field_solver
+        self._field_solver = FieldSolver(spat_mesh, inner_regions)
         self.particle_sources = particle_sources
         self.external_fields = external_fields
         self.particle_interaction_model = particle_interaction_model
-        self.output_filename_prefix = output_filename_prefix
-        self.output_filename_suffix = outut_filename_suffix
-
-    @classmethod
-    def init_from_config(cls, conf):
-        ef = efconf.EfConf.from_configparser(conf)
-        time_grid = ef.time_grid.make()
-        spat_mesh = ef.spatial_mesh.make(ef.boundary_conditions)
-        inner_regions = InnerRegionsManager.init_from_config(
-            conf, spat_mesh)
-        particle_to_mesh_map = ParticleToMeshMap()
-        field_solver = FieldSolver(spat_mesh, inner_regions)
-        particle_sources = ParticleSourcesManager.init_from_config(conf)
-        external_fields = ExternalFieldsManager.init_from_config(conf)
-        particle_interaction_model = ParticleInteractionModel.init_from_config(conf)
-        output_filename_prefix, output_filename_suffix = \
-            Domain.get_output_filename_prefix_and_suffix(conf)
-        Domain.check_and_print_unused_conf_sections(conf)
-        return cls(time_grid, spat_mesh, inner_regions,
-                   particle_to_mesh_map, field_solver, particle_sources,
-                   external_fields, particle_interaction_model,
-                   output_filename_prefix, output_filename_suffix)
-
-    @staticmethod
-    def get_output_filename_prefix_and_suffix(conf):
-        output_filename_prefix = conf["OutputFilename"]["output_filename_prefix"]
-        output_filename_suffix = conf["OutputFilename"]["output_filename_suffix"]
-        # TODO: a "get" should not write anything!
-        Domain.mark_outputfilename_sec_as_used(conf)
-        return output_filename_prefix, output_filename_suffix
-
-    @staticmethod
-    def mark_outputfilename_sec_as_used(conf):
-        # For now simply mark sections as 'used' instead of removing them.
-        conf["OutputFilename"]["used"] = "True"
-
-    @staticmethod
-    def check_and_print_unused_conf_sections(conf):
-        found_unused = False
-        for sec_name in conf.sections():
-            if not conf[sec_name].getboolean("used"):
-                print("!!!! Warning: unused config section: ", sec_name)
-                found_unused = True
-        if found_unused:
-            print("If you don't need these sections, please, comment them explicitly.")
-            print("Aborting.")
-            sys.exit(-1)
+        self._output_filename_prefix = output_filename_prefix
+        self._output_filename_suffix = outut_filename_suffix
 
     @classmethod
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
-        time_grid = TimeGrid.load_h5(h5file["/TimeGrid"])
-        spat_mesh = SpatialMesh.load_h5(h5file["/SpatialMesh"])
-        inner_regions = InnerRegionsManager.init_from_h5(
-            h5file["/InnerRegions"], spat_mesh)
-        particle_to_mesh_map = ParticleToMeshMap()
-        field_solver = FieldSolver(spat_mesh, inner_regions)
-        particle_sources = ParticleSourcesManager.init_from_h5(
-            h5file["/ParticleSources"])
-        external_fields = ExternalFieldsManager.init_from_h5(
-            h5file["/ExternalFields"])
-        particle_interaction_model = ParticleInteractionModel.init_from_h5(
-            h5file["/ParticleInteractionModel"])
-        output_filename_prefix = filename_prefix
-        output_filename_suffix = filename_suffix
-        return cls(time_grid, spat_mesh, inner_regions,
-                   particle_to_mesh_map, field_solver, particle_sources,
-                   external_fields, particle_interaction_model,
-                   output_filename_prefix, output_filename_suffix)
+        domain = cls.load_h5(h5file)
+        domain._output_filename_prefix = filename_prefix
+        domain._output_filename_suffix = filename_suffix
+        return domain
 
     def start_pic_simulation(self):
         self.eval_and_write_fields_without_particles()
+        self.particle_sources.generate_initial_particles()
         self.prepare_recently_generated_particles_for_boris_integration()
         self.write_step_to_save()
         self.run_pic()
@@ -134,8 +67,8 @@ class Domain:
             self.spat_mesh, self.particle_sources)
 
     def eval_potential_and_fields(self):
-        self.field_solver.eval_potential(self.spat_mesh, self.inner_regions)
-        self.field_solver.eval_fields_from_potential(self.spat_mesh)
+        self._field_solver.eval_potential(self.spat_mesh, self.inner_regions)
+        self._field_solver.eval_fields_from_potential(self.spat_mesh)
 
     def push_particles(self):
         dt = self.time_grid.time_step_size
@@ -212,8 +145,8 @@ class Domain:
 
     def write(self):
         file_name_to_write = self.construct_output_filename(
-            self.output_filename_prefix, self.time_grid.current_node,
-            self.output_filename_suffix)
+            self._output_filename_prefix, self.time_grid.current_node,
+            self._output_filename_suffix)
         h5file = h5py.File(file_name_to_write, mode="w")
         if not h5file:
             print("Error: can't open file " + file_name_to_write + \
@@ -221,14 +154,8 @@ class Domain:
             print("Recheck \'output_filename_prefix\' key in config file.")
             print("Make sure the directory you want to save to exists.")
             print("Writing initial fields to file " + file_name_to_write)
-        print("Writing step {} to file {}".format(
-            self.time_grid.current_node, file_name_to_write))
-        self.time_grid.write_to_file(h5file)
-        self.spat_mesh.write_to_file(h5file)
-        self.particle_sources.write_to_file(h5file)
-        self.inner_regions.write_to_file(h5file)
-        self.external_fields.write_to_file(h5file)
-        self.particle_interaction_model.write_to_file(h5file)
+        print("Writing step {} to file {}".format(self.time_grid.current_node, file_name_to_write))
+        self.save_h5(h5file)
         h5file.close()
 
     @staticmethod
@@ -257,9 +184,7 @@ class Domain:
     def eval_and_write_fields_without_particles(self):
         self.spat_mesh.clear_old_density_values()
         self.eval_potential_and_fields()
-        file_name_to_write = self.output_filename_prefix + \
-                             "fieldsWithoutParticles" + \
-                             self.output_filename_suffix
+        file_name_to_write = self._output_filename_prefix + "fieldsWithoutParticles" + self._output_filename_suffix
         h5file = h5py.File(file_name_to_write, mode="w")
         if not h5file:
             print("Error: can't open file " + file_name_to_write + \
@@ -267,7 +192,7 @@ class Domain:
             print("Recheck \'output_filename_prefix\' key in config file.")
             print("Make sure the directory you want to save to exists.")
             print("Writing initial fields to file " + file_name_to_write)
-        self.spat_mesh.write_to_file(h5file)
-        self.external_fields.write_to_file(h5file)
-        self.inner_regions.write_to_file(h5file)
+        self.spat_mesh.save_h5(h5file.create_group("spat_mesh"))
+        self.external_fields.save_h5(h5file.create_group("external_fields"))
+        self.inner_regions.save_h5(h5file.create_group("inner_regions"))
         h5file.close()

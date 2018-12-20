@@ -17,7 +17,7 @@ class ParticleInteractionModelConf(ConfigComponent):
         return ParticleInteractionModelSection(self.model)
 
     def make(self):
-        return ParticleInteractionModel.ParticleInteractionModel.do_init()
+        return ParticleInteractionModel.ParticleInteractionModel(self.model)
 
 
 class ParticleInteractionModelSection(ConfigSection):

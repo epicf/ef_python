@@ -1,3 +1,5 @@
+from enum import Enum
+
 import numpy as np
 from h5py import Dataset, Group
 
@@ -34,8 +36,11 @@ class SerializableH5(DataClass):
         elif isinstance(value, SerializableH5):
             value.save_h5(group.create_group(key))
         elif isinstance(value, list):
+            subgroup = group.create_group(key)
             for i, v in enumerate(value):
-                cls._save_value(group.create_group(i), v)
+                cls._save_value(subgroup, str(i), v)
+        elif isinstance(value, Enum):
+            group.attrs[key] = value.name
         else:
             group.attrs[key] = value
 
@@ -44,6 +49,13 @@ class SerializableH5(DataClass):
         if isinstance(value, Dataset):
             return np.array(value)
         elif isinstance(value, Group):
-            return SerializableH5.load_h5(value)
+            try:
+                return SerializableH5.load_h5(value)
+            except KeyError as err:
+                d = {k: cls._load_value(v) for k, v in value.items()}
+                d.update(value.attrs)
+                if d.keys() != {str(i) for i in range(len(d))}:
+                    raise TypeError("Could not parse hdf5 group into SerializableH5", value) from err
+            return [d[str(i)] for i in range(len(d.keys()))]
         else:
             raise TypeError("hdf5 group member of unexpected type found", value)

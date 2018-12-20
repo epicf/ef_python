@@ -144,9 +144,9 @@ class TestDefaultSpatialMesh:
 
         mesh1 = SpatialMesh.do_init((10, 20, 30), (2, 1, 3), BoundaryConditionsConf(3.14))
         with h5py.File(fname, mode="w") as h5file:
-            mesh1.write_to_file(h5file)
+            mesh1.save_h5(h5file.create_group("/mesh"))
         with h5py.File(fname, mode="r") as h5file:
-            mesh2 = SpatialMesh.load_h5(h5file["/SpatialMesh"])
+            mesh2 = SpatialMesh.load_h5(h5file["/mesh"])
         assert mesh1 == mesh2
 
         mesh2 = SpatialMesh.do_init((10, 20, 30), (2, 1, 3), BoundaryConditionsConf(3.14))
@@ -171,7 +171,7 @@ class TestDefaultSpatialMesh:
         assert mesh1 != mesh2
 
         with h5py.File(fname, mode="w") as h5file:
-            mesh2.write_to_file(h5file)
+            mesh2.save_h5(h5file.create_group("/SpatialMesh"))
         with h5py.File(fname, mode="r") as h5file:
             mesh1 = SpatialMesh.load_h5(h5file["/SpatialMesh"])
         assert mesh1 == mesh2
