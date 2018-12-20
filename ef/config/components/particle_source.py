@@ -91,7 +91,7 @@ class ParticleSourceCylinderSection(NamedConfigSection):
 
     def make(self):
         cylinder = Cylinder(self.content[:3], self.content[3:6], self.content.cylinder_radius)
-        return ParticleSourceConf(self.name, cylinder, self.content)
+        return ParticleSourceConf._from_content(self.name, cylinder, self.content)
 
 
 class ParticleSourceTubeSection(NamedConfigSection):
@@ -108,4 +108,4 @@ class ParticleSourceTubeSection(NamedConfigSection):
 
     def make(self):
         tube = Tube(self.content[:3], self.content[3:6], self.content.tube_inner_radius, self.content.tube_outer_radius)
-        return ParticleSourceConf(self.name, tube, self.content)
+        return ParticleSourceConf._from_content(self.name, tube, self.content)
