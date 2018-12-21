@@ -1,9 +1,7 @@
 from InnerRegion import InnerRegion
-from Node import Node
 from Particle import Particle
-from SpatialMesh import SpatialMesh
 from Vec3d import Vec3d
-from ef.config.components import BoundaryConditionsConf, Box
+from ef.config.components import Box
 
 
 class TestInnerRegion:
