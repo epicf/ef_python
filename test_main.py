@@ -8,21 +8,15 @@ from ef.config.efconf import EfConf
 from main import main
 
 
-def check_warnings(out, before, after, warning_counts=(0, 1, 2),
-                   warning_text="warning: scipy.sparse.linalg.cg info:  1000\n"):
-    assert out[:len(before)] == before
-    assert out[len(out) - len(after):] == after
-    warnings = out[len(before):len(out) - len(after)]
-    assert warnings in ("".join([warning_text] * c) for c in warning_counts)
-
-
 def test_main(mocker, capsys, tmpdir, monkeypatch):
     monkeypatch.chdir(tmpdir)
     config = tmpdir.join("test_main.conf")
     EfConf(time_grid=TimeGridConf(10, 5, 1)).export_to_fname("test_main.conf")
     mocker.patch("sys.argv", ["main.py", str(config)])
     main()
-    expected_before = f"""Config file is:  {config}
+    out, err = capsys.readouterr()
+    assert err == ""
+    assert out == f"""Config file is:  {config}
 [ TimeGrid ]
 total_time = 10
 time_save_step = 5
@@ -46,8 +40,7 @@ boundary_phi_near = 0.0
 boundary_phi_far = 0.0
 [ ParticleInteractionModel ]
 particle_interaction_model = PIC
-"""
-    expected_after = """Writing step 0 to file out_0000000.h5
+Writing step 0 to file out_0000000.h5
 Time step from 0 to 1 of 10
 Time step from 1 to 2 of 10
 Time step from 2 to 3 of 10
@@ -61,9 +54,6 @@ Time step from 8 to 9 of 10
 Time step from 9 to 10 of 10
 Writing step 10 to file out_0000010.h5
 """
-    out, err = capsys.readouterr()
-    assert err == ""
-    check_warnings(out, expected_before, expected_after)
 
 
 @pytest.mark.parametrize("fname", [

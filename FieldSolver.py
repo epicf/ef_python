@@ -1,4 +1,5 @@
 import sys
+from logging import warning
 
 import numpy as np
 import scipy.sparse
@@ -101,7 +102,7 @@ class FieldSolver:
         self.phi_vec, info = scipy.sparse.linalg.cg(self.A, self.rhs, self.phi_vec,
                                                     self.tol, self.maxiter)
         if info != 0:
-            print("warning: scipy.sparse.linalg.cg info: ", info)
+            warning(f"scipy.sparse.linalg.cg info: {info}")
         self.transfer_solution_to_spat_mesh(spat_mesh)
 
     def init_rhs_vector(self, spat_mesh, inner_regions):
