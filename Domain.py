@@ -107,10 +107,11 @@ class Domain(SerializableH5):
             src.particles[:] = [p for p in src.particles if not self.out_of_bound(p)]
 
     def remove_particles_inside_inner_regions(self):
-        for src in self.particle_sources.sources:
-            src.particles[:] = \
-                [p for p in src.particles \
-                 if not self.inner_regions.check_if_particle_inside_and_count_charge(p)]
+        for region in self.inner_regions.regions:
+            for src in self.particle_sources.sources:
+                src.particles[:] = \
+                    [p for p in src.particles \
+                     if not region.check_if_particle_inside_and_count_charge(p)]
 
     def out_of_bound(self, particle):
         return np.any(particle._position < 0) or np.any(particle._position > self.spat_mesh.size)
