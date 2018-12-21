@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 
 import numpy as np
+import pytest
 
 from ExternalFieldExpression import ExternalFieldExpression
 from ExternalFieldUniform import ExternalFieldUniform
@@ -34,6 +35,7 @@ class TestDomain:
         assert dom._output_filename_prefix == "out_"
         assert dom._output_filename_suffix == ".h5"
 
+    @pytest.mark.slowish
     def test_all_config(self):
         efconf = EfConf(TimeGridConf(200, 20, 2), SpatialMeshConf((5, 5, 5), (.1, .1, .1)),
                         sources=[ParticleSourceConf('a', Box()),
