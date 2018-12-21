@@ -7,7 +7,6 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from SpatialMesh import SpatialMesh
-from Vec3d import Vec3d
 from ef.config.components import SpatialMeshConf, BoundaryConditionsConf
 
 
@@ -50,7 +49,7 @@ class TestDefaultSpatialMesh:
         potential = np.full((3, 3, 2), 3.14)
         assert_array_equal(mesh.potential, potential)
         assert_array_equal(mesh._electric_field, np.zeros((3, 3, 2, 3)))
-        assert_array_equal(mesh.electric_field, np.full((3, 3, 2), Vec3d.zero()))
+        assert_array_equal(mesh.electric_field, np.full((3, 3, 2, 3), 0))
         out, err = capsys.readouterr()
         assert out == ""
         assert err == ""
@@ -83,7 +82,7 @@ class TestDefaultSpatialMesh:
         assert mesh._node_coordinates.shape == (3, 3, 2, 3)
         assert mesh.charge_density.shape == (3, 3, 2)
         assert mesh.potential.shape == (3, 3, 2)
-        assert mesh.electric_field.shape == (3, 3, 2)
+        assert mesh.electric_field.shape == (3, 3, 2, 3)
         assert mesh._electric_field.shape == (3, 3, 2, 3)
         coords = np.array([[[[0., 0., 0.], [0., 0., 3.]], [[0., 1., 0.], [0., 1., 3.]],
                             [[0., 2., 0.], [0., 2., 3.]]],
@@ -96,7 +95,7 @@ class TestDefaultSpatialMesh:
         potential = np.full((3, 3, 2), 3.14)
         assert_array_equal(mesh.potential, potential)
         assert_array_equal(mesh._electric_field, np.zeros((3, 3, 2, 3)))
-        assert_array_equal(mesh.electric_field, np.full((3, 3, 2), Vec3d.zero()))
+        assert_array_equal(mesh.electric_field, np.full((3, 3, 2, 3), 0))
 
     def test_do_init_potential(self):
         mesh = SpatialMesh.do_init((12, 12, 12), (4, 4, 6),
