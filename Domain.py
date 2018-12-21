@@ -1,4 +1,5 @@
 import h5py
+import numpy as np
 
 from FieldSolver import FieldSolver
 from ef.util.serializable_h5 import SerializableH5
@@ -112,15 +113,7 @@ class Domain(SerializableH5):
                  if not self.inner_regions.check_if_particle_inside_and_count_charge(p)]
 
     def out_of_bound(self, particle):
-        x = particle.position.x
-        y = particle.position.y
-        z = particle.position.z
-        out = (x >= self.spat_mesh.x_volume_size) or (x <= 0) \
-              or \
-              (y >= self.spat_mesh.y_volume_size) or (y <= 0) \
-              or \
-              (z >= self.spat_mesh.z_volume_size) or (z <= 0)
-        return out
+        return np.any(particle._position < 0) or np.any(particle._position > self.spat_mesh.size)
 
     def generate_new_particles(self):
         self.particle_sources.generate_each_step()

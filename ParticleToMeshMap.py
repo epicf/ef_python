@@ -21,9 +21,9 @@ class ParticleToMeshMap(SerializableH5):
         # 'tlf' = 'top_left_far'
         for part_src in particle_sources.sources:
             for p in part_src.particles:
-                tlf_i, tlf_x_weight = next_node_num_and_weight(p.position.x, dx)
-                tlf_j, tlf_y_weight = next_node_num_and_weight(p.position.y, dy)
-                tlf_k, tlf_z_weight = next_node_num_and_weight(p.position.z, dz)
+                tlf_i, tlf_x_weight = next_node_num_and_weight(p._position[0], dx)
+                tlf_j, tlf_y_weight = next_node_num_and_weight(p._position[1], dy)
+                tlf_k, tlf_z_weight = next_node_num_and_weight(p._position[2], dz)
                 spat_mesh.charge_density[tlf_i][tlf_j][tlf_k] += \
                     tlf_x_weight * tlf_y_weight * tlf_z_weight \
                     * p.charge / volume_around_node
@@ -51,14 +51,14 @@ class ParticleToMeshMap(SerializableH5):
                     * p.charge / volume_around_node
 
     @classmethod
-    def field_at_particle_position(cls, spat_mesh, p):
+    def field_at_position(cls, spat_mesh, p):
         dx = spat_mesh.x_cell_size
         dy = spat_mesh.y_cell_size
         dz = spat_mesh.z_cell_size
         # 'tlf' = 'top_left_far'
-        tlf_i, tlf_x_weight = next_node_num_and_weight(p.position.x, dx)
-        tlf_j, tlf_y_weight = next_node_num_and_weight(p.position.y, dy)
-        tlf_k, tlf_z_weight = next_node_num_and_weight(p.position.z, dz)
+        tlf_i, tlf_x_weight = next_node_num_and_weight(p[0], dx)
+        tlf_j, tlf_y_weight = next_node_num_and_weight(p[1], dy)
+        tlf_k, tlf_z_weight = next_node_num_and_weight(p[2], dz)
         # tlf
         total_field = Vec3d.zero()
         field_from_node = Vec3d(*spat_mesh.electric_field[tlf_i][tlf_j][tlf_k]).times_scalar(
@@ -117,9 +117,9 @@ class ParticleToMeshMap(SerializableH5):
         dy = spat_mesh.y_cell_size
         dz = spat_mesh.z_cell_size
         # 'tlf' = 'top_left_far'
-        tlf_i, tlf_x_weight = next_node_num_and_weight(p.position.x, dx)
-        tlf_j, tlf_y_weight = next_node_num_and_weight(p.position.y, dy)
-        tlf_k, tlf_z_weight = next_node_num_and_weight(p.position.z, dz)
+        tlf_i, tlf_x_weight = next_node_num_and_weight(p._position[0], dx)
+        tlf_j, tlf_y_weight = next_node_num_and_weight(p._position[1], dy)
+        tlf_k, tlf_z_weight = next_node_num_and_weight(p._position[2], dz)
         # tlf
         total_field = Vec3d.zero()
         field_from_node = spat_mesh.electric_field[tlf_i][tlf_j][tlf_k].times_scalar(

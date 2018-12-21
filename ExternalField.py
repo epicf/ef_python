@@ -7,5 +7,5 @@ class ExternalField(SerializableH5):
         self.name = name
         self.electric_or_magnetic = electric_or_magnetic
 
-    def field_at_particle_position(self, particle, current_time):
+    def field_at_position(self, position, current_time):
         raise NotImplementedError()

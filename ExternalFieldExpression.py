@@ -13,10 +13,10 @@ class ExternalFieldExpression(ExternalField):
         self.expression_y = expression_y
         self.expression_z = expression_z
 
-    def field_at_particle_position(self, particle, current_time):
-        ev = SimpleEval(names={"x": particle.position.x,
-                               "y": particle.position.y,
-                               "z": particle.position.z,
+    def field_at_position(self, position, current_time):
+        ev = SimpleEval(names={"x": position.x,
+                               "y": position.y,
+                               "z": position.z,
                                "t": current_time},
                         functions={"sin": math.sin,
                                    "cos": math.cos,

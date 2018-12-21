@@ -28,10 +28,6 @@ class Particle(SerializableH5):
         self.momentum_is_half_time_step_shifted = momentum_is_half_time_step_shifted
 
     @property
-    def position(self):
-        return Vec3d(*self._position)
-
-    @property
     def dict(self):
         d = super().dict
         d['position'] = self._position

@@ -73,20 +73,20 @@ class ParticleSourcesManager(SerializableH5):
             particle, current_time)
         if particle_interaction_model.noninteracting:
             if inner_regions.regions or not spat_mesh.is_potential_equal_on_boundaries():
-                innerreg_el_field = particle_to_mesh_map.field_at_particle_position(
-                    spat_mesh, particle)
+                innerreg_el_field = particle_to_mesh_map.field_at_position(
+                    spat_mesh, Vec3d(*particle._position))
                 total_el_field = total_el_field.add(innerreg_el_field)
         elif particle_interaction_model.binary:
             bin_el_field = self.binary_field_at_particle_position(
                 particle, src_idx, p_idx)
             total_el_field = total_el_field.add(bin_el_field)
             if inner_regions.regions or not spat_mesh.is_potential_equal_on_boundaries():
-                innerreg_el_field = particle_to_mesh_map.field_at_particle_position(
-                    spat_mesh, particle)
+                innerreg_el_field = particle_to_mesh_map.field_at_position(
+                    spat_mesh, Vec3d(*particle._position))
                 total_el_field = total_el_field.add(innerreg_el_field)
         elif particle_interaction_model.pic:
             innerreg_and_pic_el_field = \
-                particle_to_mesh_map.field_at_particle_position(spat_mesh, particle)
+                particle_to_mesh_map.field_at_position(spat_mesh, particle)
             total_el_field = total_el_field.add(innerreg_and_pic_el_field)
         #
         total_mgn_field = None
@@ -102,9 +102,9 @@ class ParticleSourcesManager(SerializableH5):
         for iter_src_idx, src in enumerate(self.sources):
             if iter_src_idx != src_idx:
                 for p in src.particles:
-                    bin_force = bin_force.add(p.field_at_point(particle.position))
+                    bin_force = bin_force.add(p.field_at_point(particle._position))
             else:
                 for p in src.particles:
                     if p.id != particle.id:
-                        bin_force = bin_force.add(p.field_at_point(particle.position))
+                        bin_force = bin_force.add(p.field_at_point(particle._position))
         return bin_force

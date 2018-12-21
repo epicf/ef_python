@@ -118,25 +118,25 @@ class ExternalFieldFromFile(ExternalField):
                  (z >= self.z_start) and (z <= self.z_end)
         return inside
 
-    def field_at_particle_position(self, particle, current_time):
-        if self.inside_mesh(particle.position):
-            field = self.field_from_grid(particle)
+    def field_at_position(self, position, current_time):
+        if self.inside_mesh(position):
+            field = self.field_from_grid(position)
         else:
             field = Vec3d.zero()
         return field
 
     # todo: refactor
-    def field_from_grid(self, particle):
+    def field_from_grid(self, position):
         dx = self.x_cell_size
         dy = self.y_cell_size
         dz = self.z_cell_size
         # 'tlf' = 'top_left_far'
         tlf_i, tlf_x_weight = self.next_node_num_and_weight(
-            particle.position.x, dx, self.x_start)
+            position.x, dx, self.x_start)
         tlf_j, tlf_y_weight = self.next_node_num_and_weight(
-            particle.position.y, dy, self.y_start)
+            position.y, dy, self.y_start)
         tlf_k, tlf_z_weight = self.next_node_num_and_weight(
-            particle.position.z, dz, self.z_start)
+            position.z, dz, self.z_start)
         # tlf
         total_field = Vec3d.zero()
         field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k].times_scalar(
