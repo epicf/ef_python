@@ -72,7 +72,7 @@ class ParticleSourcesManager(SerializableH5):
         total_el_field = external_fields.total_electric_field_at_particle_position(
             particle, current_time)
         if particle_interaction_model.noninteracting:
-            if inner_regions.regions or not spat_mesh.is_potential_equal_on_boundaries():
+            if inner_regions or not spat_mesh.is_potential_equal_on_boundaries():
                 innerreg_el_field = particle_to_mesh_map.field_at_position(
                     spat_mesh, Vec3d(*particle._position))
                 total_el_field = total_el_field.add(innerreg_el_field)
@@ -80,7 +80,7 @@ class ParticleSourcesManager(SerializableH5):
             bin_el_field = self.binary_field_at_particle_position(
                 particle, src_idx, p_idx)
             total_el_field = total_el_field.add(bin_el_field)
-            if inner_regions.regions or not spat_mesh.is_potential_equal_on_boundaries():
+            if inner_regions or not spat_mesh.is_potential_equal_on_boundaries():
                 innerreg_el_field = particle_to_mesh_map.field_at_position(
                     spat_mesh, Vec3d(*particle._position))
                 total_el_field = total_el_field.add(innerreg_el_field)

@@ -8,7 +8,6 @@ from ExternalFieldUniform import ExternalFieldUniform
 from ExternalFieldsManager import ExternalFieldsManager
 from FieldSolver import FieldSolver
 from InnerRegion import InnerRegion
-from InnerRegionsManager import InnerRegionsManager
 from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSourcesManager import ParticleSourcesManager
 from ParticleToMeshMap import ParticleToMeshMap
@@ -26,7 +25,7 @@ class TestDomain:
         dom = EfConf.from_configparser(parser).make()
         assert dom.time_grid == TimeGrid(100, 1, 10)
         assert dom.spat_mesh == SpatialMesh.do_init((10, 10, 10), (1, 1, 1), BoundaryConditionsConf(0))
-        assert dom.inner_regions == InnerRegionsManager([])
+        assert dom.inner_regions == []
         assert dom.particle_to_mesh_map == ParticleToMeshMap()
         assert type(dom._field_solver) == FieldSolver
         assert dom.particle_sources == ParticleSourcesManager([])
@@ -56,10 +55,10 @@ class TestDomain:
         dom = EfConf.from_configparser(parser).make()
         assert dom.time_grid == TimeGrid(200, 2, 20)
         assert dom.spat_mesh == SpatialMesh.do_init((5, 5, 5), (.1, .1, .1), BoundaryConditionsConf(-2.7))
-        assert dom.inner_regions == InnerRegionsManager([InnerRegion('1', Box(), 1),
-                                                         InnerRegion('2', Sphere(), -2),
-                                                         InnerRegion('3', Cylinder(), 0),
-                                                         InnerRegion('4', Tube(), 4)])
+        assert dom.inner_regions == [InnerRegion('1', Box(), 1),
+                                     InnerRegion('2', Sphere(), -2),
+                                     InnerRegion('3', Cylinder(), 0),
+                                     InnerRegion('4', Tube(), 4)]
         assert dom.particle_to_mesh_map == ParticleToMeshMap()
         assert type(dom._field_solver) == FieldSolver
         assert dom.particle_sources == ParticleSourcesManager([ParticleSourceConf('a', Box()).make(),

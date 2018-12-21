@@ -107,7 +107,7 @@ class Domain(SerializableH5):
             src.particles[:] = [p for p in src.particles if not self.out_of_bound(p)]
 
     def remove_particles_inside_inner_regions(self):
-        for region in self.inner_regions.regions:
+        for region in self.inner_regions:
             for src in self.particle_sources.sources:
                 src.particles[:] = \
                     [p for p in src.particles \
