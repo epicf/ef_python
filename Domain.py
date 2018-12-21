@@ -185,7 +185,8 @@ class Domain(SerializableH5):
             print("Recheck \'output_filename_prefix\' key in config file.")
             print("Make sure the directory you want to save to exists.")
             print("Writing initial fields to file " + file_name_to_write)
-        self.spat_mesh.save_h5(h5file.create_group("spat_mesh"))
-        self.external_fields.save_h5(h5file.create_group("external_fields"))
-        self.inner_regions.save_h5(h5file.create_group("inner_regions"))
+        h5file.attrs['class'] = self.__class__.__name__
+        self._save_value(h5file, "spat_mesh", self.spat_mesh)
+        self._save_value(h5file, "external_fields", self.external_fields)
+        self._save_value(h5file, "inner_regions", self.inner_regions)
         h5file.close()
