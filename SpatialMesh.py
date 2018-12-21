@@ -2,7 +2,6 @@ import logging
 
 import numpy as np
 
-from Vec3d import Vec3d
 from ef.util.serializable_h5 import SerializableH5
 
 
@@ -11,65 +10,20 @@ class SpatialMesh(SerializableH5):
         self.size = size
         self.n_nodes = n_nodes
         self.cell = size / (self.n_nodes - 1)
-        self._node_coordinates = np.moveaxis(np.mgrid[0:self.x_n_nodes, 0:self.y_n_nodes, 0:self.z_n_nodes], 0, -1) \
+        self._node_coordinates = np.moveaxis(np.mgrid[0:self.n_nodes[0], 0:self.n_nodes[1], 0:self.n_nodes[2]], 0, -1) \
                                  * self.cell
         self.charge_density = charge_density
         self.potential = potential
-        self._electric_field = electric_field
+        self.electric_field = electric_field
 
     @property
     def node_coordinates(self):
         return self._node_coordinates
 
     @property
-    def x_volume_size(self):
-        return self.size[0]
-
-    @property
-    def y_volume_size(self):
-        return self.size[1]
-
-    @property
-    def z_volume_size(self):
-        return self.size[2]
-
-    @property
-    def x_n_nodes(self):
-        return self.n_nodes[0]
-
-    @property
-    def y_n_nodes(self):
-        return self.n_nodes[1]
-
-    @property
-    def z_n_nodes(self):
-        return self.n_nodes[2]
-
-    @property
-    def shape(self):
-        return self.n_nodes
-
-    @property
-    def x_cell_size(self):
-        return self.cell[0]
-
-    @property
-    def y_cell_size(self):
-        return self.cell[1]
-
-    @property
-    def z_cell_size(self):
-        return self.cell[2]
-
-    @property
-    def electric_field(self):
-        return np.apply_along_axis(lambda v: Vec3d(*v), -1, self._electric_field)
-
-    @property
     def dict(self):
         d = super().dict
         del d["cell"]
-        d['electric_field'] = self._electric_field
         return d
 
     @classmethod
@@ -121,35 +75,3 @@ class SpatialMesh(SerializableH5):
         return np.all(self.potential[0] == p) and np.all(self.potential[-1] == p) and \
                np.all(self.potential[:, 0] == p) and np.all(self.potential[:, -1] == p) and \
                np.all(self.potential[:, :, 0] == p) and np.all(self.potential[:, :, -1] == p)
-
-    def print(self):
-        self.print_grid()
-        self.print_ongrid_values()
-
-    def print_grid(self):
-        print("Grid:")
-        print("Length: x = {:.3f}, y = {:.3f}, z = {:.3f}".format(
-            self.x_volume_size, self.y_volume_size, self.z_volume_size))
-        print("Cell size: x = {:.3f}, y = {:.3f}, z = {:.3f}".format(
-            self.x_cell_size, self.y_cell_size, self.z_cell_size))
-        print("Total nodes: x = {:d}, y = {:d}, z = {:d}".format(
-            self.x_n_nodes, self.y_n_nodes, self.z_n_nodes))
-
-    def print_ongrid_values(self):
-        nx = self.x_n_nodes
-        ny = self.y_n_nodes
-        nz = self.z_n_nodes
-        print("x_node   y_node   z_node | "
-              "charge_density | potential | electric_field(x,y,z)")
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    "{:8d} {:8d} {:8d} | "
-                    "{:14.3f} | {:14.3f} | "
-                    "{:14.3f} {:14.3f} {:14.3f}".format(
-                        i, j, k,
-                        self.charge_density[i][j][k],
-                        self.potential[i][j][k],
-                        self._electric_field[i][j][k][0],
-                        self._electric_field[i][j][k][1],
-                        self._electric_field[i][j][k][2])

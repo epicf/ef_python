@@ -22,7 +22,7 @@ class TestFieldSolver:
                              [[[-4, -1, 1], [0, 0, 1]], [[-3, -1, 2], [0, 0, 2]], [[-2, -1, 3], [0, 0, 3]]],
                              [[[-3, 1, 4], [0, 0, 4]], [[-2, 1, 3], [0, 0, 3]], [[-1, 1, 2], [0, 0, 2]]],
                              [[[0, 0, 4], [0, 0, 4]], [[-2, 0, 4], [0, 0, 4]], [[-4, 0, 4], [0, 0, 4]]]])
-        assert_array_equal(mesh._electric_field, expected)
+        assert_array_equal(mesh.electric_field, expected)
 
     def test_global_index(self):
         double_index = list(FieldSolver.double_index(np.array((9, 10, 6))))

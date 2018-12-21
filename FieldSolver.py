@@ -12,9 +12,7 @@ class FieldSolver:
             print("WARNING: field-solver: inner region support is untested")
             print("WARNING: proceed with caution")
         self._double_index = self.double_index(spat_mesh.n_nodes)
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
+        nx, ny, nz = spat_mesh.n_nodes
         nrows = (nx - 2) * (ny - 2) * (nz - 2)
         ncols = nrows
         self.A = None
@@ -24,12 +22,8 @@ class FieldSolver:
         self.create_solver_and_preconditioner()
 
     def construct_equation_matrix(self, spat_mesh, inner_regions):
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
-        dx = spat_mesh.x_cell_size
-        dy = spat_mesh.y_cell_size
-        dz = spat_mesh.z_cell_size
+        nx, ny, nz = spat_mesh.n_nodes
+        dx, dy, dz = spat_mesh.cell
         self.construct_equation_matrix_in_full_domain(nx, ny, nz, dx, dy, dz)
         self.zero_nondiag_for_nodes_inside_objects(spat_mesh, inner_regions)
 
@@ -163,9 +157,7 @@ class FieldSolver:
         return (i, j, k)
 
     def transfer_solution_to_spat_mesh(self, spat_mesh):
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
+        nx, ny, nz = spat_mesh.n_nodes
         nrow = (nx - 2) * (ny - 2) * (nz - 2)
         ncol = nrow
         for global_index in range(nrow):
@@ -175,7 +167,7 @@ class FieldSolver:
     @staticmethod
     def eval_fields_from_potential(spat_mesh):
         e = -np.stack(np.gradient(spat_mesh.potential, *spat_mesh.cell), -1)
-        spat_mesh._electric_field = e
+        spat_mesh.electric_field = e
 
     @staticmethod
     def double_index(n_nodes):

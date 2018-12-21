@@ -22,6 +22,6 @@ class TestParticleToMeshMap:
 
     def test_field_at_position(self):
         mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())
-        mesh._electric_field[1:2, 0:2, 0:2] = np.array([[[2, 1, 0], [-3, 1, 0]],
+        mesh.electric_field[1:2, 0:2, 0:2] = np.array([[[2, 1, 0], [-3, 1, 0]],
                                                        [[0, -1, 0], [-1, 0, 0]]])
         assert ParticleToMeshMap.field_at_position(mesh, np.array((1, 1, 3))) == Vec3d(-1.25, 0.375, 0)
