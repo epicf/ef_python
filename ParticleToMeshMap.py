@@ -1,4 +1,4 @@
-from math import ceil
+import numpy as np
 
 from Vec3d import Vec3d
 from ef.util.serializable_h5 import SerializableH5
@@ -8,174 +8,24 @@ class ParticleToMeshMap(SerializableH5):
 
     @classmethod
     def weight_particles_charge_to_mesh(cls, spat_mesh, particle_sources):
-        # Rewrite:
-        # forall particles {
-        #   find nonzero weights and corresponding nodes
-        #   charge[node] = weight(particle, node) * particle.charge
-        # }
-        dx = spat_mesh.x_cell_size
-        dy = spat_mesh.y_cell_size
-        dz = spat_mesh.z_cell_size
-        cell_volume = dx * dy * dz
-        volume_around_node = cell_volume
-        # 'tlf' = 'top_left_far'
+        volume_around_node = spat_mesh.cell.prod()
         for part_src in particle_sources.sources:
             for p in part_src.particles:
-                tlf_i, tlf_x_weight = next_node_num_and_weight(p._position[0], dx)
-                tlf_j, tlf_y_weight = next_node_num_and_weight(p._position[1], dy)
-                tlf_k, tlf_z_weight = next_node_num_and_weight(p._position[2], dz)
-                spat_mesh.charge_density[tlf_i][tlf_j][tlf_k] += \
-                    tlf_x_weight * tlf_y_weight * tlf_z_weight \
-                    * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i - 1][tlf_j][tlf_k] += \
-                    (1.0 - tlf_x_weight) * tlf_y_weight * tlf_z_weight \
-                    * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i][tlf_j - 1][tlf_k] += \
-                    tlf_x_weight * (1.0 - tlf_y_weight) * tlf_z_weight \
-                    * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i - 1][tlf_j - 1][tlf_k] += \
-                    (1.0 - tlf_x_weight) * (1.0 - tlf_y_weight) * tlf_z_weight \
-                    * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i][tlf_j][tlf_k - 1] += \
-                    tlf_x_weight * tlf_y_weight * (1.0 - tlf_z_weight) \
-                    * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i - 1][tlf_j][tlf_k - 1] += \
-                    (1.0 - tlf_x_weight) * tlf_y_weight * (1.0 - tlf_z_weight) \
-                    * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i][tlf_j - 1][tlf_k - 1] += \
-                    tlf_x_weight * (1.0 - tlf_y_weight) * (1.0 - tlf_z_weight) \
-                    * p.charge / volume_around_node
-                spat_mesh.charge_density[tlf_i - 1][tlf_j - 1][tlf_k - 1] += \
-                    (1.0 - tlf_x_weight) * (1.0 - tlf_y_weight) * \
-                    (1.0 - tlf_z_weight) \
-                    * p.charge / volume_around_node
+                charge = p.charge / volume_around_node
+                node, remainder = np.divmod(p._position, spat_mesh.cell)
+                nx, ny, nz = np.array(node, np.int)
+                cell_slice = spat_mesh.charge_density[nx:nx + 2, ny:ny + 2, nz:nz + 2]
+                weight = remainder / spat_mesh.cell
+                weights = np.array([1. - weight, weight])
+                dn = np.moveaxis(np.mgrid[0:2, 0:2, 0:2], 0, -1)
+                cell_slice += weights[dn, [0, 1, 2]].prod(-1) * charge
 
     @classmethod
-    def field_at_position(cls, spat_mesh, p):
-        dx = spat_mesh.x_cell_size
-        dy = spat_mesh.y_cell_size
-        dz = spat_mesh.z_cell_size
-        # 'tlf' = 'top_left_far'
-        tlf_i, tlf_x_weight = next_node_num_and_weight(p[0], dx)
-        tlf_j, tlf_y_weight = next_node_num_and_weight(p[1], dy)
-        tlf_k, tlf_z_weight = next_node_num_and_weight(p[2], dz)
-        # tlf
-        total_field = Vec3d.zero()
-        field_from_node = Vec3d(*spat_mesh.electric_field[tlf_i][tlf_j][tlf_k]).times_scalar(
-            tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # trf
-        field_from_node = Vec3d(*spat_mesh.electric_field[tlf_i - 1][tlf_j][tlf_k]).times_scalar(
-            1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # blf
-        field_from_node = Vec3d(*spat_mesh.electric_field[tlf_i][tlf_j - 1][tlf_k]).times_scalar(
-            tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # brf
-        field_from_node = Vec3d(*spat_mesh.electric_field[tlf_i - 1][tlf_j - 1][tlf_k]).times_scalar(
-            1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # tln
-        field_from_node = Vec3d(*spat_mesh.electric_field[tlf_i][tlf_j][tlf_k - 1]).times_scalar(
-            tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # trn
-        field_from_node = Vec3d(*spat_mesh.electric_field[tlf_i - 1][tlf_j][tlf_k - 1]).times_scalar(
-            1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # bln
-        field_from_node = Vec3d(*spat_mesh.electric_field[tlf_i][tlf_j - 1][tlf_k - 1]).times_scalar(
-            tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # brn
-        field_from_node = Vec3d(*spat_mesh.electric_field[tlf_i - 1][tlf_j - 1][tlf_k - 1]).times_scalar(
-            1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        #
-        return total_field
-
-    @classmethod
-    def force_on_particle(cls, spat_mesh, p):
-        dx = spat_mesh.x_cell_size
-        dy = spat_mesh.y_cell_size
-        dz = spat_mesh.z_cell_size
-        # 'tlf' = 'top_left_far'
-        tlf_i, tlf_x_weight = next_node_num_and_weight(p._position[0], dx)
-        tlf_j, tlf_y_weight = next_node_num_and_weight(p._position[1], dy)
-        tlf_k, tlf_z_weight = next_node_num_and_weight(p._position[2], dz)
-        # tlf
-        total_field = Vec3d.zero()
-        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j][tlf_k].times_scalar(
-            tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # trf
-        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j][tlf_k].times_scalar(
-            1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # blf
-        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j - 1][tlf_k].times_scalar(
-            tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # brf
-        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j - 1][tlf_k].times_scalar(
-            1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # tln
-        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j][tlf_k - 1].times_scalar(
-            tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # trn
-        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j][tlf_k - 1].times_scalar(
-            1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # bln
-        field_from_node = spat_mesh.electric_field[tlf_i][tlf_j - 1][tlf_k - 1].times_scalar(
-            tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        # brn
-        field_from_node = spat_mesh.electric_field[tlf_i - 1][tlf_j - 1][tlf_k - 1].times_scalar(
-            1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
-        #
-        force = total_field.times_scalar(p.charge)
-        return force
-
-
-def next_node_num_and_weight(x, grid_step):
-    x_in_grid_units = x / grid_step
-    next_node = ceil(x_in_grid_units)
-    weight = 1.0 - (next_node - x_in_grid_units)
-    return (next_node, weight)
+    def field_at_position(cls, spat_mesh, position):
+        node, remainder = np.divmod(position, spat_mesh.cell)
+        nx, ny, nz = np.array(node, np.int)
+        cell_slice = spat_mesh.electric_field[nx:nx + 2, ny:ny + 2, nz:nz + 2]
+        weight = remainder / spat_mesh.cell
+        weights = np.array([1. - weight, weight])
+        dn = np.moveaxis(np.mgrid[0:2, 0:2, 0:2], 0, -1)
+        return Vec3d(*(weights[dn, [0, 1, 2]].prod(-1)[:, :, :, np.newaxis] * cell_slice).sum((0, 1, 2)))
