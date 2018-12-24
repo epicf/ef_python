@@ -39,9 +39,7 @@ class Particle(SerializableH5):
     def field_at_point(self, point):
         diff = np.array(point) - self._position
         dist = np.linalg.norm(diff)
-        if dist == 0:
-            return None
-        return Vec3d(*(self.charge / dist ** 3 * diff))
+        return self.charge / dist ** 3 * diff
 
     def boris_update_momentum(self, dt, total_el_field, total_mgn_field):
         self.momentum = boris_update_momentum(self.charge, self.mass, self.momentum, dt, total_el_field,

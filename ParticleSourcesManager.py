@@ -1,6 +1,6 @@
 from Vec3d import Vec3d
 from ef.util.serializable_h5 import SerializableH5
-
+import numpy as np
 
 class ParticleSourcesManager(SerializableH5):
 
@@ -77,8 +77,7 @@ class ParticleSourcesManager(SerializableH5):
                     spat_mesh, Vec3d(*particle._position))
                 total_el_field = total_el_field.add(innerreg_el_field)
         elif particle_interaction_model.binary:
-            bin_el_field = self.binary_field_at_particle_position(
-                particle, src_idx, p_idx)
+            bin_el_field = self.binary_field_at_point(particle._position)
             total_el_field = total_el_field.add(bin_el_field)
             if inner_regions or not spat_mesh.is_potential_equal_on_boundaries():
                 innerreg_el_field = particle_to_mesh_map.field_at_position(
@@ -96,15 +95,6 @@ class ParticleSourcesManager(SerializableH5):
         #
         return (total_el_field, total_mgn_field)
 
-    def binary_field_at_particle_position(self, particle, src_idx, p_idx):
-        # todo: swap src_idx and p_idx arguments order
-        bin_force = Vec3d.zero()
-        for iter_src_idx, src in enumerate(self.sources):
-            if iter_src_idx != src_idx:
-                for p in src.particles:
-                    bin_force = bin_force.add(p.field_at_point(particle._position))
-            else:
-                for p in src.particles:
-                    if p.id != particle.id:
-                        bin_force = bin_force.add(p.field_at_point(particle._position))
-        return bin_force
+    def binary_field_at_point(self, position):
+        return Vec3d(
+            *sum(np.nan_to_num(p.field_at_point(position)) for src in self.sources for p in src.particles))

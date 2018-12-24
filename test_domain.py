@@ -1,18 +1,23 @@
 from configparser import ConfigParser
+from math import sqrt
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal
 
 from ExternalFieldExpression import ExternalFieldExpression
 from ExternalFieldUniform import ExternalFieldUniform
 from ExternalFieldsManager import ExternalFieldsManager
 from FieldSolver import FieldSolver
 from InnerRegion import InnerRegion
+from Particle import Particle
 from ParticleInteractionModel import ParticleInteractionModel
+from ParticleSource import ParticleSource
 from ParticleSourcesManager import ParticleSourcesManager
 from ParticleToMeshMap import ParticleToMeshMap
 from SpatialMesh import SpatialMesh
 from TimeGrid import TimeGrid
+from Vec3d import Vec3d
 from ef.config.components import *
 from ef.config.efconf import EfConf
 
@@ -72,3 +77,11 @@ class TestDomain:
         assert dom.particle_interaction_model == ParticleInteractionModel("binary")
         assert dom._output_filename_prefix == "out_"
         assert dom._output_filename_suffix == ".h5"
+
+    def test_binary_field(self):
+        sm = ParticleSourcesManager(
+            [ParticleSource('s1', Box(), 1, 0, 0, 0, 1, 1, [Particle(1, -1, 1, (1, 2, 3), (-2, 2, 0), False)], 1)])
+        assert sm.binary_field_at_point((1, 2, 3)) == Vec3d.zero()
+        assert sm.binary_field_at_point((1, 2, 4)) == Vec3d(0, 0, -1)
+        assert sm.binary_field_at_point((0, 2, 3)) == Vec3d(1, 0, 0)
+        assert_array_almost_equal(sm.binary_field_at_point((0, 1, 2)), Vec3d(1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))
