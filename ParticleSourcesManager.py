@@ -1,6 +1,8 @@
+import numpy as np
+
 from Vec3d import Vec3d
 from ef.util.serializable_h5 import SerializableH5
-import numpy as np
+
 
 class ParticleSourcesManager(SerializableH5):
 
@@ -31,12 +33,11 @@ class ParticleSourcesManager(SerializableH5):
                           spat_mesh, external_fields, inner_regions,
                           particle_to_mesh_map, particle_interaction_model):
         # todo: too many arguments
-        for src_idx, src in enumerate(self.sources):
-            for p_idx, particle in enumerate(src.particles):
+        for src in self.sources:
+            for particle in src.particles:
                 total_el_field, total_mgn_field = \
-                    self.compute_total_fields_at_particle_position(
-                        particle, src_idx, p_idx,
-                        current_time, spat_mesh, external_fields, inner_regions,
+                    self.compute_total_fields_at_position(
+                        particle._position, current_time, spat_mesh, external_fields, inner_regions,
                         particle_to_mesh_map, particle_interaction_model)
                 if total_mgn_field:
                     particle.boris_update_momentum(dt, total_el_field, total_mgn_field)
@@ -49,13 +50,12 @@ class ParticleSourcesManager(SerializableH5):
                                   particle_to_mesh_map, particle_interaction_model):
         # todo: too many arguments
         # todo: place newly generated particles into separate buffer
-        for src_idx, src in enumerate(self.sources):
-            for p_idx, particle in enumerate(src.particles):
+        for src in self.sources:
+            for particle in src.particles:
                 if not particle.momentum_is_half_time_step_shifted:
                     total_el_field, total_mgn_field = \
-                        self.compute_total_fields_at_particle_position(
-                            particle, src_idx, p_idx,
-                            current_time, spat_mesh, external_fields, inner_regions,
+                        self.compute_total_fields_at_position(
+                            particle._position, current_time, spat_mesh, external_fields, inner_regions,
                             particle_to_mesh_map, particle_interaction_model)
                     if total_mgn_field:
                         particle.boris_update_momentum(minus_half_dt,
@@ -65,35 +65,23 @@ class ParticleSourcesManager(SerializableH5):
                                                               total_el_field)
                     particle.momentum_is_half_time_step_shifted = True
 
-    def compute_total_fields_at_particle_position(
-            self, particle, src_idx, p_idx,
-            current_time, spat_mesh, external_fields, inner_regions,
+    def compute_total_fields_at_position(
+            self, position, current_time, spat_mesh, external_fields, inner_regions,
             particle_to_mesh_map, particle_interaction_model):
-        total_el_field = external_fields.total_electric_field_at_particle_position(
-            particle, current_time)
+        total_el_field = external_fields.total_electric_field_at_position(position, current_time)
         if particle_interaction_model.noninteracting:
             if inner_regions or not spat_mesh.is_potential_equal_on_boundaries():
-                innerreg_el_field = particle_to_mesh_map.field_at_position(
-                    spat_mesh, Vec3d(*particle._position))
-                total_el_field = total_el_field.add(innerreg_el_field)
+                total_el_field += particle_to_mesh_map.field_at_position(spat_mesh, position)
         elif particle_interaction_model.binary:
-            bin_el_field = self.binary_field_at_point(particle._position)
-            total_el_field = total_el_field.add(bin_el_field)
+            total_el_field += self.binary_field_at_point(position)
             if inner_regions or not spat_mesh.is_potential_equal_on_boundaries():
-                innerreg_el_field = particle_to_mesh_map.field_at_position(
-                    spat_mesh, Vec3d(*particle._position))
-                total_el_field = total_el_field.add(innerreg_el_field)
+                total_el_field += particle_to_mesh_map.field_at_position(spat_mesh, position)
         elif particle_interaction_model.pic:
-            innerreg_and_pic_el_field = \
-                particle_to_mesh_map.field_at_position(spat_mesh, particle)
-            total_el_field = total_el_field.add(innerreg_and_pic_el_field)
-        #
+            total_el_field += particle_to_mesh_map.field_at_position(spat_mesh, position)
         total_mgn_field = None
         if external_fields.magnetic:
-            total_mgn_field = external_fields.total_magnetic_field_at_particle_position(
-                particle, current_time)
-        #
-        return (total_el_field, total_mgn_field)
+            total_mgn_field = external_fields.total_magnetic_field_at_position(position, current_time)
+        return total_el_field, total_mgn_field
 
     def binary_field_at_point(self, position):
         return Vec3d(
