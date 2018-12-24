@@ -2,7 +2,6 @@ import logging
 
 import numpy as np
 
-from Vec3d import Vec3d
 from ef.util.serializable_h5 import SerializableH5
 
 
@@ -88,7 +87,7 @@ class SpatialMesh(SerializableH5):
         weight = remainder / self.cell
         weights = np.array([1. - weight, weight])
         dn = np.moveaxis(np.mgrid[0:2, 0:2, 0:2], 0, -1)
-        return Vec3d(*(weights[dn, [0, 1, 2]].prod(-1)[:, :, :, np.newaxis] * cell_slice).sum((0, 1, 2)))
+        return (weights[dn, [0, 1, 2]].prod(-1)[:, :, :, np.newaxis] * cell_slice).sum((0, 1, 2))
 
     def clear_old_density_values(self):
         self.charge_density.fill(0)

@@ -85,7 +85,7 @@ class Domain(SerializableH5):
             for particle in src.particles:
                 total_el_field, total_mgn_field = \
                     self.compute_total_fields_at_position(particle._position)
-                if total_mgn_field:
+                if total_mgn_field is not None and total_mgn_field.any():
                     particle.boris_update_momentum(dt, total_el_field, total_mgn_field)
                 else:
                     particle.boris_update_momentum_no_mgn(dt, total_el_field)
@@ -98,7 +98,7 @@ class Domain(SerializableH5):
                 if not particle.momentum_is_half_time_step_shifted:
                     total_el_field, total_mgn_field = \
                         self.compute_total_fields_at_position(particle._position)
-                    if total_mgn_field:
+                    if total_mgn_field is not None and total_mgn_field.any():
                         particle.boris_update_momentum(minus_half_dt, total_el_field, total_mgn_field)
                     else:
                         particle.boris_update_momentum_no_mgn(minus_half_dt, total_el_field)

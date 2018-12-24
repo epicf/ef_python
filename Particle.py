@@ -1,7 +1,6 @@
 import numpy as np
 
 import physical_constants
-from Vec3d import Vec3d
 from ef.util.serializable_h5 import SerializableH5
 
 

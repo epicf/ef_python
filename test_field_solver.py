@@ -46,7 +46,7 @@ class TestFieldSolver:
         assert_array_equal(solver.rhs, np.zeros(3 * 2 * 2))
 
         mesh = SpatialMeshConf((4, 3, 3)).make(BoundaryConditionsConf(-2))
-        solver = FieldSolver(mesh,[])
+        solver = FieldSolver(mesh, [])
         solver.init_rhs_vector_in_full_domain(mesh)
         assert_array_equal(solver.rhs, [6, 4, 6, 6, 4, 6, 6, 4, 6, 6, 4, 6])  # what
 

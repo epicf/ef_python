@@ -15,7 +15,6 @@ from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSource import ParticleSource
 from SpatialMesh import SpatialMesh
 from TimeGrid import TimeGrid
-from Vec3d import Vec3d
 from ef.config.components import *
 from ef.config.efconf import EfConf
 
@@ -78,7 +77,7 @@ class TestDomain:
         d = EfConf().make()
         d.particle_sources = [
             ParticleSource('s1', Box(), 1, 0, 0, 0, 1, 1, [Particle(1, -1, 1, (1, 2, 3), (-2, 2, 0), False)], 1)]
-        assert_array_almost_equal(d.binary_field_at_point((1, 2, 3)), Vec3d.zero())
-        assert_array_almost_equal(d.binary_field_at_point((1, 2, 4)), Vec3d(0, 0, -1))
-        assert_array_almost_equal(d.binary_field_at_point((0, 2, 3)), Vec3d(1, 0, 0))
-        assert_array_almost_equal(d.binary_field_at_point((0, 1, 2)), Vec3d(1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))
+        assert_array_almost_equal(d.binary_field_at_point((1, 2, 3)), (0, 0, 0))
+        assert_array_almost_equal(d.binary_field_at_point((1, 2, 4)), (0, 0, -1))
+        assert_array_almost_equal(d.binary_field_at_point((0, 2, 3)), (1, 0, 0))
+        assert_array_almost_equal(d.binary_field_at_point((0, 1, 2)), (1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))

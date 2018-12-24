@@ -1,4 +1,3 @@
-from Vec3d import Vec3d
 from ef.util.serializable_h5 import SerializableH5
 
 
@@ -9,13 +8,7 @@ class ExternalFieldsManager(SerializableH5):
         self.magnetic = list(magnetic)
 
     def total_electric_field_at_position(self, position, current_time):
-        if self.electric:
-            return Vec3d(*sum(f.field_at_position(Vec3d(*position), current_time) for f in self.electric))
-        else:
-            return Vec3d.zero()
+        return sum(f.field_at_position(position, current_time) for f in self.electric)
 
     def total_magnetic_field_at_position(self, position, current_time):
-        if self.magnetic:
-            return Vec3d(*sum(f.field_at_position(Vec3d(*position), current_time) for f in self.magnetic))
-        else:
-            return Vec3d.zero()
+        return sum(f.field_at_position(position, current_time) for f in self.magnetic)

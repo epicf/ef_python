@@ -7,7 +7,6 @@ from numpy.testing import assert_array_equal
 
 from Particle import Particle
 from SpatialMesh import SpatialMesh
-from Vec3d import Vec3d
 from ef.config.components import SpatialMeshConf, BoundaryConditionsConf, ParticleSourceConf
 
 
@@ -167,4 +166,4 @@ class TestDefaultSpatialMesh:
         mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())
         mesh.electric_field[1:2, 0:2, 0:2] = np.array([[[2, 1, 0], [-3, 1, 0]],
                                                        [[0, -1, 0], [-1, 0, 0]]])
-        assert mesh.field_at_position(np.array((1, 1, 3))) == Vec3d(-1.25, 0.375, 0)
+        assert_array_equal(mesh.field_at_position(np.array((1, 1, 3))), (-1.25, 0.375, 0))

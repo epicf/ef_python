@@ -4,7 +4,6 @@ from math import ceil
 import numpy as np
 
 from ExternalField import ExternalField
-from Vec3d import Vec3d
 
 
 class ExternalFieldFromFile(ExternalField):
@@ -53,7 +52,7 @@ class ExternalFieldFromFile(ExternalField):
 
         for global_idx, (Fx, Fy, Fz) in enumerate(zip(mesh[:, 3], mesh[:, 4], mesh[:, 5])):
             i, j, k = self.global_idx_to_node_ijk(global_idx)
-            self.field_from_file[i][j][k] = Vec3d(Fx, Fy, Fz)
+            self.field_from_file[i][j][k] = (Fx, Fy, Fz)
 
     def determine_volume_sizes(self, mesh):
         self.x_volume_size = mesh[-1, 0] - mesh[0, 0]
@@ -108,9 +107,7 @@ class ExternalFieldFromFile(ExternalField):
         return (i, j, k)
 
     def inside_mesh(self, point):
-        x = point.x
-        y = point.y
-        z = point.z
+        x, y, z = point
         inside = (x >= self.x_start) and (x <= self.x_end) \
                  and \
                  (y >= self.y_start) and (y <= self.y_end) \
@@ -132,11 +129,11 @@ class ExternalFieldFromFile(ExternalField):
         dz = self.z_cell_size
         # 'tlf' = 'top_left_far'
         tlf_i, tlf_x_weight = self.next_node_num_and_weight(
-            position.x, dx, self.x_start)
+            position[0], dx, self.x_start)
         tlf_j, tlf_y_weight = self.next_node_num_and_weight(
-            position.y, dy, self.y_start)
+            position[1], dy, self.y_start)
         tlf_k, tlf_z_weight = self.next_node_num_and_weight(
-            position.z, dz, self.z_start)
+            position[2], dz, self.z_start)
         # tlf
         total_field = np.zeros(3)
         field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k] * tlf_x_weight

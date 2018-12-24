@@ -15,9 +15,9 @@ class ExternalFieldExpression(ExternalField):
         self.expression_z = expression_z
 
     def field_at_position(self, position, current_time):
-        ev = SimpleEval(names={"x": position.x,
-                               "y": position.y,
-                               "z": position.z,
+        ev = SimpleEval(names={"x": position[0],
+                               "y": position[1],
+                               "z": position[2],
                                "t": current_time},
                         functions={"sin": math.sin,
                                    "cos": math.cos,
