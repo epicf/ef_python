@@ -122,7 +122,7 @@ class ExternalFieldFromFile(ExternalField):
         if self.inside_mesh(position):
             field = self.field_from_grid(position)
         else:
-            field = Vec3d.zero()
+            field = np.zeros(3)
         return field
 
     # todo: refactor
@@ -179,7 +179,7 @@ class ExternalFieldFromFile(ExternalField):
         field_from_node *= (1.0 - tlf_z_weight)
         total_field += field_from_node
         #
-        return Vec3d(*total_field)
+        return total_field
 
     @staticmethod
     def next_node_num_and_weight(x, grid_step, x_start):

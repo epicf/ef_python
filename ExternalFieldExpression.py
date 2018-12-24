@@ -1,7 +1,8 @@
 import math
 
+import numpy as np
+
 from ExternalField import ExternalField
-from Vec3d import Vec3d
 from libs.simpleeval.simpleeval import SimpleEval
 
 
@@ -26,4 +27,4 @@ class ExternalFieldExpression(ExternalField):
         fx = ev.eval(self.expression_x)
         fy = ev.eval(self.expression_y)
         fz = ev.eval(self.expression_z)
-        return Vec3d(fx, fy, fz)
+        return np.array((fx, fy, fz))

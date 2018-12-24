@@ -1,5 +1,4 @@
 from ExternalField import ExternalField
-from Vec3d import Vec3d
 
 
 class ExternalFieldUniform(ExternalField):
@@ -9,4 +8,4 @@ class ExternalFieldUniform(ExternalField):
         self.uniform_field_vector = uniform_field_vector
 
     def field_at_position(self, position, current_time):
-        return Vec3d(*self.uniform_field_vector)
+        return self.uniform_field_vector
