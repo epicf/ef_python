@@ -31,14 +31,14 @@ class ParticleSourcesManager(SerializableH5):
 
     def boris_integration(self, dt, current_time,
                           spat_mesh, external_fields, inner_regions,
-                          particle_to_mesh_map, particle_interaction_model):
+                          particle_interaction_model):
         # todo: too many arguments
         for src in self.sources:
             for particle in src.particles:
                 total_el_field, total_mgn_field = \
                     self.compute_total_fields_at_position(
                         particle._position, current_time, spat_mesh, external_fields, inner_regions,
-                        particle_to_mesh_map, particle_interaction_model)
+                        particle_interaction_model)
                 if total_mgn_field:
                     particle.boris_update_momentum(dt, total_el_field, total_mgn_field)
                 else:
@@ -47,7 +47,7 @@ class ParticleSourcesManager(SerializableH5):
 
     def prepare_boris_integration(self, minus_half_dt, current_time,
                                   spat_mesh, external_fields, inner_regions,
-                                  particle_to_mesh_map, particle_interaction_model):
+                                  particle_interaction_model):
         # todo: too many arguments
         # todo: place newly generated particles into separate buffer
         for src in self.sources:
@@ -56,7 +56,7 @@ class ParticleSourcesManager(SerializableH5):
                     total_el_field, total_mgn_field = \
                         self.compute_total_fields_at_position(
                             particle._position, current_time, spat_mesh, external_fields, inner_regions,
-                            particle_to_mesh_map, particle_interaction_model)
+                            particle_interaction_model)
                     if total_mgn_field:
                         particle.boris_update_momentum(minus_half_dt,
                                                        total_el_field, total_mgn_field)
@@ -67,17 +67,17 @@ class ParticleSourcesManager(SerializableH5):
 
     def compute_total_fields_at_position(
             self, position, current_time, spat_mesh, external_fields, inner_regions,
-            particle_to_mesh_map, particle_interaction_model):
+            particle_interaction_model):
         total_el_field = external_fields.total_electric_field_at_position(position, current_time)
         if particle_interaction_model.noninteracting:
             if inner_regions or not spat_mesh.is_potential_equal_on_boundaries():
-                total_el_field += particle_to_mesh_map.field_at_position(spat_mesh, position)
+                total_el_field += spat_mesh.field_at_position(position)
         elif particle_interaction_model.binary:
             total_el_field += self.binary_field_at_point(position)
             if inner_regions or not spat_mesh.is_potential_equal_on_boundaries():
-                total_el_field += particle_to_mesh_map.field_at_position(spat_mesh, position)
+                total_el_field += spat_mesh.field_at_position(position)
         elif particle_interaction_model.pic:
-            total_el_field += particle_to_mesh_map.field_at_position(spat_mesh, position)
+            total_el_field += spat_mesh.field_at_position(position)
         total_mgn_field = None
         if external_fields.magnetic:
             total_mgn_field = external_fields.total_magnetic_field_at_position(position, current_time)

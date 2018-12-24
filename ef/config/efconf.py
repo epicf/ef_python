@@ -4,7 +4,6 @@ from configparser import ConfigParser
 import Domain
 from ExternalFieldsManager import ExternalFieldsManager
 from ParticleSourcesManager import ParticleSourcesManager
-from ParticleToMeshMap import ParticleToMeshMap
 from ef.config.components import *
 from ef.config.section import ConfigSection
 from ef.util.data_class import DataClass
@@ -112,7 +111,7 @@ class EfConf(DataClass):
             [s.make() for s in self.external_fields if s.electric_or_magnetic == 'electric'],
             [s.make() for s in self.external_fields if s.electric_or_magnetic == 'magnetic'])
         model = self.particle_interaction_model.make()
-        return Domain.Domain(grid, mesh, regions, ParticleToMeshMap(),
+        return Domain.Domain(grid, mesh, regions,
                              sources, ex_fields, model,
                              self.output_file.prefix, self.output_file.suffix)
 

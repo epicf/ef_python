@@ -8,13 +8,12 @@ from ef.util.serializable_h5 import SerializableH5
 class Domain(SerializableH5):
 
     def __init__(self, time_grid, spat_mesh, inner_regions,
-                 particle_to_mesh_map, particle_sources,
+                 particle_sources,
                  external_fields, particle_interaction_model,
                  output_filename_prefix, outut_filename_suffix):
         self.time_grid = time_grid
         self.spat_mesh = spat_mesh
         self.inner_regions = inner_regions
-        self.particle_to_mesh_map = particle_to_mesh_map
         self._field_solver = FieldSolver(spat_mesh, inner_regions)
         self.particle_sources = particle_sources
         self.external_fields = external_fields
@@ -64,8 +63,7 @@ class Domain(SerializableH5):
 
     def eval_charge_density(self):
         self.spat_mesh.clear_old_density_values()
-        self.particle_to_mesh_map.weight_particles_charge_to_mesh(
-            self.spat_mesh, self.particle_sources)
+        self.spat_mesh.weight_particles_charge_to_mesh(self.particle_sources)
 
     def eval_potential_and_fields(self):
         self._field_solver.eval_potential(self.spat_mesh, self.inner_regions)
@@ -77,7 +75,7 @@ class Domain(SerializableH5):
         self.particle_sources.boris_integration(
             dt, current_time,
             self.spat_mesh, self.external_fields, self.inner_regions,
-            self.particle_to_mesh_map, self.particle_interaction_model)
+            self.particle_interaction_model)
 
     def apply_domain_constrains(self):
         # First generate then remove.
@@ -96,7 +94,7 @@ class Domain(SerializableH5):
         self.particle_sources.prepare_boris_integration(
             minus_half_dt, self.time_grid.current_time,
             self.spat_mesh, self.external_fields, self.inner_regions,
-            self.particle_to_mesh_map, self.particle_interaction_model)
+            self.particle_interaction_model)
 
     #
     # Apply domain constrains

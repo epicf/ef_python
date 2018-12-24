@@ -5,8 +5,11 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+from Particle import Particle
+from ParticleSourcesManager import ParticleSourcesManager
 from SpatialMesh import SpatialMesh
-from ef.config.components import SpatialMeshConf, BoundaryConditionsConf
+from Vec3d import Vec3d
+from ef.config.components import SpatialMeshConf, BoundaryConditionsConf, ParticleSourceConf
 
 
 class TestDefaultSpatialMesh:
@@ -150,3 +153,19 @@ class TestDefaultSpatialMesh:
         assert_array_equal(d["electric_field"], np.zeros((3, 3, 2, 3)))
         assert_array_equal(d["potential"], np.zeros((3, 3, 2)))
         assert_array_equal(d["charge_density"], np.zeros((3, 3, 2)))
+
+    def test_weight_particles_charge_to_mesh(self):
+        mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())
+        sources = ParticleSourcesManager([ParticleSourceConf().make()])
+        sources.sources[0].particles = [Particle(1, -2, 4, (1, 1, 3), (0, 0, 0))]
+        mesh.weight_particles_charge_to_mesh(sources)
+        assert_array_equal(mesh.charge_density,
+                           np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                                     [[-0.25 / 8, -0.75 / 8, 0], [-0.25 / 8, -0.75 / 8, 0], [0, 0, 0]],
+                                     [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]))
+
+    def test_field_at_position(self):
+        mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())
+        mesh.electric_field[1:2, 0:2, 0:2] = np.array([[[2, 1, 0], [-3, 1, 0]],
+                                                       [[0, -1, 0], [-1, 0, 0]]])
+        assert mesh.field_at_position(np.array((1, 1, 3))) == Vec3d(-1.25, 0.375, 0)

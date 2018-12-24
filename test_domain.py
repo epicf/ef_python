@@ -14,7 +14,6 @@ from Particle import Particle
 from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSource import ParticleSource
 from ParticleSourcesManager import ParticleSourcesManager
-from ParticleToMeshMap import ParticleToMeshMap
 from SpatialMesh import SpatialMesh
 from TimeGrid import TimeGrid
 from Vec3d import Vec3d
@@ -31,7 +30,6 @@ class TestDomain:
         assert dom.time_grid == TimeGrid(100, 1, 10)
         assert dom.spat_mesh == SpatialMesh.do_init((10, 10, 10), (1, 1, 1), BoundaryConditionsConf(0))
         assert dom.inner_regions == []
-        assert dom.particle_to_mesh_map == ParticleToMeshMap()
         assert type(dom._field_solver) == FieldSolver
         assert dom.particle_sources == ParticleSourcesManager([])
         assert dom.external_fields == ExternalFieldsManager([], [])
@@ -64,7 +62,6 @@ class TestDomain:
                                      InnerRegion('2', Sphere(), -2),
                                      InnerRegion('3', Cylinder(), 0),
                                      InnerRegion('4', Tube(), 4)]
-        assert dom.particle_to_mesh_map == ParticleToMeshMap()
         assert type(dom._field_solver) == FieldSolver
         assert dom.particle_sources == ParticleSourcesManager([ParticleSourceConf('a', Box()).make(),
                                                                ParticleSourceConf('c', Cylinder()).make(),
