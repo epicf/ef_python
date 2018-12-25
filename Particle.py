@@ -5,6 +5,9 @@ from ef.util.serializable_h5 import SerializableH5
 
 
 def boris_update_momentum(charge, mass, momentum, dt, total_el_field, total_mgn_field):
+    momentum = np.asarray(momentum)
+    total_el_field = np.asarray(total_el_field)
+    total_mgn_field = np.asarray(total_mgn_field)
     q_quote = dt * charge / mass / 2.0  # scalar. how easy is it to move? dt * Q / m /2
     half_el_force = np.asarray(total_el_field) * q_quote  # (n, 3) half the dv caused by electric field
     v_current = momentum / mass  # (n, 3) current velocity (at -1/2 dt already)
@@ -36,7 +39,7 @@ class Particle(SerializableH5):
         self._position += dt / self.mass * self.momentum
 
     def field_at_point(self, point):
-        diff = np.array(point) - self._position
+        diff = np.asarray(point) - self._position
         dist = np.linalg.norm(diff)
         return self.charge / dist ** 3 * diff
 
@@ -45,4 +48,4 @@ class Particle(SerializableH5):
                                               total_mgn_field)
 
     def boris_update_momentum_no_mgn(self, dt, total_el_field):
-        self.momentum += self.charge * dt * np.array(total_el_field)
+        self.momentum += self.charge * dt * np.asarray(total_el_field)

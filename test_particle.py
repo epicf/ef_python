@@ -19,12 +19,12 @@ class TestParticle:
     def test_update_position(self):
         p = Particle(123, -1.0, 2.0, (0., 0., 1.), (1., 0., 3.))
         p.update_position(10.0)
-        assert_array_equal(p._position, np.array((5., 0., 16.)))
+        assert_array_equal(p._position, (5., 0., 16.))
 
     def test_field_at_point(self):
         p = Particle(123, -16.0, 2.0, (0., 0., 1.), (1., 0., 3.))
         assert_array_equal(p.field_at_point((2., 0., 1.)), (-4, 0, 0))
-        assert_array_equal(p.field_at_point((2., 0., 1.)), (-4, 0, 0))
+        assert_array_equal(p.field_at_point((2., 0., 1.)), np.array((-4, 0, 0)))
         assert_array_equal(p.field_at_point(np.array((2., 0., 1.))), (-4, 0, 0))
         assert_array_equal(p.field_at_point((0., 0., 1.)), np.array([np.nan, np.nan, np.nan]))
 
@@ -44,13 +44,15 @@ class TestParticle:
 
 
 def test_update_momentum():
-    assert_array_equal(boris_update_momentum(-1, 2, np.array((1, 0, 3)), 0.1, (-1.0, 2.0, 3.0), (0, 0, 0)),
-                       np.array((1.1, -0.2, 2.7)))
+    assert_array_equal(boris_update_momentum(-1, 2, (1, 0, 3), 0.1, (-1.0, 2.0, 3.0), (0, 0, 0)),
+                       (1.1, -0.2, 2.7))
     assert_array_equal(
-        boris_update_momentum(-1, 2, np.array((1, 0, 3)), 2, (-1.0, 2.0, 3.0), (2 * speed_of_light, 0, 0)),
+        boris_update_momentum(-1, 2, (1, 0, 3), 2, (-1.0, 2.0, 3.0), (2 * speed_of_light, 0, 0)),
+
         (3, -2, -5))
     assert_array_equal(
-        boris_update_momentum(-1, 2, np.array((1, 0, 3)), 2, np.array((-1.0, 2.0, 3.0)), (2 * speed_of_light, 0, 0)),
+        boris_update_momentum(-1, 2, (1, 0, 3), 2, (-1.0, 2.0, 3.0), (2 * speed_of_light, 0, 0)),
+
         (3, -2, -5))
     assert_array_equal(
         boris_update_momentum(charge=-1, mass=2, momentum=np.array([(1, 0, 3)] * 10), dt=2,
