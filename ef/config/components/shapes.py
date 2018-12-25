@@ -1,5 +1,3 @@
-from math import sqrt
-
 import numpy as np
 import rowan
 from numpy.linalg import norm
@@ -18,6 +16,9 @@ class Shape(ConfigComponent, SerializableH5):
         raise NotImplementedError()
 
     def generate_uniform_random_point(self, generator):
+        return self.generate_uniform_random_points(generator, 1)[0]
+
+    def generate_uniform_random_points(self, generator, n):
         raise NotImplementedError()
 
 
@@ -28,8 +29,8 @@ def rotation_from_z(vector):
     :return: Array of length 4 with the rotation quaternion
     """
     cos2 = (vector / norm(vector))[2]
-    cos = sqrt((1 + cos2) / 2)
-    sin = sqrt((1 - cos2) / 2)
+    cos = np.sqrt((1 + cos2) / 2)
+    sin = np.sqrt((1 - cos2) / 2)
     axis = np.cross((0, 0, 1), vector)
     vector_component = (axis / norm(axis)) * sin
     return np.concatenate(([cos], vector_component))
@@ -46,8 +47,8 @@ class Box(Shape):
     def is_point_inside(self, point):
         return np.all(point >= self.origin) and np.all(point <= self.origin + self.size)
 
-    def generate_uniform_random_point(self, generator):
-        return np.array([generator.uniform(self.origin[i], self.origin[i] + self.size[i]) for i in range(3)])
+    def generate_uniform_random_points(self, generator, n):
+        return generator.uniform(self.origin, self.origin + self.size, (n, 3))
 
 
 class Cylinder(Shape):
@@ -63,20 +64,20 @@ class Cylinder(Shape):
     def is_point_inside(self, point):
         pointvec = point - self.start
         axisvec = self.end - self.start
-        axis = np.linalg.norm(axisvec)
+        axis = norm(axisvec)
         unit_axisvec = axisvec / axis
         projection = np.dot(pointvec, unit_axisvec)
         perp_to_axis = pointvec - unit_axisvec * projection
-        return 0 <= projection <= axis and np.linalg.norm(perp_to_axis) <= self.r
+        return 0 <= projection <= axis and norm(perp_to_axis) <= self.r
 
-    def generate_uniform_random_point(self, generator):
-        r = sqrt(generator.uniform(0.0, 1.0)) * self.r
-        phi = generator.uniform(0.0, 2.0 * np.pi)
+    def generate_uniform_random_points(self, generator, n):
+        r = np.sqrt(generator.uniform(0.0, 1.0, n)) * self.r
+        phi = generator.uniform(0.0, 2.0 * np.pi, n)
         x = r * np.cos(phi)
         y = r * np.sin(phi)
-        z = generator.uniform(0.0, norm(self.end - self.start))
-        point = np.array((x, y, z))
-        return rowan.rotate(self._rotation, point) + self.start
+        z = generator.uniform(0.0, norm(self.end - self.start), n)
+        points = np.stack((x, y, z), -1)
+        return rowan.rotate(self._rotation, points) + self.start
 
 
 class Tube(Shape):
@@ -93,20 +94,20 @@ class Tube(Shape):
     def is_point_inside(self, point):
         pointvec = point - self.start
         axisvec = self.end - self.start
-        axis = np.linalg.norm(axisvec)
+        axis = norm(axisvec)
         unit_axisvec = axisvec / axis
         projection = np.dot(pointvec, unit_axisvec)
         perp_to_axis = pointvec - unit_axisvec * projection
-        return 0 <= projection <= axis and self.r <= np.linalg.norm(perp_to_axis) <= self.R
+        return 0 <= projection <= axis and self.r <= norm(perp_to_axis) <= self.R
 
-    def generate_uniform_random_point(self, generator):
-        r = sqrt(generator.uniform(self.r / self.R, 1.0)) * self.R
-        phi = generator.uniform(0.0, 2.0 * np.pi)
+    def generate_uniform_random_points(self, generator, n):
+        r = np.sqrt(generator.uniform(self.r / self.R, 1.0, n)) * self.R
+        phi = generator.uniform(0.0, 2.0 * np.pi, n)
         x = r * np.cos(phi)
         y = r * np.sin(phi)
-        z = generator.uniform(0.0, norm(self.end - self.start))
-        point = np.array((x, y, z))
-        return rowan.rotate(self._rotation, point) + self.start
+        z = generator.uniform(0.0, norm(self.end - self.start), n)
+        points = np.stack((x, y, z), -1)
+        return rowan.rotate(self._rotation, points) + self.start
 
 
 class Sphere(Shape):
@@ -118,14 +119,14 @@ class Sphere(Shape):
         visualizer.draw_sphere(self.origin, self.r, **kwargs)
 
     def is_point_inside(self, point):
-        return np.linalg.norm(point - self.origin) <= self.r
+        return norm(point - self.origin, axis=-1) <= self.r
 
-    def generate_uniform_random_point(self, generator):
+    def generate_uniform_random_points(self, generator, n):
         while True:
-            p = generator.uniform(0, 1, 3) * self.r + self.origin
-            if self.is_point_inside(p):
-                break
-        return p
+            p = generator.uniform(0, 1, (n * 2, 3)) * self.r + self.origin
+            p = p.compress(self.is_point_inside(p), 0)
+            if len(p) > n:
+                return p[:n]
 
 
 class Cone(Shape):
