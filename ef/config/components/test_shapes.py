@@ -1,4 +1,4 @@
-import random
+from numpy.random import RandomState
 
 from ef.config.components import Cylinder, Tube
 from ef.config.components.shapes import Box, Sphere
@@ -138,5 +138,5 @@ def test_generate_point():
     for cls in Box, Sphere, Cylinder, Tube:
         shape = cls()
         for i in range(1000):
-            point = shape.generate_uniform_random_point(random.uniform)
+            point = shape.generate_uniform_random_point(RandomState(0))
             assert shape.is_point_inside(point)

@@ -17,7 +17,7 @@ class Shape(ConfigComponent, SerializableH5):
     def is_point_inside(self, point):
         raise NotImplementedError()
 
-    def generate_uniform_random_point(self, randrange):
+    def generate_uniform_random_point(self, generator):
         raise NotImplementedError()
 
 
@@ -32,8 +32,8 @@ class Box(Shape):
     def is_point_inside(self, point):
         return np.all(point >= self.origin) and np.all(point <= self.origin + self.size)
 
-    def generate_uniform_random_point(self, randrange):
-        return np.array([randrange(self.origin[i], self.origin[i] + self.size[i]) for i in range(3)])
+    def generate_uniform_random_point(self, generator):
+        return np.array([generator.uniform(self.origin[i], self.origin[i] + self.size[i]) for i in range(3)])
 
 
 class Cylinder(Shape):
@@ -54,13 +54,13 @@ class Cylinder(Shape):
         perp_to_axis = pointvec - unit_axisvec * projection
         return 0 <= projection <= axis and np.linalg.norm(perp_to_axis) <= self.r
 
-    def generate_uniform_random_point(self, randrange):
+    def generate_uniform_random_point(self, generator):
         # random point in cylinder along z
         cyl_axis = Vec3d(*(self.end - self.start))
         cyl_axis_length = cyl_axis.length()
-        r = sqrt(randrange(0.0, 1.0)) * self.r
-        phi = randrange(0.0, 2.0 * np.pi)
-        z = randrange(0.0, cyl_axis_length)
+        r = sqrt(generator.uniform(0.0, 1.0)) * self.r
+        phi = generator.uniform(0.0, 2.0 * np.pi)
+        z = generator.uniform(0.0, cyl_axis_length)
         #
         x = r * np.cos(phi)
         y = r * np.sin(phi)
@@ -112,14 +112,14 @@ class Tube(Shape):
         perp_to_axis = pointvec - unit_axisvec * projection
         return 0 <= projection <= axis and self.r <= np.linalg.norm(perp_to_axis) <= self.R
 
-    def generate_uniform_random_point(self, randrange):
+    def generate_uniform_random_point(self, generator):
         # random point in tube along z
         cyl_axis = Vec3d(*(self.end - self.start))
         cyl_axis_length = cyl_axis.length()
-        r = sqrt(randrange(self.r / self.R, 1.0)) \
+        r = sqrt(generator.uniform(self.r / self.R, 1.0)) \
             * self.R
-        phi = randrange(0.0, 2.0 * np.pi)
-        z = randrange(0.0, cyl_axis_length)
+        phi = generator.uniform(0.0, 2.0 * np.pi)
+        z = generator.uniform(0.0, cyl_axis_length)
         #
         x = r * np.cos(phi)
         y = r * np.sin(phi)
@@ -164,9 +164,9 @@ class Sphere(Shape):
     def is_point_inside(self, point):
         return np.linalg.norm(point - self.origin) <= self.r
 
-    def generate_uniform_random_point(self, randrange):
+    def generate_uniform_random_point(self, generator):
         while True:
-            p = np.array([randrange(0, 1) for i in range(3)]) * self.r + self.origin
+            p = np.array([generator.uniform(0, 1) for i in range(3)]) * self.r + self.origin
             if self.is_point_inside(p):
                 break
         return p

@@ -1,7 +1,6 @@
-from numpy.random import RandomState
 from math import sqrt
 
-import numpy as np
+from numpy.random import RandomState
 
 from Particle import Particle
 from ef.util.serializable_h5 import SerializableH5
@@ -42,8 +41,8 @@ class ParticleSource(SerializableH5):
     def generate_num_of_particles(self, num_of_particles):
         vec_of_ids = self.populate_vec_of_ids(num_of_particles)
         for i in range(num_of_particles):
-            pos = self.shape.generate_uniform_random_point(self.random_in_range)
-            mom = self.maxwell_momentum_distr(self.mean_momentum, self.temperature, self.mass)
+            pos = self.shape.generate_uniform_random_point(self._generator)
+            mom = self._generator.normal(self.mean_momentum, sqrt(self.mass * self.temperature))
             self.particles.append(
                 Particle(vec_of_ids[i], self.charge, self.mass, pos, mom))
 
@@ -53,14 +52,3 @@ class ParticleSource(SerializableH5):
             self.max_id += 1
             vec_of_ids.append(self.max_id)
         return vec_of_ids
-
-    def random_in_range(self, low, up):
-        r = self._generator.uniform(low, up)
-        return r
-
-    def maxwell_momentum_distr(self, mean_momentum, temperature, mass):
-        return self._generator.normal(mean_momentum, sqrt(mass * temperature))
-
-    def update_particles_position(self, dt):
-        for p in self.particles:
-            p.update_position(dt)
