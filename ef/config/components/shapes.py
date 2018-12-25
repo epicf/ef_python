@@ -1,13 +1,13 @@
-from math import sqrt, copysign
+from math import sqrt
 
+import numpy as np
+import rowan
+from numpy.linalg import norm
+
+from ef.config.component import ConfigComponent
 from ef.util.serializable_h5 import SerializableH5
 
 __all__ = ['Shape', 'Box', 'Cylinder', 'Tube', 'Sphere', 'Cone']
-
-import numpy as np
-
-from ef.config.component import ConfigComponent
-from Vec3d import Vec3d
 
 
 class Shape(ConfigComponent, SerializableH5):
@@ -19,6 +19,20 @@ class Shape(ConfigComponent, SerializableH5):
 
     def generate_uniform_random_point(self, generator):
         raise NotImplementedError()
+
+
+def rotation_from_z(vector):
+    """
+    Find a quaternion that rotates z-axis into a given vector.
+    :param vector: Any non-zero 3-component vector
+    :return: Array of length 4 with the rotation quaternion
+    """
+    cos2 = (vector / norm(vector))[2]
+    cos = sqrt((1 + cos2) / 2)
+    sin = sqrt((1 - cos2) / 2)
+    axis = np.cross((0, 0, 1), vector)
+    vector_component = (axis / norm(axis)) * sin
+    return np.concatenate(([cos], vector_component))
 
 
 class Box(Shape):
@@ -41,6 +55,7 @@ class Cylinder(Shape):
         self.start = np.array(start, np.float)
         self.end = np.array(end, np.float)
         self.r = float(radius)
+        self._rotation = rotation_from_z(self.end - self.start)
 
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_cylinder(self.start, self.end, self.r, **kwargs)
@@ -55,42 +70,13 @@ class Cylinder(Shape):
         return 0 <= projection <= axis and np.linalg.norm(perp_to_axis) <= self.r
 
     def generate_uniform_random_point(self, generator):
-        # random point in cylinder along z
-        cyl_axis = Vec3d(*(self.end - self.start))
-        cyl_axis_length = cyl_axis.length()
         r = sqrt(generator.uniform(0.0, 1.0)) * self.r
         phi = generator.uniform(0.0, 2.0 * np.pi)
-        z = generator.uniform(0.0, cyl_axis_length)
-        #
         x = r * np.cos(phi)
         y = r * np.sin(phi)
-        z = z
-        random_pnt_in_cyl_along_z = Vec3d(x, y, z)
-        # rotate:
-        # see "https://en.wikipedia.org/wiki/Rodrigues'_rotation_formula"
-        # todo: Too complicated. Try rejection sampling.
-        unit_cyl_axis = cyl_axis.normalized()
-        unit_along_z = Vec3d(0, 0, 1.0)
-        rotation_axis = unit_along_z.cross_product(unit_cyl_axis)
-        rotation_axis_length = rotation_axis.length()
-        if rotation_axis_length == 0:
-            if copysign(1.0, unit_cyl_axis.z) >= 0:
-                random_pnt_in_rotated_cyl = random_pnt_in_cyl_along_z
-            else:
-                random_pnt_in_rotated_cyl = random_pnt_in_cyl_along_z.negate()
-        else:
-            unit_rotation_axis = rotation_axis.normalized()
-            rot_cos = unit_cyl_axis.dot_product(unit_along_z)
-            rot_sin = rotation_axis_length
-            random_pnt_in_rotated_cyl = \
-                random_pnt_in_cyl_along_z.times_scalar(rot_cos) + \
-                unit_rotation_axis.cross_product(random_pnt_in_cyl_along_z) * rot_sin + \
-                unit_rotation_axis.times_scalar(
-                    (1 - rot_cos) *
-                    unit_rotation_axis.dot_product(random_pnt_in_cyl_along_z))
-            # shift:
-        shifted = random_pnt_in_rotated_cyl.add(Vec3d(*self.start))
-        return np.array(shifted)
+        z = generator.uniform(0.0, norm(self.end - self.start))
+        point = np.array((x, y, z))
+        return rowan.rotate(self._rotation, point) + self.start
 
 
 class Tube(Shape):
@@ -99,6 +85,7 @@ class Tube(Shape):
         self.end = np.array(end, np.float)
         self.r = float(inner_radius)
         self.R = float(outer_radius)
+        self._rotation = rotation_from_z(self.end - self.start)
 
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_tube(self.start, self.end, self.r, self.R, **kwargs)
@@ -113,44 +100,13 @@ class Tube(Shape):
         return 0 <= projection <= axis and self.r <= np.linalg.norm(perp_to_axis) <= self.R
 
     def generate_uniform_random_point(self, generator):
-        # random point in tube along z
-        cyl_axis = Vec3d(*(self.end - self.start))
-        cyl_axis_length = cyl_axis.length()
-        r = sqrt(generator.uniform(self.r / self.R, 1.0)) \
-            * self.R
+        r = sqrt(generator.uniform(self.r / self.R, 1.0)) * self.R
         phi = generator.uniform(0.0, 2.0 * np.pi)
-        z = generator.uniform(0.0, cyl_axis_length)
-        #
         x = r * np.cos(phi)
         y = r * np.sin(phi)
-        z = z
-        random_pnt_in_cyl_along_z = Vec3d(x, y, z)
-        # rotate:
-        # see "https://en.wikipedia.org/wiki/Rodrigues'_rotation_formula"
-        # todo: Too complicated. Try rejection sampling.
-        unit_cyl_axis = cyl_axis.normalized()
-        unit_along_z = Vec3d(0, 0, 1.0)
-        rotation_axis = unit_along_z.cross_product(unit_cyl_axis)
-        rotation_axis_length = rotation_axis.length()
-        if rotation_axis_length == 0:
-            if copysign(1.0, unit_cyl_axis.z) >= 0:
-                random_pnt_in_rotated_cyl = random_pnt_in_cyl_along_z
-            else:
-                random_pnt_in_rotated_cyl = random_pnt_in_cyl_along_z.negate()
-        else:
-            unit_rotation_axis = rotation_axis.normalized()
-            rot_cos = unit_cyl_axis.dot_product(unit_along_z)
-            rot_sin = rotation_axis_length
-            random_pnt_in_rotated_cyl = \
-                random_pnt_in_cyl_along_z.times_scalar(rot_cos) + \
-                unit_rotation_axis.cross_product(random_pnt_in_cyl_along_z) * rot_sin + \
-                unit_rotation_axis.times_scalar(
-                    (1 - rot_cos) *
-                    unit_rotation_axis.dot_product(random_pnt_in_cyl_along_z))
-        # shift:
-        shifted = random_pnt_in_rotated_cyl.add(
-            Vec3d(*self.start))
-        return np.array(shifted)
+        z = generator.uniform(0.0, norm(self.end - self.start))
+        point = np.array((x, y, z))
+        return rowan.rotate(self._rotation, point) + self.start
 
 
 class Sphere(Shape):
@@ -166,7 +122,7 @@ class Sphere(Shape):
 
     def generate_uniform_random_point(self, generator):
         while True:
-            p = np.array([generator.uniform(0, 1) for i in range(3)]) * self.r + self.origin
+            p = generator.uniform(0, 1, 3) * self.r + self.origin
             if self.is_point_inside(p):
                 break
         return p
