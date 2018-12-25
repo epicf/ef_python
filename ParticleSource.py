@@ -1,4 +1,4 @@
-import random
+from numpy.random import RandomState
 from math import sqrt
 
 import numpy as np
@@ -29,13 +29,7 @@ class ParticleSource(SerializableH5):
         self.mass = mass
         self.particles = list(particles)
         self.max_id = max_id
-        # Random number generator
-        # Instead of saving/loading it's state to file just
-        # reinit with different seed.
-        tmp = random.getstate()
-        random.seed()  # system time is used by default
-        self._rnd_state = random.getstate()
-        random.setstate(tmp)
+        self._generator = RandomState()
 
     def generate_initial_particles(self):
         # particles.reserve(initial_number_of_particles)
@@ -61,28 +55,11 @@ class ParticleSource(SerializableH5):
         return vec_of_ids
 
     def random_in_range(self, low, up):
-        tmp = random.getstate()
-        random.setstate(self._rnd_state)
-        r = random.uniform(low, up)
-        self._rnd_state = random.getstate()
-        random.setstate(tmp)
+        r = self._generator.uniform(low, up)
         return r
 
     def maxwell_momentum_distr(self, mean_momentum, temperature, mass):
-        maxwell_gauss_std_mean_x, maxwell_gauss_std_mean_y, maxwell_gauss_std_mean_z = mean_momentum
-        maxwell_gauss_std_dev = sqrt(mass * temperature)
-        #
-        tmp = random.getstate()
-        random.setstate(self._rnd_state)
-        px = random.gauss(maxwell_gauss_std_mean_x, maxwell_gauss_std_dev)
-        py = random.gauss(maxwell_gauss_std_mean_y, maxwell_gauss_std_dev)
-        pz = random.gauss(maxwell_gauss_std_mean_z, maxwell_gauss_std_dev)
-        self._rnd_state = random.getstate()
-        random.setstate(tmp)
-        #
-        mom = np.array((px, py, pz))
-        mom = mom * 1.0  # TODO: why?
-        return mom
+        return self._generator.normal(mean_momentum, sqrt(mass * temperature))
 
     def update_particles_position(self, dt):
         for p in self.particles:
