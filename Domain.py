@@ -9,14 +9,15 @@ class Domain(SerializableH5):
 
     def __init__(self, time_grid, spat_mesh, inner_regions,
                  particle_sources,
-                 external_fields, particle_interaction_model,
+                 electric_fields, magnetic_fields, particle_interaction_model,
                  output_filename_prefix, outut_filename_suffix):
         self.time_grid = time_grid
         self.spat_mesh = spat_mesh
         self.inner_regions = inner_regions
         self._field_solver = FieldSolver(spat_mesh, inner_regions)
         self.particle_sources = particle_sources
-        self.external_fields = external_fields
+        self.electric_fields = electric_fields
+        self.magnetic_fields = magnetic_fields
         self.particle_interaction_model = particle_interaction_model
         self._output_filename_prefix = output_filename_prefix
         self._output_filename_suffix = outut_filename_suffix
@@ -105,8 +106,7 @@ class Domain(SerializableH5):
                     particle.momentum_is_half_time_step_shifted = True
 
     def compute_total_fields_at_position(self, position):
-        total_el_field = self.external_fields.total_electric_field_at_position(position,
-                                                                               self.time_grid.current_time)
+        total_el_field = sum(f.field_at_position(position, self.time_grid.current_time) for f in self.electric_fields)
         if self.particle_interaction_model.noninteracting:
             if self.inner_regions or not self.spat_mesh.is_potential_equal_on_boundaries():
                 total_el_field += self.spat_mesh.field_at_position(position)
@@ -116,11 +116,10 @@ class Domain(SerializableH5):
                 total_el_field += self.spat_mesh.field_at_position(position)
         elif self.particle_interaction_model.pic:
             total_el_field += self.spat_mesh.field_at_position(position)
-        total_mgn_field = None
-        if self.external_fields.magnetic:
-            total_mgn_field = self.external_fields.total_magnetic_field_at_position(position,
-                                                                                    self.time_grid.current_time)
-        return total_el_field, total_mgn_field
+        mgn_field = None
+        if self.magnetic_fields:
+            mgn_field = sum(f.field_at_position(position, self.time_grid.current_time) for f in self.magnetic_fields)
+        return total_el_field, mgn_field
 
     def binary_field_at_point(self, position):
         return sum(np.nan_to_num(p.field_at_point(position)) for src in self.particle_sources for p in src.particles)
@@ -222,6 +221,7 @@ class Domain(SerializableH5):
             print("Writing initial fields to file " + file_name_to_write)
         h5file.attrs['class'] = self.__class__.__name__
         self._save_value(h5file, "spat_mesh", self.spat_mesh)
-        self._save_value(h5file, "external_fields", self.external_fields)
+        self._save_value(h5file, "electric_fields", self.electric_fields)
+        self._save_value(h5file, "magnetic_fields", self.magnetic_fields)
         self._save_value(h5file, "inner_regions", self.inner_regions)
         h5file.close()

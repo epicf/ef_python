@@ -7,7 +7,6 @@ from numpy.testing import assert_array_almost_equal
 
 from ExternalFieldExpression import ExternalFieldExpression
 from ExternalFieldUniform import ExternalFieldUniform
-from ExternalFieldsManager import ExternalFieldsManager
 from FieldSolver import FieldSolver
 from InnerRegion import InnerRegion
 from Particle import Particle
@@ -30,7 +29,8 @@ class TestDomain:
         assert dom.inner_regions == []
         assert type(dom._field_solver) == FieldSolver
         assert dom.particle_sources == []
-        assert dom.external_fields == ExternalFieldsManager([], [])
+        assert dom.electric_fields == []
+        assert dom.magnetic_fields == []
         assert dom.particle_interaction_model == ParticleInteractionModel("PIC")
         assert dom._output_filename_prefix == "out_"
         assert dom._output_filename_suffix == ".h5"
@@ -64,11 +64,8 @@ class TestDomain:
         assert dom.particle_sources == [ParticleSourceConf('a', Box()).make(),
                                         ParticleSourceConf('c', Cylinder()).make(),
                                         ParticleSourceConf('d', Tube()).make()]
-        assert dom.external_fields == ExternalFieldsManager(
-            [ExternalFieldUniform('x', 'electric', np.array((-2, -2, 1)))],
-            [ExternalFieldExpression('y', 'magnetic',
-                                     '0', '0',
-                                     '3*x + sqrt(y) - z**2')])
+        assert dom.electric_fields == [ExternalFieldUniform('x', 'electric', np.array((-2, -2, 1)))]
+        assert dom.magnetic_fields == [ExternalFieldExpression('y', 'magnetic', '0', '0', '3*x + sqrt(y) - z**2')]
         assert dom.particle_interaction_model == ParticleInteractionModel("binary")
         assert dom._output_filename_prefix == "out_"
         assert dom._output_filename_suffix == ".h5"
