@@ -17,16 +17,23 @@ class TestParticle:
         assert p1 == p2
 
     def test_update_position(self):
-        p = Particle(123, -1.0, 2.0, (0., 0., 1.), (1., 0., 3.))
+        p = Particle([123], -1.0, 2.0, [(0., 0., 1.)], [(1., 0., 3.)])
         p.update_position(10.0)
-        assert_array_equal(p._position, (5., 0., 16.))
+        assert_array_equal(p._position, [(5., 0., 16.)])
+        p = Particle((1, 2), -1.0, 2.0, [(0., 0., 1.), (1, 2, 3)], [(1., 0., 3.), (-1, -0.5, 0)])
+        p.update_position(10.0)
+        assert_array_equal(p._position, [(5., 0., 16.), (-4, -0.5, 3)])
 
     def test_field_at_point(self):
-        p = Particle(123, -16.0, 2.0, (0., 0., 1.), (1., 0., 3.))
+        p = Particle([1], -16.0, 2.0, [(0., 0., 1.)], [(1., 0., 3.)])
         assert_array_equal(p.field_at_point((2., 0., 1.)), (-4, 0, 0))
         assert_array_equal(p.field_at_point((2., 0., 1.)), np.array((-4, 0, 0)))
         assert_array_equal(p.field_at_point(np.array((2., 0., 1.))), (-4, 0, 0))
         assert_array_equal(p.field_at_point((0., 0., 1.)), np.array([np.nan, np.nan, np.nan]))
+        p = Particle('12', -16.0, 2.0, [(0, 0, 1), (0, 0, 0)], np.zeros((2, 3)))
+        assert_array_equal(p.field_at_point((0, 0, 0.5)), (0, 0, 0))
+        assert_array_equal(p.field_at_point((0, 0, 2)), (0, 0, -20))
+        assert_array_equal(p.field_at_point((0., 0., 0)), np.array([np.nan, np.nan, np.nan])) # todo: fix!
 
     def test_update_momentum_no_mgn(self):
         p = Particle(123, -1.0, 2.0, (0., 0., 1.), (1., 0., 3.))

@@ -39,16 +39,13 @@ class ParticleSource(SerializableH5):
         self.generate_num_of_particles(self.particles_to_generate_each_step)
 
     def generate_num_of_particles(self, num_of_particles):
-        vec_of_ids = self.populate_vec_of_ids(num_of_particles)
-        for i in range(num_of_particles):
-            pos = self.shape.generate_uniform_random_point(self._generator)
-            mom = self._generator.normal(self.mean_momentum, sqrt(self.mass * self.temperature))
-            self.particles.append(
-                Particle(vec_of_ids[i], self.charge, self.mass, pos, mom))
+        if num_of_particles:
+            vec_of_ids = self.populate_vec_of_ids(num_of_particles)
+            pos = self.shape.generate_uniform_random_points(self._generator, num_of_particles)
+            mom = self._generator.normal(self.mean_momentum, sqrt(self.mass * self.temperature), (num_of_particles, 3))
+            self.particles.append(Particle(vec_of_ids, self.charge, self.mass, pos, mom))
 
     def populate_vec_of_ids(self, num_of_particles):
-        vec_of_ids = []
-        for i in range(num_of_particles):
-            self.max_id += 1
-            vec_of_ids.append(self.max_id)
+        vec_of_ids = range(self.max_id + 1, self.max_id + num_of_particles + 1)
+        self.max_id += num_of_particles
         return vec_of_ids

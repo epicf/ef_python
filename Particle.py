@@ -21,8 +21,8 @@ def boris_update_momentum(charge, mass, momentum, dt, total_el_field, total_mgn_
 
 
 class Particle(SerializableH5):
-    def __init__(self, particle_id, charge, mass, position, momentum, momentum_is_half_time_step_shifted=False):
-        self.particle_id = particle_id
+    def __init__(self, ids, charge, mass, position, momentum, momentum_is_half_time_step_shifted=False):
+        self.ids = np.array(ids)
         self.charge = charge
         self.mass = mass
         self._position = np.array(position)
@@ -40,8 +40,8 @@ class Particle(SerializableH5):
 
     def field_at_point(self, point):
         diff = np.asarray(point) - self._position
-        dist = np.linalg.norm(diff)
-        return self.charge / dist ** 3 * diff
+        dist = np.linalg.norm(diff, axis=-1)
+        return self.charge * np.sum(diff / (dist ** 3)[..., np.newaxis], axis=0)
 
     def boris_update_momentum(self, dt, total_el_field, total_mgn_field):
         self.momentum = boris_update_momentum(self.charge, self.mass, self.momentum, dt, total_el_field,
