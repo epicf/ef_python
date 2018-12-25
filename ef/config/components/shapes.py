@@ -45,7 +45,7 @@ class Box(Shape):
         visualizer.draw_box(self.size, self.origin, **kwargs)
 
     def is_point_inside(self, point):
-        return np.all(point >= self.origin) and np.all(point <= self.origin + self.size)
+        return np.logical_and(np.all(point >= self.origin, axis=-1), np.all(point <= self.origin + self.size, axis=-1))
 
     def generate_uniform_random_points(self, generator, n):
         return generator.uniform(self.origin, self.origin + self.size, (n, 3))
@@ -66,9 +66,10 @@ class Cylinder(Shape):
         axisvec = self.end - self.start
         axis = norm(axisvec)
         unit_axisvec = axisvec / axis
-        projection = np.dot(pointvec, unit_axisvec)
-        perp_to_axis = pointvec - unit_axisvec * projection
-        return 0 <= projection <= axis and norm(perp_to_axis) <= self.r
+        projection = np.asarray(np.dot(pointvec, unit_axisvec))  # projection is an array even for one point
+        perp_to_axis = norm(pointvec - unit_axisvec[np.newaxis] * projection[..., np.newaxis], axis=-1)
+        result = np.logical_and.reduce([0 <= projection, projection <= axis, perp_to_axis <= self.r])
+        return result
 
     def generate_uniform_random_points(self, generator, n):
         r = np.sqrt(generator.uniform(0.0, 1.0, n)) * self.r
@@ -96,9 +97,10 @@ class Tube(Shape):
         axisvec = self.end - self.start
         axis = norm(axisvec)
         unit_axisvec = axisvec / axis
-        projection = np.dot(pointvec, unit_axisvec)
-        perp_to_axis = pointvec - unit_axisvec * projection
-        return 0 <= projection <= axis and self.r <= norm(perp_to_axis) <= self.R
+        projection = np.asarray(np.dot(pointvec, unit_axisvec))  # projection is an array even for one point
+        perp_to_axis = norm(pointvec - unit_axisvec[np.newaxis] * projection[..., np.newaxis], axis=-1)
+        return np.logical_and.reduce(
+            [0 <= projection, projection <= axis, self.r <= perp_to_axis, perp_to_axis <= self.R])
 
     def generate_uniform_random_points(self, generator, n):
         r = np.sqrt(generator.uniform(self.r / self.R, 1.0, n)) * self.R
