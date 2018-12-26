@@ -30,7 +30,8 @@ class Domain(SerializableH5):
 
     def start_pic_simulation(self):
         self.eval_and_write_fields_without_particles()
-        self.particle_sources.generate_initial_particles()
+        for src in self.particle_sources:
+            src.generate_initial_particles()
         self.prepare_recently_generated_particles_for_boris_integration()
         self.write_step_to_save()
         self.run_pic()
@@ -70,12 +71,7 @@ class Domain(SerializableH5):
         self._field_solver.eval_fields_from_potential(self.spat_mesh)
 
     def push_particles(self):
-        dt = self.time_grid.time_step_size
-        current_time = self.time_grid.current_time
-        self.particle_sources.boris_integration(
-            dt, current_time,
-            self.spat_mesh, self.external_fields, self.inner_regions,
-            self.particle_interaction_model)
+        self.boris_integration(self.time_grid.time_step_size)
 
     def apply_domain_constrains(self):
         # First generate then remove.
@@ -84,6 +80,51 @@ class Domain(SerializableH5):
         self.apply_domain_boundary_conditions()
         self.remove_particles_inside_inner_regions()
 
+    def boris_integration(self, dt):
+        for src in self.particle_sources:
+            for particle in src.particles:
+                total_el_field, total_mgn_field = \
+                    self.compute_total_fields_at_position(particle._position)
+                if total_mgn_field:
+                    particle.boris_update_momentum(dt, total_el_field, total_mgn_field)
+                else:
+                    particle.boris_update_momentum_no_mgn(dt, total_el_field)
+                particle.update_position(dt)
+
+    def prepare_boris_integration(self, minus_half_dt):
+        # todo: place newly generated particles into separate buffer
+        for src in self.particle_sources:
+            for particle in src.particles:
+                if not particle.momentum_is_half_time_step_shifted:
+                    total_el_field, total_mgn_field = \
+                        self.compute_total_fields_at_position(particle._position)
+                    if total_mgn_field:
+                        particle.boris_update_momentum(minus_half_dt, total_el_field, total_mgn_field)
+                    else:
+                        particle.boris_update_momentum_no_mgn(minus_half_dt, total_el_field)
+                    particle.momentum_is_half_time_step_shifted = True
+
+    def compute_total_fields_at_position(self, position):
+        total_el_field = self.external_fields.total_electric_field_at_position(position,
+                                                                               self.time_grid.current_time)
+        if self.particle_interaction_model.noninteracting:
+            if self.inner_regions or not self.spat_mesh.is_potential_equal_on_boundaries():
+                total_el_field += self.spat_mesh.field_at_position(position)
+        elif self.particle_interaction_model.binary:
+            total_el_field += self.binary_field_at_point(position)
+            if self.inner_regions or not self.spat_mesh.is_potential_equal_on_boundaries():
+                total_el_field += self.spat_mesh.field_at_position(position)
+        elif self.particle_interaction_model.pic:
+            total_el_field += self.spat_mesh.field_at_position(position)
+        total_mgn_field = None
+        if self.external_fields.magnetic:
+            total_mgn_field = self.external_fields.total_magnetic_field_at_position(position,
+                                                                                    self.time_grid.current_time)
+        return total_el_field, total_mgn_field
+
+    def binary_field_at_point(self, position):
+        return sum(np.nan_to_num(p.field_at_point(position)) for src in self.particle_sources for p in src.particles)
+
     #
     # Push particles
     #
@@ -91,17 +132,14 @@ class Domain(SerializableH5):
     def shift_new_particles_velocities_half_time_step_back(self):
         minus_half_dt = -1.0 * self.time_grid.time_step_size / 2.0
         #
-        self.particle_sources.prepare_boris_integration(
-            minus_half_dt, self.time_grid.current_time,
-            self.spat_mesh, self.external_fields, self.inner_regions,
-            self.particle_interaction_model)
+        self.prepare_boris_integration(minus_half_dt)
 
     #
     # Apply domain constrains
     #
 
     def apply_domain_boundary_conditions(self):
-        for src in self.particle_sources.sources:
+        for src in self.particle_sources:
             src.particles[:] = [p for p in src.particles if not self.out_of_bound(p)]
 
     def remove_particles_inside_inner_regions(self):
@@ -115,7 +153,8 @@ class Domain(SerializableH5):
         return np.any(particle._position < 0) or np.any(particle._position > self.spat_mesh.size)
 
     def generate_new_particles(self):
-        self.particle_sources.generate_each_step()
+        for src in self.particle_sources:
+            src.generate_each_step()
         self.shift_new_particles_velocities_half_time_step_back()
 
     #
@@ -169,9 +208,6 @@ class Domain(SerializableH5):
     #
     # Various functions
     #
-
-    def print_particles(self):
-        self.particle_sources.print_particles()
 
     def eval_and_write_fields_without_particles(self):
         self.spat_mesh.clear_old_density_values()

@@ -3,7 +3,6 @@ from configparser import ConfigParser
 
 import Domain
 from ExternalFieldsManager import ExternalFieldsManager
-from ParticleSourcesManager import ParticleSourcesManager
 from ef.config.components import *
 from ef.config.section import ConfigSection
 from ef.util.data_class import DataClass
@@ -106,7 +105,7 @@ class EfConf(DataClass):
         grid = self.time_grid.make()
         mesh = self.spatial_mesh.make(self.boundary_conditions)
         regions = [ir.make() for ir in self.inner_regions]
-        sources = ParticleSourcesManager([s.make() for s in self.sources])
+        sources = [s.make() for s in self.sources]
         ex_fields = ExternalFieldsManager(
             [s.make() for s in self.external_fields if s.electric_or_magnetic == 'electric'],
             [s.make() for s in self.external_fields if s.electric_or_magnetic == 'magnetic'])

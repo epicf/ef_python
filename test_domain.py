@@ -13,7 +13,6 @@ from InnerRegion import InnerRegion
 from Particle import Particle
 from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSource import ParticleSource
-from ParticleSourcesManager import ParticleSourcesManager
 from SpatialMesh import SpatialMesh
 from TimeGrid import TimeGrid
 from Vec3d import Vec3d
@@ -31,7 +30,7 @@ class TestDomain:
         assert dom.spat_mesh == SpatialMesh.do_init((10, 10, 10), (1, 1, 1), BoundaryConditionsConf(0))
         assert dom.inner_regions == []
         assert type(dom._field_solver) == FieldSolver
-        assert dom.particle_sources == ParticleSourcesManager([])
+        assert dom.particle_sources == []
         assert dom.external_fields == ExternalFieldsManager([], [])
         assert dom.particle_interaction_model == ParticleInteractionModel("PIC")
         assert dom._output_filename_prefix == "out_"
@@ -63,9 +62,9 @@ class TestDomain:
                                      InnerRegion('3', Cylinder(), 0),
                                      InnerRegion('4', Tube(), 4)]
         assert type(dom._field_solver) == FieldSolver
-        assert dom.particle_sources == ParticleSourcesManager([ParticleSourceConf('a', Box()).make(),
-                                                               ParticleSourceConf('c', Cylinder()).make(),
-                                                               ParticleSourceConf('d', Tube()).make()])
+        assert dom.particle_sources == [ParticleSourceConf('a', Box()).make(),
+                                        ParticleSourceConf('c', Cylinder()).make(),
+                                        ParticleSourceConf('d', Tube()).make()]
         assert dom.external_fields == ExternalFieldsManager(
             [ExternalFieldUniform('x', 'electric', np.array((-2, -2, 1)))],
             [ExternalFieldExpression('y', 'magnetic',
@@ -76,9 +75,10 @@ class TestDomain:
         assert dom._output_filename_suffix == ".h5"
 
     def test_binary_field(self):
-        sm = ParticleSourcesManager(
-            [ParticleSource('s1', Box(), 1, 0, 0, 0, 1, 1, [Particle(1, -1, 1, (1, 2, 3), (-2, 2, 0), False)], 1)])
-        assert sm.binary_field_at_point((1, 2, 3)) == Vec3d.zero()
-        assert sm.binary_field_at_point((1, 2, 4)) == Vec3d(0, 0, -1)
-        assert sm.binary_field_at_point((0, 2, 3)) == Vec3d(1, 0, 0)
-        assert_array_almost_equal(sm.binary_field_at_point((0, 1, 2)), Vec3d(1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))
+        d = EfConf().make()
+        d.particle_sources = [
+            ParticleSource('s1', Box(), 1, 0, 0, 0, 1, 1, [Particle(1, -1, 1, (1, 2, 3), (-2, 2, 0), False)], 1)]
+        assert_array_almost_equal(d.binary_field_at_point((1, 2, 3)), Vec3d.zero())
+        assert_array_almost_equal(d.binary_field_at_point((1, 2, 4)), Vec3d(0, 0, -1))
+        assert_array_almost_equal(d.binary_field_at_point((0, 2, 3)), Vec3d(1, 0, 0))
+        assert_array_almost_equal(d.binary_field_at_point((0, 1, 2)), Vec3d(1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))

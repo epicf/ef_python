@@ -6,7 +6,6 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from Particle import Particle
-from ParticleSourcesManager import ParticleSourcesManager
 from SpatialMesh import SpatialMesh
 from Vec3d import Vec3d
 from ef.config.components import SpatialMeshConf, BoundaryConditionsConf, ParticleSourceConf
@@ -156,8 +155,8 @@ class TestDefaultSpatialMesh:
 
     def test_weight_particles_charge_to_mesh(self):
         mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())
-        sources = ParticleSourcesManager([ParticleSourceConf().make()])
-        sources.sources[0].particles = [Particle(1, -2, 4, (1, 1, 3), (0, 0, 0))]
+        sources = [ParticleSourceConf().make()]
+        sources[0].particles = [Particle(1, -2, 4, (1, 1, 3), (0, 0, 0))]
         mesh.weight_particles_charge_to_mesh(sources)
         assert_array_equal(mesh.charge_density,
                            np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
