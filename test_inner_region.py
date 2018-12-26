@@ -1,3 +1,5 @@
+import numpy as np
+
 from InnerRegion import InnerRegion
 from ParticleArray import ParticleArray
 from ef.config.components import Box
@@ -12,14 +14,27 @@ class TestInnerRegion:
         assert ir.total_absorbed_charge == 0
 
     def test_absorb_charge(self):
-        particle_in = ParticleArray(123, -2.0, 1.0, (0, 0, 0), (0, 0, 0))
-        particle_out = ParticleArray(123, 1.0, 1.0, (10, 10, 10), (0, 0, 0))
+        particles = ParticleArray([1], -2.0, 1.0, (0, 0, 0), np.zeros(3))
         ir = InnerRegion('test', Box())
         assert ir.total_absorbed_particles == 0
         assert ir.total_absorbed_charge == 0
-        ir.check_if_particle_inside_and_count_charge(particle_out)
-        assert ir.total_absorbed_particles == 0
-        assert ir.total_absorbed_charge == 0
-        ir.check_if_particle_inside_and_count_charge(particle_in)
+        ir.collide_with_particles(particles)
         assert ir.total_absorbed_particles == 1
         assert ir.total_absorbed_charge == -2
+        assert particles == ParticleArray([], -2.0, 1.0, np.zeros((0, 3)), np.zeros((0, 3)))
+        particles = ParticleArray([1], -2.0, 1.0, (10, 10, 10), np.zeros(3))
+        ir = InnerRegion('test', Box())
+        assert ir.total_absorbed_particles == 0
+        assert ir.total_absorbed_charge == 0
+        ir.collide_with_particles(particles)
+        assert ir.total_absorbed_particles == 0
+        assert ir.total_absorbed_charge == 0
+        assert particles == ParticleArray([1], -2.0, 1.0, [(10, 10, 10)], np.zeros((1, 3)))
+        particles = ParticleArray([1, 2], -2.0, 1.0, [(0, 0, 0), (10, 10, 10)], np.zeros((2, 3)))
+        ir = InnerRegion('test', Box())
+        assert ir.total_absorbed_particles == 0
+        assert ir.total_absorbed_charge == 0
+        ir.collide_with_particles(particles)
+        assert ir.total_absorbed_particles == 1
+        assert ir.total_absorbed_charge == -2
+        assert particles == ParticleArray([2], -2.0, 1.0, [(10, 10, 10)], np.zeros((1, 3)))
