@@ -12,7 +12,7 @@ class Shape(ConfigComponent, SerializableH5):
     def visualize(self, visualizer, **kwargs):
         raise NotImplementedError()
 
-    def is_point_inside(self, point):
+    def are_points_inside(self, points):
         raise NotImplementedError()
 
     def generate_uniform_random_point(self, generator):
@@ -44,8 +44,9 @@ class Box(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_box(self.size, self.origin, **kwargs)
 
-    def is_point_inside(self, point):
-        return np.logical_and(np.all(point >= self.origin, axis=-1), np.all(point <= self.origin + self.size, axis=-1))
+    def are_points_inside(self, points):
+        return np.logical_and(np.all(points >= self.origin, axis=-1),
+                              np.all(points <= self.origin + self.size, axis=-1))
 
     def generate_uniform_random_points(self, generator, n):
         return generator.uniform(self.origin, self.origin + self.size, (n, 3))
@@ -61,12 +62,13 @@ class Cylinder(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_cylinder(self.start, self.end, self.r, **kwargs)
 
-    def is_point_inside(self, point):
-        pointvec = point - self.start
+    def are_points_inside(self, points):
+        pointvec = points - self.start
         axisvec = self.end - self.start
         axis = norm(axisvec)
         unit_axisvec = axisvec / axis
-        projection = np.asarray(np.dot(pointvec, unit_axisvec))  # projection is an array even for one point
+        # for one-point case, dot would return a scalar, so it's cast to array explicitly
+        projection = np.asarray(np.dot(pointvec, unit_axisvec))
         perp_to_axis = norm(pointvec - unit_axisvec[np.newaxis] * projection[..., np.newaxis], axis=-1)
         result = np.logical_and.reduce([0 <= projection, projection <= axis, perp_to_axis <= self.r])
         return result
@@ -92,12 +94,13 @@ class Tube(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_tube(self.start, self.end, self.r, self.R, **kwargs)
 
-    def is_point_inside(self, point):
-        pointvec = point - self.start
+    def are_points_inside(self, points):
+        pointvec = points - self.start
         axisvec = self.end - self.start
         axis = norm(axisvec)
         unit_axisvec = axisvec / axis
-        projection = np.asarray(np.dot(pointvec, unit_axisvec))  # projection is an array even for one point
+        # for one-point case, dot would return a scalar, so it's cast to array explicitly
+        projection = np.asarray(np.dot(pointvec, unit_axisvec))
         perp_to_axis = norm(pointvec - unit_axisvec[np.newaxis] * projection[..., np.newaxis], axis=-1)
         return np.logical_and.reduce(
             [0 <= projection, projection <= axis, self.r <= perp_to_axis, perp_to_axis <= self.R])
@@ -120,13 +123,13 @@ class Sphere(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_sphere(self.origin, self.r, **kwargs)
 
-    def is_point_inside(self, point):
-        return norm(point - self.origin, axis=-1) <= self.r
+    def are_points_inside(self, points):
+        return norm(points - self.origin, axis=-1) <= self.r
 
     def generate_uniform_random_points(self, generator, n):
         while True:
             p = generator.uniform(0, 1, (n * 2, 3)) * self.r + self.origin
-            p = p.compress(self.is_point_inside(p), 0)
+            p = p.compress(self.are_points_inside(p), 0)
             if len(p) > n:
                 return p[:n]
 
@@ -142,4 +145,4 @@ class Cone(Shape):
         visualizer.draw_cone(self.start, self.end,
                              self.start_radii, self.end_radii, **kwargs)
 
-# TODO: def is_point_inside(self, point)
+# TODO: def are_points_inside(self, point)
