@@ -1,5 +1,5 @@
 from InnerRegion import InnerRegion
-from Particle import Particle
+from ParticleArray import ParticleArray
 from ef.config.components import Box
 
 
@@ -12,8 +12,8 @@ class TestInnerRegion:
         assert ir.total_absorbed_charge == 0
 
     def test_absorb_charge(self):
-        particle_in = Particle(123, -2.0, 1.0, (0, 0, 0), (0, 0, 0))
-        particle_out = Particle(123, 1.0, 1.0, (10, 10, 10), (0, 0, 0))
+        particle_in = ParticleArray(123, -2.0, 1.0, (0, 0, 0), (0, 0, 0))
+        particle_out = ParticleArray(123, 1.0, 1.0, (10, 10, 10), (0, 0, 0))
         ir = InnerRegion('test', Box())
         assert ir.total_absorbed_particles == 0
         assert ir.total_absorbed_charge == 0

@@ -20,7 +20,7 @@ def boris_update_momentum(charge, mass, momentum, dt, total_el_field, total_mgn_
     return (u_quote + half_el_force) * mass  # (n, 3) finally add the other half-velocity
 
 
-class Particle(SerializableH5):
+class ParticleArray(SerializableH5):
     def __init__(self, ids, charge, mass, position, momentum, momentum_is_half_time_step_shifted=False):
         self.ids = np.array(ids)
         self.charge = charge

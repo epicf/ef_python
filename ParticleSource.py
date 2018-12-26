@@ -2,7 +2,7 @@ from math import sqrt
 
 from numpy.random import RandomState
 
-from Particle import Particle
+from ParticleArray import ParticleArray
 from ef.util.serializable_h5 import SerializableH5
 
 
@@ -43,7 +43,7 @@ class ParticleSource(SerializableH5):
             vec_of_ids = self.populate_vec_of_ids(num_of_particles)
             pos = self.shape.generate_uniform_random_points(self._generator, num_of_particles)
             mom = self._generator.normal(self.mean_momentum, sqrt(self.mass * self.temperature), (num_of_particles, 3))
-            self.particles.append(Particle(vec_of_ids, self.charge, self.mass, pos, mom))
+            self.particles.append(ParticleArray(vec_of_ids, self.charge, self.mass, pos, mom))
 
     def populate_vec_of_ids(self, num_of_particles):
         vec_of_ids = range(self.max_id + 1, self.max_id + num_of_particles + 1)

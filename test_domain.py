@@ -9,7 +9,7 @@ from ExternalFieldExpression import ExternalFieldExpression
 from ExternalFieldUniform import ExternalFieldUniform
 from FieldSolver import FieldSolver
 from InnerRegion import InnerRegion
-from Particle import Particle
+from ParticleArray import ParticleArray
 from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSource import ParticleSource
 from SpatialMesh import SpatialMesh
@@ -74,7 +74,7 @@ class TestDomain:
         d = EfConf().make()
         d.particle_sources = [
             ParticleSource('s1', Box(), 1, 0, mean_momentum=np.zeros(3), temperature=0, charge=1, mass=1,
-                           particles=[Particle(1, -1, 1, [(1, 2, 3)], [(-2, 2, 0)], False)], max_id=0)]
+                           particles=[ParticleArray(1, -1, 1, [(1, 2, 3)], [(-2, 2, 0)], False)], max_id=0)]
         assert_array_almost_equal(d.binary_field_at_point((1, 2, 3)), (0, 0, 0))
         assert_array_almost_equal(d.binary_field_at_point((1, 2, 4)), (0, 0, -1))
         assert_array_almost_equal(d.binary_field_at_point((0, 2, 3)), (1, 0, 0))
