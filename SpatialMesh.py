@@ -73,7 +73,7 @@ class SpatialMesh(SerializableH5):
         for part_src in particle_sources:
             for p in part_src.particles:  # np - size of particle array p
                 charge = p.charge / volume_around_node  # scalar
-                node, remainder = np.divmod(p._position, self.cell)
+                node, remainder = np.divmod(p.positions, self.cell)
                 node = node.astype(int)  # shape is (np, 3) or (3)
                 w = remainder / self.cell  # shape is (np, 3) or (3)
                 for dx, dy, dz in product((0, 1), repeat=3):

@@ -11,7 +11,7 @@ class InnerRegion(SerializableH5):
         self.total_absorbed_charge = total_absorbed_charge
 
     def check_if_particle_inside(self, p):
-        return self.check_if_point_inside(*p._position)
+        return self.check_if_point_inside(*p.positions)
 
     def check_if_particle_inside_and_count_charge(self, p):
         in_or_out = self.check_if_particle_inside(p)

@@ -85,12 +85,12 @@ class Domain(SerializableH5):
         for src in self.particle_sources:
             for particle in src.particles:
                 total_el_field, total_mgn_field = \
-                    self.compute_total_fields_at_position(particle._position)
+                    self.compute_total_fields_at_position(particle.positions)
                 if total_mgn_field is not None and total_mgn_field.any():
-                    particle.boris_update_momentum(dt, total_el_field, total_mgn_field)
+                    particle.boris_update_momentums(dt, total_el_field, total_mgn_field)
                 else:
                     particle.boris_update_momentum_no_mgn(dt, total_el_field)
-                particle.update_position(dt)
+                particle.update_positions(dt)
 
     def prepare_boris_integration(self, minus_half_dt):
         # todo: place newly generated particles into separate buffer
@@ -98,9 +98,9 @@ class Domain(SerializableH5):
             for particle in src.particles:
                 if not particle.momentum_is_half_time_step_shifted:
                     total_el_field, total_mgn_field = \
-                        self.compute_total_fields_at_position(particle._position)
+                        self.compute_total_fields_at_position(particle.positions)
                     if total_mgn_field is not None and total_mgn_field.any():
-                        particle.boris_update_momentum(minus_half_dt, total_el_field, total_mgn_field)
+                        particle.boris_update_momentums(minus_half_dt, total_el_field, total_mgn_field)
                     else:
                         particle.boris_update_momentum_no_mgn(minus_half_dt, total_el_field)
                     particle.momentum_is_half_time_step_shifted = True
@@ -149,7 +149,7 @@ class Domain(SerializableH5):
                      if not region.check_if_particle_inside_and_count_charge(p)]
 
     def out_of_bound(self, particle):
-        return np.any(particle._position < 0) or np.any(particle._position > self.spat_mesh.size)
+        return np.any(particle.positions < 0) or np.any(particle.positions > self.spat_mesh.size)
 
     def generate_new_particles(self):
         for src in self.particle_sources:
