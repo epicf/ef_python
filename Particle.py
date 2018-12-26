@@ -1,6 +1,6 @@
 import numpy as np
-from scipy.constants import speed_of_light
 
+import physical_constants
 from ef.util.serializable_h5 import SerializableH5
 
 
@@ -9,7 +9,7 @@ def boris_update_momentum(charge, mass, momentum, dt, total_el_field, total_mgn_
     half_el_force = np.asarray(total_el_field) * q_quote  # (n, 3) half the dv caused by electric field
     v_current = momentum / mass  # (n, 3) current velocity (at -1/2 dt already)
     u = v_current + half_el_force  # (n, 3) v_minus
-    h = np.array(total_mgn_field) * (q_quote / speed_of_light)  # (n, 3)
+    h = np.array(total_mgn_field) * (q_quote / physical_constants.speed_of_light)  # (n, 3)
     # rotation vector t = qB/m * dt/2
     s = h * (2.0 / (1.0 + np.sum(h * h, -1)))[..., np.newaxis]  # (n, 3) rotation vector s = 2t / (1 + t**2)
     tmp = u + np.cross(u, h)  # (n, 3) v_prime is v_minus rotated by t
