@@ -73,8 +73,17 @@ class TestDomain:
     def test_binary_field(self):
         d = EfConf().make()
         d.particle_sources = [
-            ParticleSource('s1', Box(), 1, 0, 0, 0, 1, 1, [Particle(1, -1, 1, (1, 2, 3), (-2, 2, 0), False)], 1)]
+            ParticleSource('s1', Box(), 1, 0, mean_momentum=np.zeros(3), temperature=0, charge=1, mass=1,
+                           particles=[Particle(1, -1, 1, (1, 2, 3), (-2, 2, 0), False)], max_id=0)]
         assert_array_almost_equal(d.binary_field_at_point((1, 2, 3)), (0, 0, 0))
         assert_array_almost_equal(d.binary_field_at_point((1, 2, 4)), (0, 0, -1))
         assert_array_almost_equal(d.binary_field_at_point((0, 2, 3)), (1, 0, 0))
         assert_array_almost_equal(d.binary_field_at_point((0, 1, 2)), (1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))
+
+    @pytest.mark.parametrize('model', ['noninteracting', 'PIC', 'binary'])
+    def test_cube_of_gas(self, model, monkeypatch, tmpdir):
+        monkeypatch.chdir(tmpdir)
+        EfConf(TimeGridConf(1.0, save_step=.5, step=.1), SpatialMeshConf((10, 10, 10), (1, 1, 1)),
+               [ParticleSourceConf('gas', Box(size=(10, 10, 10)), 50, 0, np.zeros(3), 300)],
+               particle_interaction_model=ParticleInteractionModelConf(model)
+               ).make().start_pic_simulation()
