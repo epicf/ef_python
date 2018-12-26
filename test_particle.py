@@ -1,8 +1,8 @@
 import h5py
 import numpy as np
 from numpy.testing import assert_array_equal
+from scipy.constants import speed_of_light
 
-import physical_constants
 from Particle import Particle, boris_update_momentum
 
 
@@ -39,8 +39,7 @@ class TestParticle:
         assert_array_equal(p.momentum, (1.1, -0.2, 2.7))
 
         p = Particle(123, -1.0, 2.0, (0., 0., 1.), (1., 0., 3.))
-        p.boris_update_momentum(2, (-1.0, 2.0, 3.0), np.array((2, 0, 0)) * (
-            physical_constants.speed_of_light))
+        p.boris_update_momentum(2, (-1.0, 2.0, 3.0), (2 * speed_of_light, 0, 0))
         assert_array_equal(p.momentum, (3, -2, -5))
 
 
@@ -48,14 +47,13 @@ def test_update_momentum():
     assert_array_equal(boris_update_momentum(-1, 2, np.array((1, 0, 3)), 0.1, (-1.0, 2.0, 3.0), (0, 0, 0)),
                        np.array((1.1, -0.2, 2.7)))
     assert_array_equal(
-        boris_update_momentum(-1, 2, np.array((1, 0, 3)), 2, (-1.0, 2.0, 3.0), np.array((2, 0, 0))
-                              * physical_constants.speed_of_light), (3, -2, -5))
+        boris_update_momentum(-1, 2, np.array((1, 0, 3)), 2, (-1.0, 2.0, 3.0), (2 * speed_of_light, 0, 0)),
+        (3, -2, -5))
     assert_array_equal(
-        boris_update_momentum(-1, 2, np.array((1, 0, 3)), 2, np.array((-1.0, 2.0, 3.0)), np.array((2, 0, 0)) *
-                              physical_constants.speed_of_light), (3, -2, -5))
+        boris_update_momentum(-1, 2, np.array((1, 0, 3)), 2, np.array((-1.0, 2.0, 3.0)), (2 * speed_of_light, 0, 0)),
+        (3, -2, -5))
     assert_array_equal(
         boris_update_momentum(charge=-1, mass=2, momentum=np.array([(1, 0, 3)] * 10), dt=2,
-                              total_el_field=np.array([(-1.0, 2.0, 3.0)] * 10),
-                              total_mgn_field=np.array(
-                                  [(2, 0, 0)] * 10) * physical_constants.speed_of_light),
+                              total_el_field=[(-1.0, 2.0, 3.0)] * 10,
+                              total_mgn_field=[(2 * speed_of_light, 0, 0)] * 10),
         np.array([(3, -2, -5)] * 10))
