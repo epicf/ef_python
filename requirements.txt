@@ -2,6 +2,7 @@ numpy
 h5py
 matplotlib
 sympy
+simpleeval
 pytest
 pytest-mock
 scipy

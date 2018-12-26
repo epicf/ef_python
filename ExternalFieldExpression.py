@@ -3,7 +3,7 @@ import math
 import numpy as np
 
 from ExternalField import ExternalField
-from libs.simpleeval.simpleeval import SimpleEval
+from simpleeval import SimpleEval
 
 
 class ExternalFieldExpression(ExternalField):
