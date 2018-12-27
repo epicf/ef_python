@@ -161,6 +161,13 @@ class TestDefaultSpatialMesh:
                            np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                                      [[-0.25 / 8, -0.75 / 8, 0], [-0.25 / 8, -0.75 / 8, 0], [0, 0, 0]],
                                      [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]))
+        sources[0].particle_arrays = [ParticleArray([1,2], -2, 4, [(1, 1, 3), (1, 1, 3)], np.zeros((2,3)))]
+        mesh.clear_old_density_values()
+        mesh.weight_particles_charge_to_mesh(sources)
+        assert_array_equal(mesh.charge_density,
+                           np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                                     [[-0.25 / 8, -0.75 / 8, 0], [-0.25 / 8, -0.75 / 8, 0], [0, 0, 0]],
+                                     [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]))
 
     def test_field_at_position(self):
         mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())
