@@ -7,9 +7,10 @@ from ef.util.serializable_h5 import SerializableH5
 
 
 class MeshGrid(SerializableH5):
-    def __init__(self, size, n_nodes):
+    def __init__(self, size, n_nodes, origin=(0, 0, 0)):
         self.size = size
         self.n_nodes = n_nodes
+        self.origin = np.asarray(origin)
 
     @property
     def cell(self):
@@ -17,13 +18,21 @@ class MeshGrid(SerializableH5):
 
     @property
     def node_coordinates(self):
-        return np.moveaxis(np.mgrid[0:self.n_nodes[0], 0:self.n_nodes[1], 0:self.n_nodes[2]], 0, -1) * self.cell
+        return self.origin + \
+               np.moveaxis(np.mgrid[0:self.n_nodes[0], 0:self.n_nodes[1], 0:self.n_nodes[2]], 0, -1) * self.cell
 
     def distribute_scalar_at_positions(self, value, positions):
+        """
+        Given a set of points, distribute the scalar value's density onto the grid nodes.
+
+        :param value: scalar
+        :param positions: array of shape (np, 3)
+        :return: array of shape (nx, ny, nz)
+        """
         volume_around_node = self.cell.prod()
         density = value / volume_around_node  # scalar
         result = np.zeros(self.n_nodes)
-        for pos in positions:
+        for pos in positions - self.origin:
             node, remainder = np.divmod(pos, self.cell)  # (3)
             node = node.astype(int)  # (3)
             weight = remainder / self.cell  # (3)
@@ -34,13 +43,20 @@ class MeshGrid(SerializableH5):
             for i, xyz in enumerate(nodes_to_update):
                 if np.any(xyz >= self.n_nodes):
                     if weight_on_nodes[i] > 0:
-                        raise ValueError("Particle is out of bounds")
+                        raise ValueError("Position is out of meshgrid bounds")
                 else:
                     result[tuple(xyz)] += weight_on_nodes[i] * density
         return result
 
     def interpolate_field_at_positions(self, field, positions):
-        node, remainder = np.divmod(positions, self.cell)  # positions.shape = (np, 3), field.shape = (nx, ny, nz, F)
+        """
+        Given a field on this grid, interpolate it at n positions.
+
+        :param field: array of shape (nx, ny, nz, {F})
+        :param positions: array of shape (np, 3)
+        :return: array of shape (np, {F})
+        """
+        node, remainder = np.divmod(positions - self.origin, self.cell)
         node = node.astype(int)  # shape is (p, 3)
         weight = remainder / self.cell  # shape is (np, 3)
         w = np.stack([1. - weight, weight], axis=-2)  # shape is (np, 2, 3)
