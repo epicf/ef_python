@@ -6,14 +6,14 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from ParticleArray import ParticleArray
-from SpatialMesh import SpatialMesh
+from SpatialMesh import SpatialMesh, MeshGrid
 from ef.config.components import SpatialMeshConf, BoundaryConditionsConf, ParticleSourceConf
 
 
 class TestDefaultSpatialMesh:
     def test_config(self, capsys):
         mesh = SpatialMeshConf((4, 2, 3), (2, 1, 3)).make(BoundaryConditionsConf(3.14))
-        assert mesh._node_coordinates.shape == (3, 3, 2, 3)
+        assert mesh.mesh.node_coordinates.shape == (3, 3, 2, 3)
         assert mesh.charge_density.shape == (3, 3, 2)
         assert mesh.potential.shape == (3, 3, 2)
         assert mesh.electric_field.shape == (3, 3, 2, 3)
@@ -23,7 +23,7 @@ class TestDefaultSpatialMesh:
                             [[2., 2., 0.], [2., 2., 3.]]],
                            [[[4., 0., 0.], [4., 0., 3.]], [[4., 1., 0.], [4., 1., 3.]],
                             [[4., 2., 0.], [4., 2., 3.]]]])
-        assert_array_equal(mesh._node_coordinates, coords)
+        assert_array_equal(mesh.mesh.node_coordinates, coords)
         assert_array_equal(mesh.charge_density, np.zeros((3, 3, 2)))
         potential = np.full((3, 3, 2), 3.14)
         assert_array_equal(mesh.potential, potential)
@@ -48,7 +48,7 @@ class TestDefaultSpatialMesh:
 
     def test_do_init(self):
         mesh = SpatialMesh.do_init((4, 2, 3), (2, 1, 3), BoundaryConditionsConf(3.14))
-        assert mesh._node_coordinates.shape == (3, 3, 2, 3)
+        assert mesh.mesh.node_coordinates.shape == (3, 3, 2, 3)
         assert mesh.charge_density.shape == (3, 3, 2)
         assert mesh.potential.shape == (3, 3, 2)
         assert mesh.electric_field.shape == (3, 3, 2, 3)
@@ -58,7 +58,7 @@ class TestDefaultSpatialMesh:
                             [[2., 2., 0.], [2., 2., 3.]]],
                            [[[4., 0., 0.], [4., 0., 3.]], [[4., 1., 0.], [4., 1., 3.]],
                             [[4., 2., 0.], [4., 2., 3.]]]])
-        assert_array_equal(mesh._node_coordinates, coords)
+        assert_array_equal(mesh.mesh.node_coordinates, coords)
         assert_array_equal(mesh.charge_density, np.zeros((3, 3, 2)))
         potential = np.full((3, 3, 2), 3.14)
         assert_array_equal(mesh.potential, potential)
@@ -145,9 +145,8 @@ class TestDefaultSpatialMesh:
     def test_dict(self):
         mesh = SpatialMesh.do_init((4, 2, 3), (2, 1, 3), BoundaryConditionsConf())
         d = mesh.dict
-        assert d.keys() == set(("size", "n_nodes", "electric_field", "potential", "charge_density"))
-        assert_array_equal(d["size"], (4, 2, 3))
-        assert_array_equal(d["n_nodes"], (3, 3, 2))
+        assert d.keys() == {"mesh", "electric_field", "potential", "charge_density"}
+        assert d["mesh"] == MeshGrid((4, 2, 3), (3, 3, 2))
         assert_array_equal(d["electric_field"], np.zeros((3, 3, 2, 3)))
         assert_array_equal(d["potential"], np.zeros((3, 3, 2)))
         assert_array_equal(d["charge_density"], np.zeros((3, 3, 2)))
@@ -183,4 +182,4 @@ class TestDefaultSpatialMesh:
         mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())
         mesh.electric_field[1:2, 0:2, 0:2] = np.array([[[2, 1, 0], [-3, 1, 0]],
                                                        [[0, -1, 0], [-1, 0, 0]]])
-        assert_array_equal(mesh.field_at_position(np.array((1, 1, 3))), (-1.25, 0.375, 0))
+        assert_array_equal(mesh.field_at_position([(1, 1, 3)]), [(-1.25, 0.375, 0)])
