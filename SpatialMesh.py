@@ -71,7 +71,7 @@ class SpatialMesh(SerializableH5):
     def weight_particles_charge_to_mesh(self, particle_sources):
         volume_around_node = self.cell.prod()
         for part_src in particle_sources:
-            for p in part_src.particles:  # np - size of particle array p
+            for p in part_src.particle_arrays:  # np - size of particle array p
                 charge = p.charge / volume_around_node  # scalar
                 node, remainder = np.divmod(p.positions, self.cell)
                 node = node.astype(int)  # shape is (np, 3) or (3)

@@ -83,7 +83,7 @@ class Domain(SerializableH5):
 
     def boris_integration(self, dt):
         for src in self.particle_sources:
-            for particle in src.particles:
+            for particle in src.particle_arrays:
                 total_el_field, total_mgn_field = \
                     self.compute_total_fields_at_position(particle.positions)
                 if total_mgn_field is not None and total_mgn_field.any():
@@ -93,9 +93,9 @@ class Domain(SerializableH5):
                 particle.update_positions(dt)
 
     def prepare_boris_integration(self, minus_half_dt):
-        # todo: place newly generated particles into separate buffer
+        # todo: place newly generated particle_arrays into separate buffer
         for src in self.particle_sources:
-            for particle in src.particles:
+            for particle in src.particle_arrays:
                 if not particle.momentum_is_half_time_step_shifted:
                     total_el_field, total_mgn_field = \
                         self.compute_total_fields_at_position(particle.positions)
@@ -122,7 +122,8 @@ class Domain(SerializableH5):
         return total_el_field, mgn_field
 
     def binary_field_at_point(self, position):
-        return sum(np.nan_to_num(p.field_at_point(position)) for src in self.particle_sources for p in src.particles)
+        return sum(
+            np.nan_to_num(p.field_at_point(position)) for src in self.particle_sources for p in src.particle_arrays)
 
     #
     # Push particles
@@ -139,13 +140,13 @@ class Domain(SerializableH5):
 
     def apply_domain_boundary_conditions(self):
         for src in self.particle_sources:
-            src.particles[:] = [p for p in src.particles if not self.out_of_bound(p)]
+            src.particle_arrays[:] = [p for p in src.particle_arrays if not self.out_of_bound(p)]
 
     def remove_particles_inside_inner_regions(self):
         for region in self.inner_regions:
             for src in self.particle_sources.sources:
-                src.particles[:] = \
-                    [p for p in src.particles \
+                src.particle_arrays[:] = \
+                    [p for p in src.particle_arrays \
                      if not region.check_if_particle_inside_and_count_charge(p)]
 
     def out_of_bound(self, particle):

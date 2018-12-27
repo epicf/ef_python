@@ -155,7 +155,7 @@ class TestDefaultSpatialMesh:
     def test_weight_particles_charge_to_mesh(self):
         mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())
         sources = [ParticleSourceConf().make()]
-        sources[0].particles = [ParticleArray(1, -2, 4, (1, 1, 3), (0, 0, 0))]
+        sources[0].particle_arrays = [ParticleArray(1, -2, 4, (1, 1, 3), (0, 0, 0))]
         mesh.weight_particles_charge_to_mesh(sources)
         assert_array_equal(mesh.charge_density,
                            np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
