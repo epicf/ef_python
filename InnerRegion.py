@@ -20,4 +20,4 @@ class InnerRegion(SerializableH5):
         particles.remove(collisions)
 
     def check_if_points_inside(self, positions):
-        return self.shape.are_points_inside(positions)
+        return self.shape.are_positions_inside(positions)

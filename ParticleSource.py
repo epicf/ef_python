@@ -41,7 +41,7 @@ class ParticleSource(SerializableH5):
     def generate_num_of_particles(self, num_of_particles):
         if num_of_particles:
             vec_of_ids = self.populate_vec_of_ids(num_of_particles)
-            pos = self.shape.generate_uniform_random_points(self._generator, num_of_particles)
+            pos = self.shape.generate_uniform_random_posititons(self._generator, num_of_particles)
             mom = self._generator.normal(self.mean_momentum, sqrt(self.mass * self.temperature), (num_of_particles, 3))
             self.particle_arrays.append(ParticleArray(vec_of_ids, self.charge, self.mass, pos, mom))
 

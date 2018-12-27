@@ -12,13 +12,13 @@ class Shape(ConfigComponent, SerializableH5):
     def visualize(self, visualizer, **kwargs):
         raise NotImplementedError()
 
-    def are_points_inside(self, points):
+    def are_positions_inside(self, positions):
         raise NotImplementedError()
 
-    def generate_uniform_random_point(self, generator):
-        return self.generate_uniform_random_points(generator, 1)[0]
+    def generate_uniform_random_position(self, random_state):
+        return self.generate_uniform_random_posititons(random_state, 1)[0]
 
-    def generate_uniform_random_points(self, generator, n):
+    def generate_uniform_random_posititons(self, random_state, n):
         raise NotImplementedError()
 
 
@@ -44,12 +44,12 @@ class Box(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_box(self.size, self.origin, **kwargs)
 
-    def are_points_inside(self, points):
-        return np.logical_and(np.all(points >= self.origin, axis=-1),
-                              np.all(points <= self.origin + self.size, axis=-1))
+    def are_positions_inside(self, positions):
+        return np.logical_and(np.all(positions >= self.origin, axis=-1),
+                              np.all(positions <= self.origin + self.size, axis=-1))
 
-    def generate_uniform_random_points(self, generator, n):
-        return generator.uniform(self.origin, self.origin + self.size, (n, 3))
+    def generate_uniform_random_posititons(self, random_state, n):
+        return random_state.uniform(self.origin, self.origin + self.size, (n, 3))
 
 
 class Cylinder(Shape):
@@ -62,8 +62,8 @@ class Cylinder(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_cylinder(self.start, self.end, self.r, **kwargs)
 
-    def are_points_inside(self, points):
-        pointvec = points - self.start
+    def are_positions_inside(self, positions):
+        pointvec = positions - self.start
         axisvec = self.end - self.start
         axis = norm(axisvec)
         unit_axisvec = axisvec / axis
@@ -73,12 +73,12 @@ class Cylinder(Shape):
         result = np.logical_and.reduce([0 <= projection, projection <= axis, perp_to_axis <= self.r])
         return result
 
-    def generate_uniform_random_points(self, generator, n):
-        r = np.sqrt(generator.uniform(0.0, 1.0, n)) * self.r
-        phi = generator.uniform(0.0, 2.0 * np.pi, n)
+    def generate_uniform_random_posititons(self, random_state, n):
+        r = np.sqrt(random_state.uniform(0.0, 1.0, n)) * self.r
+        phi = random_state.uniform(0.0, 2.0 * np.pi, n)
         x = r * np.cos(phi)
         y = r * np.sin(phi)
-        z = generator.uniform(0.0, norm(self.end - self.start), n)
+        z = random_state.uniform(0.0, norm(self.end - self.start), n)
         points = np.stack((x, y, z), -1)
         return rowan.rotate(self._rotation, points) + self.start
 
@@ -94,8 +94,8 @@ class Tube(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_tube(self.start, self.end, self.r, self.R, **kwargs)
 
-    def are_points_inside(self, points):
-        pointvec = points - self.start
+    def are_positions_inside(self, positions):
+        pointvec = positions - self.start
         axisvec = self.end - self.start
         axis = norm(axisvec)
         unit_axisvec = axisvec / axis
@@ -105,12 +105,12 @@ class Tube(Shape):
         return np.logical_and.reduce(
             [0 <= projection, projection <= axis, self.r <= perp_to_axis, perp_to_axis <= self.R])
 
-    def generate_uniform_random_points(self, generator, n):
-        r = np.sqrt(generator.uniform(self.r / self.R, 1.0, n)) * self.R
-        phi = generator.uniform(0.0, 2.0 * np.pi, n)
+    def generate_uniform_random_posititons(self, random_state, n):
+        r = np.sqrt(random_state.uniform(self.r / self.R, 1.0, n)) * self.R
+        phi = random_state.uniform(0.0, 2.0 * np.pi, n)
         x = r * np.cos(phi)
         y = r * np.sin(phi)
-        z = generator.uniform(0.0, norm(self.end - self.start), n)
+        z = random_state.uniform(0.0, norm(self.end - self.start), n)
         points = np.stack((x, y, z), -1)
         return rowan.rotate(self._rotation, points) + self.start
 
@@ -123,13 +123,13 @@ class Sphere(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_sphere(self.origin, self.r, **kwargs)
 
-    def are_points_inside(self, points):
-        return norm(points - self.origin, axis=-1) <= self.r
+    def are_positions_inside(self, positions):
+        return norm(positions - self.origin, axis=-1) <= self.r
 
-    def generate_uniform_random_points(self, generator, n):
+    def generate_uniform_random_posititons(self, random_state, n):
         while True:
-            p = generator.uniform(0, 1, (n * 2, 3)) * self.r + self.origin
-            p = p.compress(self.are_points_inside(p), 0)
+            p = random_state.uniform(0, 1, (n * 2, 3)) * self.r + self.origin
+            p = p.compress(self.are_positions_inside(p), 0)
             if len(p) > n:
                 return p[:n]
 
@@ -145,4 +145,4 @@ class Cone(Shape):
         visualizer.draw_cone(self.start, self.end,
                              self.start_radii, self.end_radii, **kwargs)
 
-# TODO: def are_points_inside(self, point)
+# TODO: def are_positions_inside(self, point)
