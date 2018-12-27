@@ -1,5 +1,4 @@
 from ExternalField import ExternalField
-from Vec3d import Vec3d
 
 
 class ExternalFieldUniform(ExternalField):
@@ -8,5 +7,5 @@ class ExternalFieldUniform(ExternalField):
         super().__init__(name, electric_or_magnetic)
         self.uniform_field_vector = uniform_field_vector
 
-    def field_at_particle_position(self, particle, current_time):
-        return Vec3d(*self.uniform_field_vector)
+    def field_at_position(self, position, current_time):
+        return self.uniform_field_vector

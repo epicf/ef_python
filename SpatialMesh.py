@@ -2,7 +2,6 @@ import logging
 
 import numpy as np
 
-from Vec3d import Vec3d
 from ef.util.serializable_h5 import SerializableH5
 
 
@@ -11,65 +10,20 @@ class SpatialMesh(SerializableH5):
         self.size = size
         self.n_nodes = n_nodes
         self.cell = size / (self.n_nodes - 1)
-        self._node_coordinates = np.moveaxis(np.mgrid[0:self.x_n_nodes, 0:self.y_n_nodes, 0:self.z_n_nodes], 0, -1) \
+        self._node_coordinates = np.moveaxis(np.mgrid[0:self.n_nodes[0], 0:self.n_nodes[1], 0:self.n_nodes[2]], 0, -1) \
                                  * self.cell
         self.charge_density = charge_density
         self.potential = potential
-        self._electric_field = electric_field
+        self.electric_field = electric_field
 
     @property
     def node_coordinates(self):
         return self._node_coordinates
 
     @property
-    def x_volume_size(self):
-        return self.size[0]
-
-    @property
-    def y_volume_size(self):
-        return self.size[1]
-
-    @property
-    def z_volume_size(self):
-        return self.size[2]
-
-    @property
-    def x_n_nodes(self):
-        return self.n_nodes[0]
-
-    @property
-    def y_n_nodes(self):
-        return self.n_nodes[1]
-
-    @property
-    def z_n_nodes(self):
-        return self.n_nodes[2]
-
-    @property
-    def shape(self):
-        return self.n_nodes
-
-    @property
-    def x_cell_size(self):
-        return self.cell[0]
-
-    @property
-    def y_cell_size(self):
-        return self.cell[1]
-
-    @property
-    def z_cell_size(self):
-        return self.cell[2]
-
-    @property
-    def electric_field(self):
-        return np.apply_along_axis(lambda v: Vec3d(*v), -1, self._electric_field)
-
-    @property
     def dict(self):
         d = super().dict
         del d["cell"]
-        d['electric_field'] = self._electric_field
         return d
 
     @classmethod
@@ -113,6 +67,28 @@ class SpatialMesh(SerializableH5):
                             f"to fit in a round number of cells.")
         return self
 
+    def weight_particles_charge_to_mesh(self, particle_sources):
+        volume_around_node = self.cell.prod()
+        for part_src in particle_sources:
+            for p in part_src.particles:
+                charge = p.charge / volume_around_node
+                node, remainder = np.divmod(p._position, self.cell)
+                nx, ny, nz = np.array(node, np.int)
+                cell_slice = self.charge_density[nx:nx + 2, ny:ny + 2, nz:nz + 2]
+                weight = remainder / self.cell
+                weights = np.array([1. - weight, weight])
+                dn = np.moveaxis(np.mgrid[0:2, 0:2, 0:2], 0, -1)
+                cell_slice += weights[dn, [0, 1, 2]].prod(-1) * charge
+
+    def field_at_position(self, position):
+        node, remainder = np.divmod(position, self.cell)
+        nx, ny, nz = np.array(node, np.int)
+        cell_slice = self.electric_field[nx:nx + 2, ny:ny + 2, nz:nz + 2]
+        weight = remainder / self.cell
+        weights = np.array([1. - weight, weight])
+        dn = np.moveaxis(np.mgrid[0:2, 0:2, 0:2], 0, -1)
+        return (weights[dn, [0, 1, 2]].prod(-1)[:, :, :, np.newaxis] * cell_slice).sum((0, 1, 2))
+
     def clear_old_density_values(self):
         self.charge_density.fill(0)
 
@@ -121,35 +97,3 @@ class SpatialMesh(SerializableH5):
         return np.all(self.potential[0] == p) and np.all(self.potential[-1] == p) and \
                np.all(self.potential[:, 0] == p) and np.all(self.potential[:, -1] == p) and \
                np.all(self.potential[:, :, 0] == p) and np.all(self.potential[:, :, -1] == p)
-
-    def print(self):
-        self.print_grid()
-        self.print_ongrid_values()
-
-    def print_grid(self):
-        print("Grid:")
-        print("Length: x = {:.3f}, y = {:.3f}, z = {:.3f}".format(
-            self.x_volume_size, self.y_volume_size, self.z_volume_size))
-        print("Cell size: x = {:.3f}, y = {:.3f}, z = {:.3f}".format(
-            self.x_cell_size, self.y_cell_size, self.z_cell_size))
-        print("Total nodes: x = {:d}, y = {:d}, z = {:d}".format(
-            self.x_n_nodes, self.y_n_nodes, self.z_n_nodes))
-
-    def print_ongrid_values(self):
-        nx = self.x_n_nodes
-        ny = self.y_n_nodes
-        nz = self.z_n_nodes
-        print("x_node   y_node   z_node | "
-              "charge_density | potential | electric_field(x,y,z)")
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    "{:8d} {:8d} {:8d} | "
-                    "{:14.3f} | {:14.3f} | "
-                    "{:14.3f} {:14.3f} {:14.3f}".format(
-                        i, j, k,
-                        self.charge_density[i][j][k],
-                        self.potential[i][j][k],
-                        self._electric_field[i][j][k][0],
-                        self._electric_field[i][j][k][1],
-                        self._electric_field[i][j][k][2])

@@ -1,5 +1,20 @@
+import numpy as np
+
 import physical_constants
 from ef.util.serializable_h5 import SerializableH5
+
+
+def boris_update_momentum(charge, mass, momentum, dt, total_el_field, total_mgn_field):
+    q_quote = dt * charge / mass / 2.0  # scalar. how easy is it to move? dt * Q / m /2
+    half_el_force = np.asarray(total_el_field) * q_quote  # (n, 3) half the dv caused by electric field
+    v_current = momentum / mass  # (n, 3) current velocity (at -1/2 dt already)
+    u = v_current + half_el_force  # (n, 3) v_minus
+    h = np.array(total_mgn_field) * (q_quote / physical_constants.speed_of_light)  # (n, 3)
+    # rotation vector t = qB/m * dt/2
+    s = h * (2.0 / (1.0 + np.sum(h * h, -1)))[..., np.newaxis]  # (n, 3) rotation vector s = 2t / (1 + t**2)
+    tmp = u + np.cross(u, h)  # (n, 3) v_prime is v_minus rotated by t
+    u_quote = u + np.cross(tmp, s)  # (n, 3) v_plus = v_minus + v_prime * s
+    return (u_quote + half_el_force) * mass  # (n, 3) finally add the other half-velocity
 
 
 class Particle(SerializableH5):
@@ -7,35 +22,27 @@ class Particle(SerializableH5):
         self.particle_id = particle_id
         self.charge = charge
         self.mass = mass
-        self.position = position
-        self.momentum = momentum
+        self._position = np.array(position)
+        self.momentum = np.array(momentum)
         self.momentum_is_half_time_step_shifted = momentum_is_half_time_step_shifted
 
+    @property
+    def dict(self):
+        d = super().dict
+        d['position'] = self._position
+        return d
+
     def update_position(self, dt):
-        pos_shift = self.momentum.times_scalar(dt / self.mass)
-        self.position = self.position.add(pos_shift)
+        self._position += dt / self.mass * self.momentum
 
     def field_at_point(self, point):
-        dist = point.sub(self.position)
-        dist_len = dist.length()
-        if dist_len == 0:
-            return None
-        dist_len_cube = dist_len ** 3
-        return dist.times_scalar(self.charge / dist_len_cube)
+        diff = np.array(point) - self._position
+        dist = np.linalg.norm(diff)
+        return self.charge / dist ** 3 * diff
 
     def boris_update_momentum(self, dt, total_el_field, total_mgn_field):
-        q_quote = dt * self.charge / self.mass / 2.0  # how easy is it to move?  dt * Q / m /2
-        half_el_force = total_el_field.times_scalar(q_quote)  # half the velocity change caused by electric field in dt
-        v_current = self.momentum.times_scalar(1.0 / self.mass)  # current velocity (at -1/2 dt already)
-        u = v_current.add(half_el_force)  # v_minus
-        h = total_mgn_field.times_scalar(
-            q_quote / physical_constants.speed_of_light)  # rotation vector t = qB/m * dt/2
-        s = h.times_scalar(
-            2.0 / (1.0 + h.dot_product(h)))  # rotation vector s = 2t / (1 + t**2)
-        tmp = u.add(u.cross_product(h))  # v_prime is v_minus rotated by t
-        u_quote = u.add(tmp.cross_product(s))  # v_plus = v_minus + v_prime * s
-        self.momentum = u_quote.add(half_el_force).times_scalar(self.mass)  # finally add the other half-velocity
+        self.momentum = boris_update_momentum(self.charge, self.mass, self.momentum, dt, total_el_field,
+                                              total_mgn_field)
 
     def boris_update_momentum_no_mgn(self, dt, total_el_field):
-        dp = total_el_field.times_scalar(self.charge * dt)
-        self.momentum = self.momentum.add(dp)
+        self.momentum += self.charge * dt * np.array(total_el_field)

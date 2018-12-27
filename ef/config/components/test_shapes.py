@@ -138,6 +138,5 @@ def test_generate_point():
     for cls in Box, Sphere, Cylinder, Tube:
         shape = cls()
         for i in range(1000):
-            v = shape.generate_uniform_random_point(random.uniform)
-            point = (v.x, v.y, v.z)
+            point = shape.generate_uniform_random_point(random.uniform)
             assert shape.is_point_inside(point)

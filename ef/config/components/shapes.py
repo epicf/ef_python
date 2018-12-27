@@ -20,6 +20,7 @@ class Shape(ConfigComponent, SerializableH5):
     def generate_uniform_random_point(self, randrange):
         raise NotImplementedError()
 
+
 class Box(Shape):
     def __init__(self, origin=(0, 0, 0), size=(1, 1, 1)):
         self.origin = np.array(origin, np.float)
@@ -32,7 +33,7 @@ class Box(Shape):
         return np.all(point >= self.origin) and np.all(point <= self.origin + self.size)
 
     def generate_uniform_random_point(self, randrange):
-        return Vec3d(*[randrange(self.origin[i], self.origin[i] + self.size[i]) for i in range(3)])
+        return np.array([randrange(self.origin[i], self.origin[i] + self.size[i]) for i in range(3)])
 
 
 class Cylinder(Shape):
@@ -89,7 +90,7 @@ class Cylinder(Shape):
                     unit_rotation_axis.dot_product(random_pnt_in_cyl_along_z))
             # shift:
         shifted = random_pnt_in_rotated_cyl.add(Vec3d(*self.start))
-        return shifted
+        return np.array(shifted)
 
 
 class Tube(Shape):
@@ -149,7 +150,7 @@ class Tube(Shape):
         # shift:
         shifted = random_pnt_in_rotated_cyl.add(
             Vec3d(*self.start))
-        return shifted
+        return np.array(shifted)
 
 
 class Sphere(Shape):
@@ -165,10 +166,11 @@ class Sphere(Shape):
 
     def generate_uniform_random_point(self, randrange):
         while True:
-            p = np.array([randrange(0, 1) for i in range(3)])*self.r + self.origin
+            p = np.array([randrange(0, 1) for i in range(3)]) * self.r + self.origin
             if self.is_point_inside(p):
                 break
-        return Vec3d(*p)
+        return p
+
 
 class Cone(Shape):
     def __init__(self, start=(0, 0, 0, 1),

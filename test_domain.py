@@ -1,17 +1,17 @@
 from configparser import ConfigParser
+from math import sqrt
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal
 
 from ExternalFieldExpression import ExternalFieldExpression
 from ExternalFieldUniform import ExternalFieldUniform
-from ExternalFieldsManager import ExternalFieldsManager
 from FieldSolver import FieldSolver
 from InnerRegion import InnerRegion
-from InnerRegionsManager import InnerRegionsManager
+from Particle import Particle
 from ParticleInteractionModel import ParticleInteractionModel
-from ParticleSourcesManager import ParticleSourcesManager
-from ParticleToMeshMap import ParticleToMeshMap
+from ParticleSource import ParticleSource
 from SpatialMesh import SpatialMesh
 from TimeGrid import TimeGrid
 from ef.config.components import *
@@ -26,11 +26,11 @@ class TestDomain:
         dom = EfConf.from_configparser(parser).make()
         assert dom.time_grid == TimeGrid(100, 1, 10)
         assert dom.spat_mesh == SpatialMesh.do_init((10, 10, 10), (1, 1, 1), BoundaryConditionsConf(0))
-        assert dom.inner_regions == InnerRegionsManager([])
-        assert dom.particle_to_mesh_map == ParticleToMeshMap()
+        assert dom.inner_regions == []
         assert type(dom._field_solver) == FieldSolver
-        assert dom.particle_sources == ParticleSourcesManager([])
-        assert dom.external_fields == ExternalFieldsManager([], [])
+        assert dom.particle_sources == []
+        assert dom.electric_fields == []
+        assert dom.magnetic_fields == []
         assert dom.particle_interaction_model == ParticleInteractionModel("PIC")
         assert dom._output_filename_prefix == "out_"
         assert dom._output_filename_suffix == ".h5"
@@ -56,20 +56,25 @@ class TestDomain:
         dom = EfConf.from_configparser(parser).make()
         assert dom.time_grid == TimeGrid(200, 2, 20)
         assert dom.spat_mesh == SpatialMesh.do_init((5, 5, 5), (.1, .1, .1), BoundaryConditionsConf(-2.7))
-        assert dom.inner_regions == InnerRegionsManager([InnerRegion('1', Box(), 1),
-                                                         InnerRegion('2', Sphere(), -2),
-                                                         InnerRegion('3', Cylinder(), 0),
-                                                         InnerRegion('4', Tube(), 4)])
-        assert dom.particle_to_mesh_map == ParticleToMeshMap()
+        assert dom.inner_regions == [InnerRegion('1', Box(), 1),
+                                     InnerRegion('2', Sphere(), -2),
+                                     InnerRegion('3', Cylinder(), 0),
+                                     InnerRegion('4', Tube(), 4)]
         assert type(dom._field_solver) == FieldSolver
-        assert dom.particle_sources == ParticleSourcesManager([ParticleSourceConf('a', Box()).make(),
-                                                               ParticleSourceConf('c', Cylinder()).make(),
-                                                               ParticleSourceConf('d', Tube()).make()])
-        assert dom.external_fields == ExternalFieldsManager(
-            [ExternalFieldUniform('x', 'electric', np.array((-2, -2, 1)))],
-            [ExternalFieldExpression('y', 'magnetic',
-                                     '0', '0',
-                                     '3*x + sqrt(y) - z**2')])
+        assert dom.particle_sources == [ParticleSourceConf('a', Box()).make(),
+                                        ParticleSourceConf('c', Cylinder()).make(),
+                                        ParticleSourceConf('d', Tube()).make()]
+        assert dom.electric_fields == [ExternalFieldUniform('x', 'electric', np.array((-2, -2, 1)))]
+        assert dom.magnetic_fields == [ExternalFieldExpression('y', 'magnetic', '0', '0', '3*x + sqrt(y) - z**2')]
         assert dom.particle_interaction_model == ParticleInteractionModel("binary")
         assert dom._output_filename_prefix == "out_"
         assert dom._output_filename_suffix == ".h5"
+
+    def test_binary_field(self):
+        d = EfConf().make()
+        d.particle_sources = [
+            ParticleSource('s1', Box(), 1, 0, 0, 0, 1, 1, [Particle(1, -1, 1, (1, 2, 3), (-2, 2, 0), False)], 1)]
+        assert_array_almost_equal(d.binary_field_at_point((1, 2, 3)), (0, 0, 0))
+        assert_array_almost_equal(d.binary_field_at_point((1, 2, 4)), (0, 0, -1))
+        assert_array_almost_equal(d.binary_field_at_point((0, 2, 3)), (1, 0, 0))
+        assert_array_almost_equal(d.binary_field_at_point((0, 1, 2)), (1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))

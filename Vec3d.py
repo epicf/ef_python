@@ -1,5 +1,7 @@
 from math import sqrt
 
+import numpy as np
+
 from ef.util.serializable_h5 import SerializableH5
 
 
@@ -8,6 +10,12 @@ class Vec3d(SerializableH5):
         self.x = x
         self.y = y
         self.z = z
+
+    def __array__(self, dtype=None):
+        if dtype:
+            return np.array([self.x, self.y, self.z], dtype=dtype)
+        else:
+            return np.array([self.x, self.y, self.z])
 
     @classmethod
     def zero(cls):

@@ -1,7 +1,8 @@
 import math
 
+import numpy as np
+
 from ExternalField import ExternalField
-from Vec3d import Vec3d
 from libs.simpleeval.simpleeval import SimpleEval
 
 
@@ -13,10 +14,10 @@ class ExternalFieldExpression(ExternalField):
         self.expression_y = expression_y
         self.expression_z = expression_z
 
-    def field_at_particle_position(self, particle, current_time):
-        ev = SimpleEval(names={"x": particle.position.x,
-                               "y": particle.position.y,
-                               "z": particle.position.z,
+    def field_at_position(self, position, current_time):
+        ev = SimpleEval(names={"x": position[0],
+                               "y": position[1],
+                               "z": position[2],
                                "t": current_time},
                         functions={"sin": math.sin,
                                    "cos": math.cos,
@@ -26,4 +27,4 @@ class ExternalFieldExpression(ExternalField):
         fx = ev.eval(self.expression_x)
         fy = ev.eval(self.expression_y)
         fz = ev.eval(self.expression_z)
-        return Vec3d(fx, fy, fz)
+        return np.array((fx, fy, fz))

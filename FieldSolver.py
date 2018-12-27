@@ -8,13 +8,11 @@ import scipy.sparse.linalg
 
 class FieldSolver:
     def __init__(self, spat_mesh, inner_regions):
-        if inner_regions.regions:
+        if inner_regions:
             print("WARNING: field-solver: inner region support is untested")
             print("WARNING: proceed with caution")
         self._double_index = self.double_index(spat_mesh.n_nodes)
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
+        nx, ny, nz = spat_mesh.n_nodes
         nrows = (nx - 2) * (ny - 2) * (nz - 2)
         ncols = nrows
         self.A = None
@@ -24,12 +22,8 @@ class FieldSolver:
         self.create_solver_and_preconditioner()
 
     def construct_equation_matrix(self, spat_mesh, inner_regions):
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
-        dx = spat_mesh.x_cell_size
-        dy = spat_mesh.y_cell_size
-        dz = spat_mesh.z_cell_size
+        nx, ny, nz = spat_mesh.n_nodes
+        dx, dy, dz = spat_mesh.cell
         self.construct_equation_matrix_in_full_domain(nx, ny, nz, dx, dy, dz)
         self.zero_nondiag_for_nodes_inside_objects(spat_mesh, inner_regions)
 
@@ -73,7 +67,7 @@ class FieldSolver:
         return scipy.sparse.diags([1.0, -2.0, 1.0], [-offset, 0, offset], shape=(n, n)).tocsr()
 
     def zero_nondiag_for_nodes_inside_objects(self, mesh, inner_regions):
-        for ir in inner_regions.regions:
+        for ir in inner_regions:
             for n, i, j, k in self._double_index:
                 xyz = mesh.cell * (i, j, k)
                 if ir.check_if_point_inside(*xyz):
@@ -122,7 +116,7 @@ class FieldSolver:
         self.rhs = rhs.ravel('F')
 
     def set_rhs_for_nodes_inside_objects(self, spat_mesh, inner_regions):
-        for ir in inner_regions.regions:
+        for ir in inner_regions:
             for n, i, j, k in self._double_index:
                 xyz = spat_mesh.cell * (i, j, k)
                 if ir.check_if_point_inside(*xyz):
@@ -163,9 +157,7 @@ class FieldSolver:
         return (i, j, k)
 
     def transfer_solution_to_spat_mesh(self, spat_mesh):
-        nx = spat_mesh.x_n_nodes
-        ny = spat_mesh.y_n_nodes
-        nz = spat_mesh.z_n_nodes
+        nx, ny, nz = spat_mesh.n_nodes
         nrow = (nx - 2) * (ny - 2) * (nz - 2)
         ncol = nrow
         for global_index in range(nrow):
@@ -175,7 +167,7 @@ class FieldSolver:
     @staticmethod
     def eval_fields_from_potential(spat_mesh):
         e = -np.stack(np.gradient(spat_mesh.potential, *spat_mesh.cell), -1)
-        spat_mesh._electric_field = e
+        spat_mesh.electric_field = e
 
     @staticmethod
     def double_index(n_nodes):

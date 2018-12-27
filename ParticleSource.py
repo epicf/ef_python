@@ -1,15 +1,16 @@
 import random
 from math import sqrt
 
+import numpy as np
+
 from Particle import Particle
-from Vec3d import Vec3d
 from ef.util.serializable_h5 import SerializableH5
 
 
 class ParticleSource(SerializableH5):
 
-    def __init__(self, name, shape, initial_number_of_particles, particles_to_generate_each_step, mean_momentum, temperature,
-                 charge, mass, particles=(), max_id=0):
+    def __init__(self, name, shape, initial_number_of_particles, particles_to_generate_each_step, mean_momentum,
+                 temperature, charge, mass, particles=(), max_id=0):
         if initial_number_of_particles <= 0:
             raise ValueError("initial_number_of_particles <= 0")
         if particles_to_generate_each_step < 0:
@@ -48,8 +49,7 @@ class ParticleSource(SerializableH5):
         vec_of_ids = self.populate_vec_of_ids(num_of_particles)
         for i in range(num_of_particles):
             pos = self.shape.generate_uniform_random_point(self.random_in_range)
-            mom = self.maxwell_momentum_distr(
-                Vec3d(*self.mean_momentum), self.temperature, self.mass)
+            mom = self.maxwell_momentum_distr(self.mean_momentum, self.temperature, self.mass)
             self.particles.append(
                 Particle(vec_of_ids[i], self.charge, self.mass, pos, mom))
 
@@ -69,9 +69,7 @@ class ParticleSource(SerializableH5):
         return r
 
     def maxwell_momentum_distr(self, mean_momentum, temperature, mass):
-        maxwell_gauss_std_mean_x = mean_momentum.x
-        maxwell_gauss_std_mean_y = mean_momentum.y
-        maxwell_gauss_std_mean_z = mean_momentum.z
+        maxwell_gauss_std_mean_x, maxwell_gauss_std_mean_y, maxwell_gauss_std_mean_z = mean_momentum
         maxwell_gauss_std_dev = sqrt(mass * temperature)
         #
         tmp = random.getstate()
@@ -82,8 +80,8 @@ class ParticleSource(SerializableH5):
         self._rnd_state = random.getstate()
         random.setstate(tmp)
         #
-        mom = Vec3d(px, py, pz)
-        mom = mom.times_scalar(1.0)  # recheck
+        mom = np.array((px, py, pz))
+        mom = mom * 1.0  # TODO: why?
         return mom
 
     def update_particles_position(self, dt):

@@ -4,7 +4,6 @@ from math import ceil
 import numpy as np
 
 from ExternalField import ExternalField
-from Vec3d import Vec3d
 
 
 class ExternalFieldFromFile(ExternalField):
@@ -49,11 +48,11 @@ class ExternalFieldFromFile(ExternalField):
         self.determine_n_nodes(mesh)
         self.determine_start_end_grid_points(mesh)
         #
-        self.field_from_file = np.full((self.x_n_nodes, self.y_n_nodes, self.z_n_nodes),
-                                       Vec3d.zero(), dtype=object)
+        self.field_from_file = np.zeros((self.x_n_nodes, self.y_n_nodes, self.z_n_nodes, 3))
+
         for global_idx, (Fx, Fy, Fz) in enumerate(zip(mesh[:, 3], mesh[:, 4], mesh[:, 5])):
             i, j, k = self.global_idx_to_node_ijk(global_idx)
-            self.field_from_file[i][j][k] = Vec3d(Fx, Fy, Fz)
+            self.field_from_file[i][j][k] = (Fx, Fy, Fz)
 
     def determine_volume_sizes(self, mesh):
         self.x_volume_size = mesh[-1, 0] - mesh[0, 0]
@@ -108,9 +107,7 @@ class ExternalFieldFromFile(ExternalField):
         return (i, j, k)
 
     def inside_mesh(self, point):
-        x = point.x
-        y = point.y
-        z = point.z
+        x, y, z = point
         inside = (x >= self.x_start) and (x <= self.x_end) \
                  and \
                  (y >= self.y_start) and (y <= self.y_end) \
@@ -118,67 +115,66 @@ class ExternalFieldFromFile(ExternalField):
                  (z >= self.z_start) and (z <= self.z_end)
         return inside
 
-    def field_at_particle_position(self, particle, current_time):
-        if self.inside_mesh(particle.position):
-            field = self.field_from_grid(particle)
+    def field_at_position(self, position, current_time):
+        if self.inside_mesh(position):
+            field = self.field_from_grid(position)
         else:
-            field = Vec3d.zero()
+            field = np.zeros(3)
         return field
 
     # todo: refactor
-    def field_from_grid(self, particle):
+    def field_from_grid(self, position):
         dx = self.x_cell_size
         dy = self.y_cell_size
         dz = self.z_cell_size
         # 'tlf' = 'top_left_far'
         tlf_i, tlf_x_weight = self.next_node_num_and_weight(
-            particle.position.x, dx, self.x_start)
+            position[0], dx, self.x_start)
         tlf_j, tlf_y_weight = self.next_node_num_and_weight(
-            particle.position.y, dy, self.y_start)
+            position[1], dy, self.y_start)
         tlf_k, tlf_z_weight = self.next_node_num_and_weight(
-            particle.position.z, dz, self.z_start)
+            position[2], dz, self.z_start)
         # tlf
-        total_field = Vec3d.zero()
-        field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k].times_scalar(
-            tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
+        total_field = np.zeros(3)
+        field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k] * tlf_x_weight
+        field_from_node *= tlf_y_weight
+        field_from_node *= tlf_z_weight
+        total_field += field_from_node
         # trf
-        field_from_node = self.field_from_file[tlf_i - 1][tlf_j][tlf_k].times_scalar(1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
+        field_from_node = self.field_from_file[tlf_i - 1][tlf_j][tlf_k] * (1.0 - tlf_x_weight)
+        field_from_node *= tlf_y_weight
+        field_from_node *= tlf_z_weight
+        total_field += field_from_node
         # blf
-        field_from_node = self.field_from_file[tlf_i][tlf_j - 1][tlf_k].times_scalar(tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
+        field_from_node = self.field_from_file[tlf_i][tlf_j - 1][tlf_k] * tlf_x_weight
+        field_from_node *= (1.0 - tlf_y_weight)
+        field_from_node *= tlf_z_weight
+        total_field += field_from_node
         # brf
-        field_from_node = self.field_from_file[tlf_i - 1][tlf_j - 1][tlf_k].times_scalar(1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(tlf_z_weight)
-        total_field = total_field.add(field_from_node)
+        field_from_node = self.field_from_file[tlf_i - 1][tlf_j - 1][tlf_k] * (1.0 - tlf_x_weight)
+        field_from_node *= (1.0 - tlf_y_weight)
+        field_from_node *= tlf_z_weight
+        total_field += field_from_node
         # tln
-        field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k - 1].times_scalar(tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
+        field_from_node = self.field_from_file[tlf_i][tlf_j][tlf_k - 1] * tlf_x_weight
+        field_from_node *= tlf_y_weight
+        field_from_node *= (1.0 - tlf_z_weight)
+        total_field += field_from_node
         # trn
-        field_from_node = self.field_from_file[tlf_i - 1][tlf_j][tlf_k - 1].times_scalar(1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
+        field_from_node = self.field_from_file[tlf_i - 1][tlf_j][tlf_k - 1] * (1.0 - tlf_x_weight)
+        field_from_node *= tlf_y_weight
+        field_from_node *= (1.0 - tlf_z_weight)
+        total_field += field_from_node
         # bln
-        field_from_node = self.field_from_file[tlf_i][tlf_j - 1][tlf_k - 1].times_scalar(tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
+        field_from_node = self.field_from_file[tlf_i][tlf_j - 1][tlf_k - 1] * tlf_x_weight
+        field_from_node *= (1.0 - tlf_y_weight)
+        field_from_node *= (1.0 - tlf_z_weight)
+        total_field += field_from_node
         # brn
-        field_from_node = self.field_from_file[tlf_i - 1][tlf_j - 1][tlf_k - 1].times_scalar(1.0 - tlf_x_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_y_weight)
-        field_from_node = field_from_node.times_scalar(1.0 - tlf_z_weight)
-        total_field = total_field.add(field_from_node)
+        field_from_node = self.field_from_file[tlf_i - 1][tlf_j - 1][tlf_k - 1] * (1.0 - tlf_x_weight)
+        field_from_node *= (1.0 - tlf_y_weight)
+        field_from_node *= (1.0 - tlf_z_weight)
+        total_field += field_from_node
         #
         return total_field
 

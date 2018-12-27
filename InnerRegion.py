@@ -1,8 +1,3 @@
-import os
-
-import numpy as np
-
-from Node import Node
 from ef.util.serializable_h5 import SerializableH5
 
 
@@ -16,10 +11,7 @@ class InnerRegion(SerializableH5):
         self.total_absorbed_charge = total_absorbed_charge
 
     def check_if_particle_inside(self, p):
-        x = p.position.x
-        y = p.position.y
-        z = p.position.z
-        return self.check_if_point_inside(x, y, z)
+        return self.check_if_point_inside(*p._position)
 
     def check_if_particle_inside_and_count_charge(self, p):
         in_or_out = self.check_if_particle_inside(p)
@@ -30,6 +22,3 @@ class InnerRegion(SerializableH5):
 
     def check_if_point_inside(self, x, y, z):
         return self.shape.is_point_inside((x, y, z))
-
-    def check_if_node_inside(self, node, dx, dy, dz):
-        return self.check_if_point_inside(node.x * dx, node.y * dy, node.z * dz)
