@@ -107,7 +107,7 @@ class Domain(SerializableH5):
 
     def compute_total_fields_at_position(self, position):
         total_el_field = np.zeros_like(position) # make sure shape is correct, as += operators can't broadcast left side
-        total_el_field += sum(f.field_at_position(position, self.time_grid.current_time) for f in self.electric_fields)
+        total_el_field += sum(f.get_at_points(position, self.time_grid.current_time) for f in self.electric_fields)
         if self.particle_interaction_model.noninteracting:
             if self.inner_regions or not self.spat_mesh.is_potential_equal_on_boundaries():
                 total_el_field += self.spat_mesh.field_at_position(position)
@@ -119,7 +119,7 @@ class Domain(SerializableH5):
             total_el_field += self.spat_mesh.field_at_position(position)
         mgn_field = None
         if self.magnetic_fields:
-            mgn_field = sum(f.field_at_position(position, self.time_grid.current_time) for f in self.magnetic_fields)
+            mgn_field = sum(f.get_at_points(position, self.time_grid.current_time) for f in self.magnetic_fields)
         return total_el_field, mgn_field
 
     def binary_electric_field_at_positions(self, position):

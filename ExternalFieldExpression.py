@@ -28,10 +28,10 @@ class ExternalFieldExpression(ExternalField):
         fz = self._ev.eval(self.expression_z)
         return fx, fy, fz
 
-    def field_at_position(self, position, current_time):
-        position = np.asarray(position)
-        self._ev.names["t"] = current_time
-        if position.shape == (3,):
-            return np.array(self._field_at_position(position))
+    def get_at_points(self, positions, time):
+        positions = np.asarray(positions)
+        self._ev.names["t"] = time
+        if positions.shape == (3,):
+            return np.array(self._field_at_position(positions))
         else:
-            return np.array([self._field_at_position(pos) for pos in position])
+            return np.array([self._field_at_position(pos) for pos in positions])
