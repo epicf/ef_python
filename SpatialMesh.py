@@ -73,15 +73,20 @@ class SpatialMesh(SerializableH5):
         for part_src in particle_sources:
             for p in part_src.particle_arrays:  # np - size of particle array p
                 charge = p.charge / volume_around_node  # scalar
-                node, remainder = np.divmod(p.positions, self.cell)
-                node = node.astype(int)  # shape is (np, 3) or (3)
-                w = remainder / self.cell  # shape is (np, 3) or (3)
-                for dx, dy, dz in product((0, 1), repeat=3):
-                    weight_on_nodes = (w[..., 0] if dx else (1 - w[..., 0])) * \
-                                      (w[..., 1] if dy else (1 - w[..., 1])) * \
-                                      (w[..., 2] if dz else (1 - w[..., 2]))  # shape is (np) or scalar
-                    nodes_to_update = node + np.array((dx, dy, dz))  # shape is (np, 3) or (3)
-                    self.charge_density[tuple(np.moveaxis(nodes_to_update, -1, 0))] += weight_on_nodes * charge
+                for pos in p.positions:
+                    node, remainder = np.divmod(pos, self.cell)  # (3)
+                    node = node.astype(int)  # (3)
+                    weight = remainder / self.cell  # (3)
+                    w = np.stack([1. - weight, weight], axis=-2)  # (2, 3)
+                    dn = np.array(list(product((0, 1), repeat=3)))  # (8, 3)
+                    weight_on_nodes = w[dn[:, (0, 1, 2)], (0, 1, 2)].prod(-1)  # (8)
+                    nodes_to_update = node + dn  # (8, 3)
+                    for i, xyz in enumerate(nodes_to_update):
+                        if np.any(xyz >= self.n_nodes):
+                            if weight_on_nodes[i] > 0:
+                                raise ValueError("Particle is out of bounds")
+                        else:
+                            self.charge_density[tuple(xyz)] += weight_on_nodes[i] * charge
 
     def field_at_position(self, position):
         node, remainder = np.divmod(position, self.cell)  # np - size of position array
