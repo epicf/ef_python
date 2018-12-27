@@ -12,6 +12,11 @@ class MeshGrid(SerializableH5):
         self.n_nodes = n_nodes
         self.origin = np.asarray(origin)
 
+    @classmethod
+    def from_step(cls, size, step, origin=(0, 0, 0)):
+        n_nodes = np.ceil(size / step).astype(int) + 1
+        return cls(size, n_nodes, origin)
+
     @property
     def cell(self):
         return self.size / (self.n_nodes - 1)
@@ -41,7 +46,7 @@ class MeshGrid(SerializableH5):
             weight_on_nodes = w[dn[:, (0, 1, 2)], (0, 1, 2)].prod(-1)  # (8)
             nodes_to_update = node + dn  # (8, 3)
             for i, xyz in enumerate(nodes_to_update):
-                if np.any(xyz >= self.n_nodes):
+                if np.any(xyz >= self.n_nodes) or np.any(xyz < 0):
                     if weight_on_nodes[i] > 0:
                         raise ValueError("Position is out of meshgrid bounds")
                 else:
@@ -63,7 +68,10 @@ class MeshGrid(SerializableH5):
         dn = np.array(list(product((0, 1), repeat=3)))  # shape is (8, 3)
         nodes_to_use = node[..., np.newaxis, :] + dn  # shape is (np, 8, 3)
         field_indexes = np.moveaxis(nodes_to_use, -1, 0)  # shape is (3, np, 8)
-        field_on_nodes = np.moveaxis(field[tuple(field_indexes)], (0, 1), (-2, -1))  # shape is (F, np, 8)
+        out_of_bounds = np.logical_or(nodes_to_use >= self.n_nodes, nodes_to_use < 0).any(axis=-1)  # (np, 8)
+        field_on_nodes = np.empty((*field.shape[3:], len(positions), 8))  # (F, np, 8)
+        field_on_nodes[..., out_of_bounds] = 0  # (F, np, 8) interpolate out-of-bounds field as 0
+        field_on_nodes[..., ~out_of_bounds] = field[tuple(field_indexes[:, ~out_of_bounds])].transpose()  # sorry...
         weight_on_nodes = w[..., dn[:, (0, 1, 2)], (0, 1, 2)].prod(-1)  # shape is (np, 8)
         return np.moveaxis((field_on_nodes * weight_on_nodes).sum(axis=-1), -1, 0)  # shape is (np, F)
 
@@ -113,24 +121,21 @@ class SpatialMesh(SerializableH5):
         if np.any(step > size):
             raise ValueError("step_size cannot be bigger than grid_size")
 
-        n_nodes = np.ceil(size / step).astype(int) + 1
-        charge_density = np.zeros(n_nodes, dtype='f8')
-        potential = np.zeros(n_nodes, dtype='f8')
+        grid = MeshGrid.from_step(size, step)
+        for i in np.nonzero(grid.cell != step_size)[0]:
+            logging.warning(f"{('X', 'Y', 'Z')[i]} step on spatial grid was reduced to "
+                            f"{grid.cell[i]:.3f} from {step_size[i]:.3f} "
+                            f"to fit in a round number of cells.")
+        charge_density = np.zeros(grid.n_nodes, dtype='f8')
+        potential = np.zeros(grid.n_nodes, dtype='f8')
         potential[:, 0, :] = boundary_conditions.bottom
         potential[:, -1, :] = boundary_conditions.top
         potential[0, :, :] = boundary_conditions.right
         potential[-1, :, :] = boundary_conditions.left
         potential[:, :, 0] = boundary_conditions.near
         potential[:, :, -1] = boundary_conditions.far
-        electric_field = np.zeros(list(n_nodes) + [3], dtype='f8')
-
-        self = cls(MeshGrid(size, n_nodes), charge_density, potential, electric_field)
-
-        for i in np.nonzero(self.mesh.cell != step_size)[0]:
-            logging.warning(f"{('X', 'Y', 'Z')[i]} step on spatial grid was reduced to "
-                            f"{self.mesh.cell[i]:.3f} from {step_size[i]:.3f} "
-                            f"to fit in a round number of cells.")
-        return self
+        electric_field = np.zeros(list(grid.n_nodes) + [3], dtype='f8')
+        return cls(grid, charge_density, potential, electric_field)
 
     def weight_particles_charge_to_mesh(self, particle_sources):
         for part_src in particle_sources:
