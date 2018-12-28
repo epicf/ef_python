@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 from numpy.testing import assert_array_equal
 
-import physical_constants
+from ef.util import physical_constants
 from Particle import Particle, boris_update_momentum
 
 

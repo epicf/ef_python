@@ -1,6 +1,6 @@
 import numpy as np
 
-import physical_constants
+from ef.util import physical_constants
 from ef.util.serializable_h5 import SerializableH5
 
 
