@@ -2,7 +2,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from ExternalFieldExpression import ExternalFieldExpression
-from ExternalFieldFromFile import ExternalFieldFromFile
+from ExternalFieldOnGrid import ExternalFieldOnGrid
 from ExternalFieldUniform import ExternalFieldUniform
 
 
@@ -21,10 +21,10 @@ class TestFields:
         assert_array_equal(f.get_at_points((3, 2, 1), 5.), (4, 5, 5))
 
     def test_from_file(self):
-        f = ExternalFieldFromFile('f1', 'electric', 'examples/test_field.csv')
-        assert_array_equal(f.get_at_points((0, 0, 0), 0.), (1, 1, 1))
-        assert_array_equal(f.get_at_points((1, 1, 1), 5.), (-1, -1, -1))
-        assert_array_equal(f.get_at_points((1, 0, 1), 5.), (3, 2, 1))
-        assert_array_equal(f.get_at_points((.5, .5, .5), 10), (1, 1, 1))
-        assert_array_almost_equal(f.get_at_points((.5, 1., .3), 10.), (0., .5, 1.))
-        assert_array_almost_equal(f.get_at_points((0, .5, .7), 10), (1, 1.5, 2))
+        f = ExternalFieldOnGrid('f1', 'electric', 'examples/test_field.csv')
+        assert_array_equal(f.get_at_points([(0, 0, 0), (1, 1, 1), (1, 0, 1), (.5, .5, .5)], 0),
+                           [(1, 1, 1), (-1, -1, -1), (3, 2, 1), (1, 1, 1)])
+        assert_array_equal(f.get_at_points([(0, 0, 0), (1, 1, 1), (1, 0, 1), (.5, .5, .5)], 10.),
+                           [(1, 1, 1), (-1, -1, -1), (3, 2, 1), (1, 1, 1)])
+        assert_array_almost_equal(f.get_at_points([(.5, 1., .3), (0, .5, .7)], 5), [(0., .5, 1.), (1, 1.5, 2)])
+        assert_array_equal(f.get_at_points([(-1, 1., .3), (1, 1, 10)], 3), [(0, 0, 0), (0, 0, 0)])
