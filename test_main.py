@@ -1,3 +1,5 @@
+import os
+import subprocess
 from os.path import basename
 from shutil import copyfile
 
@@ -82,3 +84,32 @@ def test_example(fname, mocker, capsys, tmpdir, monkeypatch):
     main()
     out, err = capsys.readouterr()
     assert err == ""
+
+
+@pytest.mark.parametrize("fname", [
+    "examples/minimal_working_example/minimal_conf.conf",
+    pytest.param("examples/single_particle_in_free_space/single_particle_in_free_space.conf",
+                 marks=pytest.mark.slowish),
+    pytest.param("examples/single_particle_in_magnetic_field/single_particle_in_magnetic_field.conf",
+                 marks=pytest.mark.slowish),
+    pytest.param("examples/single_particle_in_magnetic_field/large_time_step.conf",
+                 marks=pytest.mark.slowish),
+    pytest.param("examples/tube_source_test/contour.conf",
+                 marks=pytest.mark.slow),
+    pytest.param("examples/single_particle_in_radial_electric_field/single_particle_in_radial_electric_field.conf",
+                 marks=pytest.mark.slowish),
+    pytest.param("examples/ribbon_beam_contour/contour_bin.conf",
+                 marks=pytest.mark.slow),
+    pytest.param("examples/ribbon_beam_contour/contour.conf",
+                 marks=pytest.mark.slow),
+    pytest.param("examples/drift_tube_potential/pot.conf",
+                 marks=pytest.mark.slow),
+])
+def test_main_shell(fname, tmpdir, monkeypatch):
+    basedir = os.getcwd()
+    monkeypatch.chdir(tmpdir)
+    result = subprocess.run([os.path.join(basedir, "main.py"), os.path.join(basedir, fname)], check=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    for line in result.stderr.split("\n"):
+        assert line == '' or line.startswith("WARNING:")
+    assert result.stdout != ""
