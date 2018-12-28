@@ -4,7 +4,7 @@ from collections import namedtuple
 
 import numpy as np
 
-import spatial_mesh
+from ef import spatial_mesh
 from ef.config.component import ConfigComponent
 from ef.config.section import ConfigSection
 

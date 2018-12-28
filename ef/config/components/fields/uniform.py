@@ -1,4 +1,4 @@
-import external_field_uniform
+from ef import external_field_uniform
 
 __all__ = ["ExternalFieldUniformConf", "ExternalFieldUniformSection"]
 

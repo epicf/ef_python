@@ -7,7 +7,7 @@ import sys
 
 import h5py
 
-from domain import Domain
+from ef.domain import Domain
 from ef.config.efconf import EfConf
 
 

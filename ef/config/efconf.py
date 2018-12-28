@@ -1,7 +1,7 @@
 import io
 from configparser import ConfigParser
 
-import domain
+from ef import domain
 from ef.config.components import *
 from ef.config.section import ConfigSection
 from ef.util.data_class import DataClass

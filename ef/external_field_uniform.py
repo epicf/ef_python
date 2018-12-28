@@ -1,4 +1,4 @@
-from external_field import ExternalField
+from ef.external_field import ExternalField
 
 
 class ExternalFieldUniform(ExternalField):

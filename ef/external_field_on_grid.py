@@ -2,8 +2,8 @@ import os.path
 
 import numpy as np
 
-from external_field import ExternalField
-from spatial_mesh import MeshGrid
+from ef.external_field import ExternalField
+from ef.spatial_mesh import MeshGrid
 
 
 class ExternalFieldOnGrid(ExternalField):

@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 
-from external_field import ExternalField
+from ef.external_field import ExternalField
 from simpleeval import SimpleEval
 
 

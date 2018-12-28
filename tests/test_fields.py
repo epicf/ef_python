@@ -1,9 +1,9 @@
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from external_field_expression import ExternalFieldExpression
-from external_field_on_grid import ExternalFieldOnGrid
-from external_field_uniform import ExternalFieldUniform
+from ef.external_field_expression import ExternalFieldExpression
+from ef.external_field_on_grid import ExternalFieldOnGrid
+from ef.external_field_uniform import ExternalFieldUniform
 
 
 class TestFields:

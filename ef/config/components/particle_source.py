@@ -1,4 +1,4 @@
-import particle_source
+from ef import particle_source
 
 __all__ = ["ParticleSourceConf", "ParticleSourceBoxSection", "ParticleSourceCylinderSection",
            "ParticleSourceTubeSection"]

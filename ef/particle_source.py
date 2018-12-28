@@ -2,7 +2,7 @@ from math import sqrt
 
 from numpy.random import RandomState
 
-from particle_array import ParticleArray
+from ef.particle_array import ParticleArray
 from ef.util.serializable_h5 import SerializableH5
 
 

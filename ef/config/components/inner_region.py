@@ -3,7 +3,7 @@ __all__ = ["InnerRegionConf", "InnerRegionBoxSection", "InnerRegionCylinderSecti
 
 from collections import namedtuple
 
-import inner_region
+from ef import inner_region
 from ef.config.component import ConfigComponent
 from ef.config.components.shapes import Box, Cylinder, Tube, Sphere, Cone
 from ef.config.section import NamedConfigSection

@@ -1,4 +1,4 @@
-import external_field_on_grid
+from ef import external_field_on_grid
 
 __all__ = ["ExternalFieldFromFileConf", "ExternalFieldFromFileSection"]
 

@@ -1,4 +1,4 @@
-import external_field_expression
+from ef import external_field_expression
 
 __all__ = ["ExternalFieldExpressionConf", "ExternalFieldExpressionSection"]
 

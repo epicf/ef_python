@@ -2,7 +2,7 @@ __all__ = ['TimeGridConf', 'TimeGridSection']
 
 from collections import namedtuple
 
-import time_grid
+from ef import time_grid
 from ef.config.component import ConfigComponent
 from ef.config.section import ConfigSection
 

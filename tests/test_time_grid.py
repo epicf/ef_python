@@ -1,6 +1,6 @@
 import h5py
 
-from time_grid import TimeGrid
+from ef.time_grid import TimeGrid
 from ef.config.components import time_grid
 
 
