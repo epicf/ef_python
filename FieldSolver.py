@@ -70,7 +70,7 @@ class FieldSolver:
         for ir in inner_regions:
             for n, i, j, k in self._double_index:
                 xyz = mesh.cell * (i, j, k)
-                if ir.check_if_point_inside(*xyz):
+                if ir.check_if_points_inside(xyz):
                     csr_row_start = self.A.indptr[n]
                     csr_row_end = self.A.indptr[n + 1]
                     for t in range(csr_row_start, csr_row_end):
@@ -119,7 +119,7 @@ class FieldSolver:
         for ir in inner_regions:
             for n, i, j, k in self._double_index:
                 xyz = spat_mesh.cell * (i, j, k)
-                if ir.check_if_point_inside(*xyz):
+                if ir.check_if_points_inside(xyz):
                     self.rhs[n] = ir.potential  # where is dx**2 dy**2 etc?
 
     @staticmethod

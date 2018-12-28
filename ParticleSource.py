@@ -1,16 +1,15 @@
-import random
 from math import sqrt
 
-import numpy as np
+from numpy.random import RandomState
 
-from Particle import Particle
+from ParticleArray import ParticleArray
 from ef.util.serializable_h5 import SerializableH5
 
 
 class ParticleSource(SerializableH5):
 
     def __init__(self, name, shape, initial_number_of_particles, particles_to_generate_each_step, mean_momentum,
-                 temperature, charge, mass, particles=(), max_id=0):
+                 temperature, charge, mass, particle_arrays=(), max_id=0):
         if initial_number_of_particles <= 0:
             raise ValueError("initial_number_of_particles <= 0")
         if particles_to_generate_each_step < 0:
@@ -27,63 +26,26 @@ class ParticleSource(SerializableH5):
         self.temperature = temperature
         self.charge = charge
         self.mass = mass
-        self.particles = list(particles)
+        self.particle_arrays = list(particle_arrays)
         self.max_id = max_id
-        # Random number generator
-        # Instead of saving/loading it's state to file just
-        # reinit with different seed.
-        tmp = random.getstate()
-        random.seed()  # system time is used by default
-        self._rnd_state = random.getstate()
-        random.setstate(tmp)
+        self._generator = RandomState()
 
     def generate_initial_particles(self):
-        # particles.reserve(initial_number_of_particles)
+        # particle_arrays.reserve(initial_number_of_particles)
         self.generate_num_of_particles(self.initial_number_of_particles)
 
     def generate_each_step(self):
-        # particles.reserve(particles.size() + particles_to_generate_each_step);
+        # particle_arrays.reserve(particle_arrays.size() + particles_to_generate_each_step);
         self.generate_num_of_particles(self.particles_to_generate_each_step)
 
     def generate_num_of_particles(self, num_of_particles):
-        vec_of_ids = self.populate_vec_of_ids(num_of_particles)
-        for i in range(num_of_particles):
-            pos = self.shape.generate_uniform_random_point(self.random_in_range)
-            mom = self.maxwell_momentum_distr(self.mean_momentum, self.temperature, self.mass)
-            self.particles.append(
-                Particle(vec_of_ids[i], self.charge, self.mass, pos, mom))
+        if num_of_particles:
+            vec_of_ids = self.populate_vec_of_ids(num_of_particles)
+            pos = self.shape.generate_uniform_random_posititons(self._generator, num_of_particles)
+            mom = self._generator.normal(self.mean_momentum, sqrt(self.mass * self.temperature), (num_of_particles, 3))
+            self.particle_arrays.append(ParticleArray(vec_of_ids, self.charge, self.mass, pos, mom))
 
     def populate_vec_of_ids(self, num_of_particles):
-        vec_of_ids = []
-        for i in range(num_of_particles):
-            self.max_id += 1
-            vec_of_ids.append(self.max_id)
+        vec_of_ids = range(self.max_id + 1, self.max_id + num_of_particles + 1)
+        self.max_id += num_of_particles
         return vec_of_ids
-
-    def random_in_range(self, low, up):
-        tmp = random.getstate()
-        random.setstate(self._rnd_state)
-        r = random.uniform(low, up)
-        self._rnd_state = random.getstate()
-        random.setstate(tmp)
-        return r
-
-    def maxwell_momentum_distr(self, mean_momentum, temperature, mass):
-        maxwell_gauss_std_mean_x, maxwell_gauss_std_mean_y, maxwell_gauss_std_mean_z = mean_momentum
-        maxwell_gauss_std_dev = sqrt(mass * temperature)
-        #
-        tmp = random.getstate()
-        random.setstate(self._rnd_state)
-        px = random.gauss(maxwell_gauss_std_mean_x, maxwell_gauss_std_dev)
-        py = random.gauss(maxwell_gauss_std_mean_y, maxwell_gauss_std_dev)
-        pz = random.gauss(maxwell_gauss_std_mean_z, maxwell_gauss_std_dev)
-        self._rnd_state = random.getstate()
-        random.setstate(tmp)
-        #
-        mom = np.array((px, py, pz))
-        mom = mom * 1.0  # TODO: why?
-        return mom
-
-    def update_particles_position(self, dt):
-        for p in self.particles:
-            p.update_position(dt)

@@ -1,4 +1,5 @@
 import logging
+from itertools import product
 
 import numpy as np
 
@@ -70,24 +71,33 @@ class SpatialMesh(SerializableH5):
     def weight_particles_charge_to_mesh(self, particle_sources):
         volume_around_node = self.cell.prod()
         for part_src in particle_sources:
-            for p in part_src.particles:
-                charge = p.charge / volume_around_node
-                node, remainder = np.divmod(p._position, self.cell)
-                nx, ny, nz = np.array(node, np.int)
-                cell_slice = self.charge_density[nx:nx + 2, ny:ny + 2, nz:nz + 2]
-                weight = remainder / self.cell
-                weights = np.array([1. - weight, weight])
-                dn = np.moveaxis(np.mgrid[0:2, 0:2, 0:2], 0, -1)
-                cell_slice += weights[dn, [0, 1, 2]].prod(-1) * charge
+            for p in part_src.particle_arrays:  # np - size of particle array p
+                charge = p.charge / volume_around_node  # scalar
+                for pos in p.positions:
+                    node, remainder = np.divmod(pos, self.cell)  # (3)
+                    node = node.astype(int)  # (3)
+                    weight = remainder / self.cell  # (3)
+                    w = np.stack([1. - weight, weight], axis=-2)  # (2, 3)
+                    dn = np.array(list(product((0, 1), repeat=3)))  # (8, 3)
+                    weight_on_nodes = w[dn[:, (0, 1, 2)], (0, 1, 2)].prod(-1)  # (8)
+                    nodes_to_update = node + dn  # (8, 3)
+                    for i, xyz in enumerate(nodes_to_update):
+                        if np.any(xyz >= self.n_nodes):
+                            if weight_on_nodes[i] > 0:
+                                raise ValueError("Particle is out of bounds")
+                        else:
+                            self.charge_density[tuple(xyz)] += weight_on_nodes[i] * charge
 
     def field_at_position(self, position):
-        node, remainder = np.divmod(position, self.cell)
-        nx, ny, nz = np.array(node, np.int)
-        cell_slice = self.electric_field[nx:nx + 2, ny:ny + 2, nz:nz + 2]
-        weight = remainder / self.cell
-        weights = np.array([1. - weight, weight])
-        dn = np.moveaxis(np.mgrid[0:2, 0:2, 0:2], 0, -1)
-        return (weights[dn, [0, 1, 2]].prod(-1)[:, :, :, np.newaxis] * cell_slice).sum((0, 1, 2))
+        node, remainder = np.divmod(position, self.cell)  # np - size of position array
+        node = node.astype(int)  # shape is (np, 3) or (3)
+        weight = remainder / self.cell  # shape is (np, 3) or (3)
+        w = np.stack([1. - weight, weight], axis=-2)  # shape is (np, 2, 3) or (2, 3)
+        dn = np.array(list(product((0, 1), repeat=3)))  # shape is (8, 3)
+        nodes_to_use = node[..., np.newaxis, :] + dn  # shape is (np, 8, 3) or (8, 3)
+        field_on_nodes = self.electric_field[tuple(np.moveaxis(nodes_to_use, -1, 0))]  # shape is (np, 8, 3) or (8, 3)
+        weight_on_nodes = w[..., dn[:, (0, 1, 2)], (0, 1, 2)].prod(-1)  # shape is (np, 8)
+        return (field_on_nodes * weight_on_nodes[..., np.newaxis]).sum(axis=-2)
 
     def clear_old_density_values(self):
         self.charge_density.fill(0)

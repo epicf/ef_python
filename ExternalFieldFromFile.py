@@ -115,9 +115,9 @@ class ExternalFieldFromFile(ExternalField):
                  (z >= self.z_start) and (z <= self.z_end)
         return inside
 
-    def field_at_position(self, position, current_time):
-        if self.inside_mesh(position):
-            field = self.field_from_grid(position)
+    def get_at_points(self, positions, time):
+        if self.inside_mesh(positions):
+            field = self.field_from_grid(positions)
         else:
             field = np.zeros(3)
         return field

@@ -7,5 +7,5 @@ class ExternalFieldUniform(ExternalField):
         super().__init__(name, electric_or_magnetic)
         self.uniform_field_vector = uniform_field_vector
 
-    def field_at_position(self, position, current_time):
+    def get_at_points(self, positions, time):
         return self.uniform_field_vector

@@ -9,7 +9,7 @@ from ExternalFieldExpression import ExternalFieldExpression
 from ExternalFieldUniform import ExternalFieldUniform
 from FieldSolver import FieldSolver
 from InnerRegion import InnerRegion
-from Particle import Particle
+from ParticleArray import ParticleArray
 from ParticleInteractionModel import ParticleInteractionModel
 from ParticleSource import ParticleSource
 from SpatialMesh import SpatialMesh
@@ -73,8 +73,26 @@ class TestDomain:
     def test_binary_field(self):
         d = EfConf().make()
         d.particle_sources = [
-            ParticleSource('s1', Box(), 1, 0, 0, 0, 1, 1, [Particle(1, -1, 1, (1, 2, 3), (-2, 2, 0), False)], 1)]
-        assert_array_almost_equal(d.binary_field_at_point((1, 2, 3)), (0, 0, 0))
-        assert_array_almost_equal(d.binary_field_at_point((1, 2, 4)), (0, 0, -1))
-        assert_array_almost_equal(d.binary_field_at_point((0, 2, 3)), (1, 0, 0))
-        assert_array_almost_equal(d.binary_field_at_point((0, 1, 2)), (1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))
+            ParticleSource('s1', Box(), 1, 0, mean_momentum=np.zeros(3), temperature=0, charge=1, mass=1,
+                           particle_arrays=[ParticleArray(1, -1, 1, [(1, 2, 3)], [(-2, 2, 0)], False)], max_id=0)]
+        assert_array_almost_equal(d.binary_electric_field_at_positions((1, 2, 3)), (0, 0, 0))
+        assert_array_almost_equal(d.binary_electric_field_at_positions((1, 2, 4)), (0, 0, -1))
+        assert_array_almost_equal(d.binary_electric_field_at_positions((0, 2, 3)), (1, 0, 0))
+        assert_array_almost_equal(d.binary_electric_field_at_positions((0, 1, 2)), (1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))
+
+    @pytest.mark.parametrize('model', ['noninteracting', 'PIC', 'binary'])
+    def test_cube_of_gas(self, model, monkeypatch, tmpdir):
+        monkeypatch.chdir(tmpdir)
+        EfConf(TimeGridConf(1.0, save_step=.5, step=.1), SpatialMeshConf((10, 10, 10), (1, 1, 1)),
+               [ParticleSourceConf('gas', Box(size=(10, 10, 10)), 50, 0, np.zeros(3), 300)],
+               particle_interaction_model=ParticleInteractionModelConf(model)
+               ).make().start_pic_simulation()
+
+    @pytest.mark.parametrize('model', ['noninteracting', 'PIC', 'binary'])
+    def test_cube_of_gas_with_hole(self, model, monkeypatch, tmpdir):
+        monkeypatch.chdir(tmpdir)
+        EfConf(TimeGridConf(1.0, save_step=.5, step=.1), SpatialMeshConf((10, 10, 10), (1, 1, 1)),
+               [ParticleSourceConf('gas', Box(size=(10, 10, 10)), 50, 0, np.zeros(3), 300)],
+               [InnerRegionConf('hole', Box(origin=(4, 4, 4), size=(2, 2, 2)))],
+               particle_interaction_model=ParticleInteractionModelConf(model)
+               ).make().start_pic_simulation()

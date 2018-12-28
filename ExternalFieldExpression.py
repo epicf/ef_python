@@ -13,18 +13,25 @@ class ExternalFieldExpression(ExternalField):
         self.expression_x = expression_x
         self.expression_y = expression_y
         self.expression_z = expression_z
-
-    def field_at_position(self, position, current_time):
-        ev = SimpleEval(names={"x": position[0],
-                               "y": position[1],
-                               "z": position[2],
-                               "t": current_time},
-                        functions={"sin": math.sin,
-                                   "cos": math.cos,
-                                   "sqrt": math.sqrt})
+        self._ev = SimpleEval(functions={"sin": math.sin,
+                                         "cos": math.cos,
+                                         "sqrt": math.sqrt})
         # todo: inherit SimpleEval and define math functions inside
         # todo: add r, theta, phi names
-        fx = ev.eval(self.expression_x)
-        fy = ev.eval(self.expression_y)
-        fz = ev.eval(self.expression_z)
-        return np.array((fx, fy, fz))
+
+    def _field_at_position(self, pos):
+        self._ev.names["x"] = pos[0]
+        self._ev.names["y"] = pos[1]
+        self._ev.names["z"] = pos[2]
+        fx = self._ev.eval(self.expression_x)
+        fy = self._ev.eval(self.expression_y)
+        fz = self._ev.eval(self.expression_z)
+        return fx, fy, fz
+
+    def get_at_points(self, positions, time):
+        positions = np.asarray(positions)
+        self._ev.names["t"] = time
+        if positions.shape == (3,):
+            return np.array(self._field_at_position(positions))
+        else:
+            return np.array([self._field_at_position(pos) for pos in positions])

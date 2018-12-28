@@ -1,24 +1,39 @@
-from math import sqrt, copysign
+import numpy as np
+import rowan
+from numpy.linalg import norm
 
+from ef.config.component import ConfigComponent
 from ef.util.serializable_h5 import SerializableH5
 
 __all__ = ['Shape', 'Box', 'Cylinder', 'Tube', 'Sphere', 'Cone']
-
-import numpy as np
-
-from ef.config.component import ConfigComponent
-from Vec3d import Vec3d
 
 
 class Shape(ConfigComponent, SerializableH5):
     def visualize(self, visualizer, **kwargs):
         raise NotImplementedError()
 
-    def is_point_inside(self, point):
+    def are_positions_inside(self, positions):
         raise NotImplementedError()
 
-    def generate_uniform_random_point(self, randrange):
+    def generate_uniform_random_position(self, random_state):
+        return self.generate_uniform_random_posititons(random_state, 1)[0]
+
+    def generate_uniform_random_posititons(self, random_state, n):
         raise NotImplementedError()
+
+
+def rotation_from_z(vector):
+    """
+    Find a quaternion that rotates z-axis into a given vector.
+    :param vector: Any non-zero 3-component vector
+    :return: Array of length 4 with the rotation quaternion
+    """
+    cos2 = (vector / norm(vector))[2]
+    cos = np.sqrt((1 + cos2) / 2)
+    sin = np.sqrt((1 - cos2) / 2)
+    axis = np.cross((0, 0, 1), vector)
+    vector_component = (axis / norm(axis)) * sin
+    return np.concatenate(([cos], vector_component))
 
 
 class Box(Shape):
@@ -29,11 +44,12 @@ class Box(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_box(self.size, self.origin, **kwargs)
 
-    def is_point_inside(self, point):
-        return np.all(point >= self.origin) and np.all(point <= self.origin + self.size)
+    def are_positions_inside(self, positions):
+        return np.logical_and(np.all(positions >= self.origin, axis=-1),
+                              np.all(positions <= self.origin + self.size, axis=-1))
 
-    def generate_uniform_random_point(self, randrange):
-        return np.array([randrange(self.origin[i], self.origin[i] + self.size[i]) for i in range(3)])
+    def generate_uniform_random_posititons(self, random_state, n):
+        return random_state.uniform(self.origin, self.origin + self.size, (n, 3))
 
 
 class Cylinder(Shape):
@@ -41,56 +57,30 @@ class Cylinder(Shape):
         self.start = np.array(start, np.float)
         self.end = np.array(end, np.float)
         self.r = float(radius)
+        self._rotation = rotation_from_z(self.end - self.start)
 
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_cylinder(self.start, self.end, self.r, **kwargs)
 
-    def is_point_inside(self, point):
-        pointvec = point - self.start
+    def are_positions_inside(self, positions):
+        pointvec = positions - self.start
         axisvec = self.end - self.start
-        axis = np.linalg.norm(axisvec)
+        axis = norm(axisvec)
         unit_axisvec = axisvec / axis
-        projection = np.dot(pointvec, unit_axisvec)
-        perp_to_axis = pointvec - unit_axisvec * projection
-        return 0 <= projection <= axis and np.linalg.norm(perp_to_axis) <= self.r
+        # for one-point case, dot would return a scalar, so it's cast to array explicitly
+        projection = np.asarray(np.dot(pointvec, unit_axisvec))
+        perp_to_axis = norm(pointvec - unit_axisvec[np.newaxis] * projection[..., np.newaxis], axis=-1)
+        result = np.logical_and.reduce([0 <= projection, projection <= axis, perp_to_axis <= self.r])
+        return result
 
-    def generate_uniform_random_point(self, randrange):
-        # random point in cylinder along z
-        cyl_axis = Vec3d(*(self.end - self.start))
-        cyl_axis_length = cyl_axis.length()
-        r = sqrt(randrange(0.0, 1.0)) * self.r
-        phi = randrange(0.0, 2.0 * np.pi)
-        z = randrange(0.0, cyl_axis_length)
-        #
+    def generate_uniform_random_posititons(self, random_state, n):
+        r = np.sqrt(random_state.uniform(0.0, 1.0, n)) * self.r
+        phi = random_state.uniform(0.0, 2.0 * np.pi, n)
         x = r * np.cos(phi)
         y = r * np.sin(phi)
-        z = z
-        random_pnt_in_cyl_along_z = Vec3d(x, y, z)
-        # rotate:
-        # see "https://en.wikipedia.org/wiki/Rodrigues'_rotation_formula"
-        # todo: Too complicated. Try rejection sampling.
-        unit_cyl_axis = cyl_axis.normalized()
-        unit_along_z = Vec3d(0, 0, 1.0)
-        rotation_axis = unit_along_z.cross_product(unit_cyl_axis)
-        rotation_axis_length = rotation_axis.length()
-        if rotation_axis_length == 0:
-            if copysign(1.0, unit_cyl_axis.z) >= 0:
-                random_pnt_in_rotated_cyl = random_pnt_in_cyl_along_z
-            else:
-                random_pnt_in_rotated_cyl = random_pnt_in_cyl_along_z.negate()
-        else:
-            unit_rotation_axis = rotation_axis.normalized()
-            rot_cos = unit_cyl_axis.dot_product(unit_along_z)
-            rot_sin = rotation_axis_length
-            random_pnt_in_rotated_cyl = \
-                random_pnt_in_cyl_along_z.times_scalar(rot_cos) + \
-                unit_rotation_axis.cross_product(random_pnt_in_cyl_along_z) * rot_sin + \
-                unit_rotation_axis.times_scalar(
-                    (1 - rot_cos) *
-                    unit_rotation_axis.dot_product(random_pnt_in_cyl_along_z))
-            # shift:
-        shifted = random_pnt_in_rotated_cyl.add(Vec3d(*self.start))
-        return np.array(shifted)
+        z = random_state.uniform(0.0, norm(self.end - self.start), n)
+        points = np.stack((x, y, z), -1)
+        return rowan.rotate(self._rotation, points) + self.start
 
 
 class Tube(Shape):
@@ -99,58 +89,30 @@ class Tube(Shape):
         self.end = np.array(end, np.float)
         self.r = float(inner_radius)
         self.R = float(outer_radius)
+        self._rotation = rotation_from_z(self.end - self.start)
 
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_tube(self.start, self.end, self.r, self.R, **kwargs)
 
-    def is_point_inside(self, point):
-        pointvec = point - self.start
+    def are_positions_inside(self, positions):
+        pointvec = positions - self.start
         axisvec = self.end - self.start
-        axis = np.linalg.norm(axisvec)
+        axis = norm(axisvec)
         unit_axisvec = axisvec / axis
-        projection = np.dot(pointvec, unit_axisvec)
-        perp_to_axis = pointvec - unit_axisvec * projection
-        return 0 <= projection <= axis and self.r <= np.linalg.norm(perp_to_axis) <= self.R
+        # for one-point case, dot would return a scalar, so it's cast to array explicitly
+        projection = np.asarray(np.dot(pointvec, unit_axisvec))
+        perp_to_axis = norm(pointvec - unit_axisvec[np.newaxis] * projection[..., np.newaxis], axis=-1)
+        return np.logical_and.reduce(
+            [0 <= projection, projection <= axis, self.r <= perp_to_axis, perp_to_axis <= self.R])
 
-    def generate_uniform_random_point(self, randrange):
-        # random point in tube along z
-        cyl_axis = Vec3d(*(self.end - self.start))
-        cyl_axis_length = cyl_axis.length()
-        r = sqrt(randrange(self.r / self.R, 1.0)) \
-            * self.R
-        phi = randrange(0.0, 2.0 * np.pi)
-        z = randrange(0.0, cyl_axis_length)
-        #
+    def generate_uniform_random_posititons(self, random_state, n):
+        r = np.sqrt(random_state.uniform(self.r / self.R, 1.0, n)) * self.R
+        phi = random_state.uniform(0.0, 2.0 * np.pi, n)
         x = r * np.cos(phi)
         y = r * np.sin(phi)
-        z = z
-        random_pnt_in_cyl_along_z = Vec3d(x, y, z)
-        # rotate:
-        # see "https://en.wikipedia.org/wiki/Rodrigues'_rotation_formula"
-        # todo: Too complicated. Try rejection sampling.
-        unit_cyl_axis = cyl_axis.normalized()
-        unit_along_z = Vec3d(0, 0, 1.0)
-        rotation_axis = unit_along_z.cross_product(unit_cyl_axis)
-        rotation_axis_length = rotation_axis.length()
-        if rotation_axis_length == 0:
-            if copysign(1.0, unit_cyl_axis.z) >= 0:
-                random_pnt_in_rotated_cyl = random_pnt_in_cyl_along_z
-            else:
-                random_pnt_in_rotated_cyl = random_pnt_in_cyl_along_z.negate()
-        else:
-            unit_rotation_axis = rotation_axis.normalized()
-            rot_cos = unit_cyl_axis.dot_product(unit_along_z)
-            rot_sin = rotation_axis_length
-            random_pnt_in_rotated_cyl = \
-                random_pnt_in_cyl_along_z.times_scalar(rot_cos) + \
-                unit_rotation_axis.cross_product(random_pnt_in_cyl_along_z) * rot_sin + \
-                unit_rotation_axis.times_scalar(
-                    (1 - rot_cos) *
-                    unit_rotation_axis.dot_product(random_pnt_in_cyl_along_z))
-        # shift:
-        shifted = random_pnt_in_rotated_cyl.add(
-            Vec3d(*self.start))
-        return np.array(shifted)
+        z = random_state.uniform(0.0, norm(self.end - self.start), n)
+        points = np.stack((x, y, z), -1)
+        return rowan.rotate(self._rotation, points) + self.start
 
 
 class Sphere(Shape):
@@ -161,15 +123,15 @@ class Sphere(Shape):
     def visualize(self, visualizer, **kwargs):
         visualizer.draw_sphere(self.origin, self.r, **kwargs)
 
-    def is_point_inside(self, point):
-        return np.linalg.norm(point - self.origin) <= self.r
+    def are_positions_inside(self, positions):
+        return norm(positions - self.origin, axis=-1) <= self.r
 
-    def generate_uniform_random_point(self, randrange):
+    def generate_uniform_random_posititons(self, random_state, n):
         while True:
-            p = np.array([randrange(0, 1) for i in range(3)]) * self.r + self.origin
-            if self.is_point_inside(p):
-                break
-        return p
+            p = random_state.uniform(0, 1, (n * 2, 3)) * self.r + self.origin
+            p = p.compress(self.are_positions_inside(p), 0)
+            if len(p) > n:
+                return p[:n]
 
 
 class Cone(Shape):
@@ -183,4 +145,4 @@ class Cone(Shape):
         visualizer.draw_cone(self.start, self.end,
                              self.start_radii, self.end_radii, **kwargs)
 
-# TODO: def is_point_inside(self, point)
+# TODO: def are_positions_inside(self, point)

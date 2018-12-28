@@ -83,46 +83,48 @@ class Domain(SerializableH5):
 
     def boris_integration(self, dt):
         for src in self.particle_sources:
-            for particle in src.particles:
+            for particle in src.particle_arrays:
                 total_el_field, total_mgn_field = \
-                    self.compute_total_fields_at_position(particle._position)
+                    self.compute_total_fields_at_position(particle.positions)
                 if total_mgn_field is not None and total_mgn_field.any():
-                    particle.boris_update_momentum(dt, total_el_field, total_mgn_field)
+                    particle.boris_update_momentums(dt, total_el_field, total_mgn_field)
                 else:
                     particle.boris_update_momentum_no_mgn(dt, total_el_field)
-                particle.update_position(dt)
+                particle.update_positions(dt)
 
     def prepare_boris_integration(self, minus_half_dt):
-        # todo: place newly generated particles into separate buffer
+        # todo: place newly generated particle_arrays into separate buffer
         for src in self.particle_sources:
-            for particle in src.particles:
+            for particle in src.particle_arrays:
                 if not particle.momentum_is_half_time_step_shifted:
                     total_el_field, total_mgn_field = \
-                        self.compute_total_fields_at_position(particle._position)
+                        self.compute_total_fields_at_position(particle.positions)
                     if total_mgn_field is not None and total_mgn_field.any():
-                        particle.boris_update_momentum(minus_half_dt, total_el_field, total_mgn_field)
+                        particle.boris_update_momentums(minus_half_dt, total_el_field, total_mgn_field)
                     else:
                         particle.boris_update_momentum_no_mgn(minus_half_dt, total_el_field)
                     particle.momentum_is_half_time_step_shifted = True
 
     def compute_total_fields_at_position(self, position):
-        total_el_field = sum(f.field_at_position(position, self.time_grid.current_time) for f in self.electric_fields)
+        total_el_field = np.zeros_like(position) # make sure shape is correct, as += operators can't broadcast left side
+        total_el_field += sum(f.get_at_points(position, self.time_grid.current_time) for f in self.electric_fields)
         if self.particle_interaction_model.noninteracting:
             if self.inner_regions or not self.spat_mesh.is_potential_equal_on_boundaries():
                 total_el_field += self.spat_mesh.field_at_position(position)
         elif self.particle_interaction_model.binary:
-            total_el_field += self.binary_field_at_point(position)
+            total_el_field += self.binary_electric_field_at_positions(position)
             if self.inner_regions or not self.spat_mesh.is_potential_equal_on_boundaries():
                 total_el_field += self.spat_mesh.field_at_position(position)
         elif self.particle_interaction_model.pic:
             total_el_field += self.spat_mesh.field_at_position(position)
         mgn_field = None
         if self.magnetic_fields:
-            mgn_field = sum(f.field_at_position(position, self.time_grid.current_time) for f in self.magnetic_fields)
+            mgn_field = sum(f.get_at_points(position, self.time_grid.current_time) for f in self.magnetic_fields)
         return total_el_field, mgn_field
 
-    def binary_field_at_point(self, position):
-        return sum(np.nan_to_num(p.field_at_point(position)) for src in self.particle_sources for p in src.particles)
+    def binary_electric_field_at_positions(self, position):
+        return sum(
+            np.nan_to_num(p.field_at_point(position)) for src in self.particle_sources for p in src.particle_arrays)
 
     #
     # Push particles
@@ -139,17 +141,16 @@ class Domain(SerializableH5):
 
     def apply_domain_boundary_conditions(self):
         for src in self.particle_sources:
-            src.particles[:] = [p for p in src.particles if not self.out_of_bound(p)]
+            src.particle_arrays[:] = [p for p in src.particle_arrays if not self.out_of_bound(p)]
 
     def remove_particles_inside_inner_regions(self):
         for region in self.inner_regions:
-            for src in self.particle_sources.sources:
-                src.particles[:] = \
-                    [p for p in src.particles \
-                     if not region.check_if_particle_inside_and_count_charge(p)]
+            for src in self.particle_sources:
+                for p in src.particle_arrays:
+                    region.collide_with_particles(p)
 
     def out_of_bound(self, particle):
-        return np.any(particle._position < 0) or np.any(particle._position > self.spat_mesh.size)
+        return np.any(particle.positions < 0) or np.any(particle.positions > self.spat_mesh.size)
 
     def generate_new_particles(self):
         for src in self.particle_sources:

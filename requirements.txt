@@ -1,6 +1,7 @@
 numpy
 h5py
 matplotlib
+rowan
 sympy
 simpleeval
 pytest
