@@ -58,25 +58,28 @@ Writing step 10 to file out_0000010.h5
 """
 
 
-@pytest.mark.parametrize("fname", [
-    "examples/minimal_working_example/minimal_conf.conf",
-    pytest.param("examples/single_particle_in_free_space/single_particle_in_free_space.conf",
-                 marks=pytest.mark.slowish),
-    pytest.param("examples/single_particle_in_magnetic_field/single_particle_in_magnetic_field.conf",
-                 marks=pytest.mark.slowish),
-    pytest.param("examples/single_particle_in_magnetic_field/large_time_step.conf",
-                 marks=pytest.mark.slowish),
-    pytest.param("examples/tube_source_test/contour.conf",
-                 marks=pytest.mark.slow),
-    pytest.param("examples/single_particle_in_radial_electric_field/single_particle_in_radial_electric_field.conf",
-                 marks=pytest.mark.slowish),
-    pytest.param("examples/ribbon_beam_contour/contour_bin.conf",
-                 marks=pytest.mark.slow),
-    pytest.param("examples/ribbon_beam_contour/contour.conf",
-                 marks=pytest.mark.slow),
-    pytest.param("examples/drift_tube_potential/pot.conf",
-                 marks=pytest.mark.slow),
-])
+_examples = [("examples/minimal_working_example/minimal_conf.conf", ()),
+             ("examples/single_particle_in_free_space/single_particle_in_free_space.conf",
+              pytest.mark.slowish),
+             ("examples/single_particle_in_magnetic_field/single_particle_in_magnetic_field.conf",
+              pytest.mark.slowish),
+             ("examples/single_particle_in_magnetic_field/large_time_step.conf",
+              pytest.mark.slowish),
+             ("examples/tube_source_test/contour.conf",
+              pytest.mark.slow),
+             ("examples/single_particle_in_radial_electric_field/single_particle_in_radial_electric_field.conf",
+              pytest.mark.slowish),
+             ("examples/ribbon_beam_contour/contour_bin.conf",
+              pytest.mark.slow),
+             ("examples/ribbon_beam_contour/contour.conf",
+              pytest.mark.slow),
+             ("examples/drift_tube_potential/pot.conf",
+              pytest.mark.slow)]
+
+_pytest_params = [pytest.param(f.replace('/', os.path.sep), marks=m) for f, m in _examples]
+
+
+@pytest.mark.parametrize("fname", _pytest_params)
 def test_example(fname, mocker, capsys, tmpdir, monkeypatch):
     copyfile(fname, tmpdir.join(basename(fname)))
     monkeypatch.chdir(tmpdir)
@@ -86,29 +89,11 @@ def test_example(fname, mocker, capsys, tmpdir, monkeypatch):
     assert err == ""
 
 
-@pytest.mark.parametrize("fname", [
-    "examples/minimal_working_example/minimal_conf.conf",
-    pytest.param("examples/single_particle_in_free_space/single_particle_in_free_space.conf",
-                 marks=pytest.mark.slowish),
-    pytest.param("examples/single_particle_in_magnetic_field/single_particle_in_magnetic_field.conf",
-                 marks=pytest.mark.slowish),
-    pytest.param("examples/single_particle_in_magnetic_field/large_time_step.conf",
-                 marks=pytest.mark.slowish),
-    pytest.param("examples/tube_source_test/contour.conf",
-                 marks=pytest.mark.slow),
-    pytest.param("examples/single_particle_in_radial_electric_field/single_particle_in_radial_electric_field.conf",
-                 marks=pytest.mark.slowish),
-    pytest.param("examples/ribbon_beam_contour/contour_bin.conf",
-                 marks=pytest.mark.slow),
-    pytest.param("examples/ribbon_beam_contour/contour.conf",
-                 marks=pytest.mark.slow),
-    pytest.param("examples/drift_tube_potential/pot.conf",
-                 marks=pytest.mark.slow),
-])
+@pytest.mark.parametrize("fname", _pytest_params)
 def test_main_shell(fname, tmpdir, monkeypatch):
     basedir = os.path.join(os.path.dirname(__file__), '..')
     monkeypatch.chdir(tmpdir)
-    result = subprocess.run([os.path.join(basedir, "src/ef/main.py"), os.path.join(basedir, fname)], check=True,
+    result = subprocess.run(['ef', os.path.join(basedir, fname)], check=True,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     for line in result.stderr.split("\n"):
         assert line == '' or line.startswith("WARNING:")
