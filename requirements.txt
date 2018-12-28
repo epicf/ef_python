@@ -6,6 +6,3 @@ sympy
 simpleeval
 scipy
 jupyter
-# testing:
-pytest
-pytest-mock

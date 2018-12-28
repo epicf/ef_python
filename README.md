@@ -79,7 +79,6 @@ virtualenv --python=python3 ef_venv
 EF is not available in pypi yet, install from github:
 ```sh
 pip install 'git+https://github.com/epicf/ef_python.git'
-
 ```
 
 ## Run
@@ -109,9 +108,14 @@ pip install -e .
 
 ## Test
 
+Install pytest:
+```sh
+pip install pytest pytest-mock
+```
+
 Run fast unittests:
 ```sh
-pytest -m 'not (slow or slowish)'
+pytest
 ```
 
 Run more tests (including slower examples)
@@ -121,8 +125,17 @@ pytest -m 'not (slow)'
 
 Run every test (including slow simulation examples)
 ```sh
-pytest
+pytest -m ''
 ```
+
+## Run tests with tox
+
+More python versions and test types.
+
+-   Install tox: `pip install tox`
+-   Run `tox`
+
+Can also run in parallel with `detox`.
 
 ## Run
 

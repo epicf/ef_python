@@ -9,6 +9,7 @@ venv/
 .ipynb_checkpoints/
 .pytest_cache/
 .eggs/
-*.egg-info/
+**/*.egg-info/
 build/
 dist/
+.tox/
