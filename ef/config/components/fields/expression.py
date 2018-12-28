@@ -1,4 +1,4 @@
-import ExternalFieldExpression
+import external_field_expression
 
 __all__ = ["ExternalFieldExpressionConf", "ExternalFieldExpressionSection"]
 
@@ -20,7 +20,7 @@ class ExternalFieldExpressionConf(FieldConf):
         return ExternalFieldExpressionSection(self.name, self.electric_or_magnetic, *self.field)
 
     def make(self):
-        return ExternalFieldExpression.ExternalFieldExpression(self.name, self.electric_or_magnetic, *self.field)
+        return external_field_expression.ExternalFieldExpression(self.name, self.electric_or_magnetic, *self.field)
 
 
 class ExternalFieldExpressionSection(NamedConfigSection):

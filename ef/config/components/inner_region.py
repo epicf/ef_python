@@ -3,7 +3,7 @@ __all__ = ["InnerRegionConf", "InnerRegionBoxSection", "InnerRegionCylinderSecti
 
 from collections import namedtuple
 
-import InnerRegion
+import inner_region
 from ef.config.component import ConfigComponent
 from ef.config.components.shapes import Box, Cylinder, Tube, Sphere, Cone
 from ef.config.section import NamedConfigSection
@@ -42,7 +42,7 @@ class InnerRegionConf(ConfigComponent):
         return cls(self.name, *(shape_args + [self.potential]))
 
     def make(self):
-        return InnerRegion.InnerRegion(self.name, self.shape, self.potential)
+        return inner_region.InnerRegion(self.name, self.shape, self.potential)
 
 
 class InnerRegionBoxSection(NamedConfigSection):

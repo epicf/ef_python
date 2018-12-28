@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from ParticleArray import ParticleArray
-from SpatialMesh import SpatialMesh, MeshGrid
+from particle_array import ParticleArray
+from spatial_mesh import SpatialMesh, MeshGrid
 from ef.config.components import SpatialMeshConf, BoundaryConditionsConf, ParticleSourceConf
 
 

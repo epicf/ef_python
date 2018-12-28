@@ -1,4 +1,4 @@
-import ExternalFieldOnGrid
+import external_field_on_grid
 
 __all__ = ["ExternalFieldFromFileConf", "ExternalFieldFromFileSection"]
 
@@ -20,7 +20,7 @@ class ExternalFieldFromFileConf(FieldConf):
         return ExternalFieldFromFileSection(self.name, self.electric_or_magnetic, self.filename)
 
     def make(self):
-        return ExternalFieldOnGrid.ExternalFieldOnGrid(self.name, self.electric_or_magnetic, self.filename)
+        return external_field_on_grid.ExternalFieldOnGrid(self.name, self.electric_or_magnetic, self.filename)
 
 
 class ExternalFieldFromFileSection(NamedConfigSection):

@@ -2,7 +2,7 @@ __all__ = ["ParticleInteractionModelConf", "ParticleInteractionModelSection"]
 
 from collections import namedtuple
 
-import ParticleInteractionModel
+import particle_interaction_model
 from ef.config.component import ConfigComponent
 from ef.config.section import ConfigSection
 
@@ -17,7 +17,7 @@ class ParticleInteractionModelConf(ConfigComponent):
         return ParticleInteractionModelSection(self.model)
 
     def make(self):
-        return ParticleInteractionModel.ParticleInteractionModel(self.model)
+        return particle_interaction_model.ParticleInteractionModel(self.model)
 
 
 class ParticleInteractionModelSection(ConfigSection):

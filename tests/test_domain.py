@@ -5,15 +5,15 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from ExternalFieldExpression import ExternalFieldExpression
-from ExternalFieldUniform import ExternalFieldUniform
-from FieldSolver import FieldSolver
-from InnerRegion import InnerRegion
-from ParticleArray import ParticleArray
-from ParticleInteractionModel import ParticleInteractionModel
-from ParticleSource import ParticleSource
-from SpatialMesh import SpatialMesh
-from TimeGrid import TimeGrid
+from external_field_expression import ExternalFieldExpression
+from external_field_uniform import ExternalFieldUniform
+from field_solver import FieldSolver
+from inner_region import InnerRegion
+from particle_array import ParticleArray
+from particle_interaction_model import ParticleInteractionModel
+from particle_source import ParticleSource
+from spatial_mesh import SpatialMesh
+from time_grid import TimeGrid
 from ef.config.components import *
 from ef.config.efconf import EfConf
 

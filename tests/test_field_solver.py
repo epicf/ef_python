@@ -2,8 +2,8 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 from scipy.sparse import csr_matrix
 
-from FieldSolver import FieldSolver
-from InnerRegion import InnerRegion
+from field_solver import FieldSolver
+from inner_region import InnerRegion
 from ef.config.components import BoundaryConditionsConf, SpatialMeshConf
 from ef.config.components import Box
 

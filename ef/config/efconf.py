@@ -1,7 +1,7 @@
 import io
 from configparser import ConfigParser
 
-import Domain
+import domain
 from ef.config.components import *
 from ef.config.section import ConfigSection
 from ef.util.data_class import DataClass
@@ -108,7 +108,7 @@ class EfConf(DataClass):
         electric_fields = [s.make() for s in self.external_fields if s.electric_or_magnetic == 'electric']
         magnetic_fields = [s.make() for s in self.external_fields if s.electric_or_magnetic == 'magnetic']
         model = self.particle_interaction_model.make()
-        return Domain.Domain(grid, mesh, regions, sources, electric_fields, magnetic_fields, model,
+        return domain.Domain(grid, mesh, regions, sources, electric_fields, magnetic_fields, model,
                              self.output_file.prefix, self.output_file.suffix)
 
 

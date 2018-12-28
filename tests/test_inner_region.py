@@ -1,7 +1,7 @@
 import numpy as np
 
-from InnerRegion import InnerRegion
-from ParticleArray import ParticleArray
+from inner_region import InnerRegion
+from particle_array import ParticleArray
 from ef.config.components import Box
 
 

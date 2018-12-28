@@ -1,4 +1,4 @@
-import ParticleSource
+import particle_source
 
 __all__ = ["ParticleSourceConf", "ParticleSourceBoxSection", "ParticleSourceCylinderSection",
            "ParticleSourceTubeSection"]
@@ -56,9 +56,9 @@ class ParticleSourceConf(ConfigComponent):
                                 list(self.momentum) + [self.temperature, self.charge, self.mass]))
 
     def make(self):
-        return ParticleSource.ParticleSource(self.name, self.shape, self.initial_particles,
-                                             self.particles_to_generate_each_step, self.momentum, self.temperature,
-                                             self.charge, self.mass)
+        return particle_source.ParticleSource(self.name, self.shape, self.initial_particles,
+                                              self.particles_to_generate_each_step, self.momentum, self.temperature,
+                                              self.charge, self.mass)
 
 
 class ParticleSourceBoxSection(NamedConfigSection):

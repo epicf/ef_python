@@ -1,4 +1,4 @@
-from ExternalField import ExternalField
+from external_field import ExternalField
 
 
 class ExternalFieldUniform(ExternalField):

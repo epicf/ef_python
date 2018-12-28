@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 
-from FieldSolver import FieldSolver
+from field_solver import FieldSolver
 from ef.util.serializable_h5 import SerializableH5
 
 
