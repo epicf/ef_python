@@ -6,3 +6,4 @@ sympy
 simpleeval
 scipy
 jupyter
+pandas
