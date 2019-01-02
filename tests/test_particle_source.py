@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 
-from ParticleSource import ParticleSource
+from ef.particle_source import ParticleSource
 from ef.config.components import Box
 
 

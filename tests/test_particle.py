@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ParticleArray import ParticleArray, boris_update_momentums
+from ef.particle_array import ParticleArray, boris_update_momentums
 from ef.util.physical_constants import speed_of_light
 
 

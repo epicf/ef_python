@@ -2,7 +2,7 @@ __all__ = ['TimeGridConf', 'TimeGridSection']
 
 from collections import namedtuple
 
-import TimeGrid
+from ef import time_grid
 from ef.config.component import ConfigComponent
 from ef.config.section import ConfigSection
 
@@ -17,7 +17,7 @@ class TimeGridConf(ConfigComponent):
         return TimeGridSection(self.total, self.save_step, self.step)
 
     def make(self):
-        return TimeGrid.TimeGrid(self.total, self.step, self.save_step)
+        return time_grid.TimeGrid(self.total, self.step, self.save_step)
 
     def visualize(self, visualizer):
         pass

@@ -1,11 +1,13 @@
-import re
-import sys
+#!/usr/bin/env python3
+
 import argparse
 import configparser
+import re
+import sys
 
 import h5py
 
-from Domain import Domain
+from ef.domain import Domain
 from ef.config.efconf import EfConf
 
 
@@ -24,7 +26,7 @@ def main():
 
 
 def construct_domain(config_or_h5_file):
-    extension =	config_or_h5_file[config_or_h5_file.rfind(".") + 1:]
+    extension = config_or_h5_file[config_or_h5_file.rfind(".") + 1:]
     if extension == "h5":
         with h5py.File(config_or_h5_file, 'r') as h5file:
             filename_prefix, filename_suffix = \
@@ -49,7 +51,7 @@ def echo_config(config_or_h5_file, conf):
 
 
 def extract_filename_prefix_and_suffix_from_h5filename(h5_file):
-    rgx = "[0-9]{7}" # search for timestep in filename (7 digits in a row)
+    rgx = "[0-9]{7}"  # search for timestep in filename (7 digits in a row)
     match = re.search(rgx, h5_file)
     if match:
         prefix = h5_file[0:match.start()]

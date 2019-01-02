@@ -4,7 +4,8 @@ matplotlib
 rowan
 sympy
 simpleeval
-pytest
-pytest-mock
 scipy
 jupyter
+# testing:
+pytest
+pytest-mock
