@@ -7,7 +7,7 @@ import sys
 
 import h5py
 
-from ef.domain import Domain
+from ef.simulation import Simulation
 from ef.config.efconf import EfConf
 
 
@@ -31,7 +31,7 @@ def construct_domain(config_or_h5_file):
         with h5py.File(config_or_h5_file, 'r') as h5file:
             filename_prefix, filename_suffix = \
                 extract_filename_prefix_and_suffix_from_h5filename(config_or_h5_file)
-            dom = Domain.init_from_h5(h5file, filename_prefix, filename_suffix)
+            dom = Simulation.init_from_h5(h5file, filename_prefix, filename_suffix)
             continue_from_h5 = True
     else:
         conf = configparser.ConfigParser()

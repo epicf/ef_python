@@ -5,7 +5,7 @@ from ef.field_solver import FieldSolver
 from ef.util.serializable_h5 import SerializableH5
 
 
-class Domain(SerializableH5):
+class Simulation(SerializableH5):
 
     def __init__(self, time_grid, spat_mesh, inner_regions,
                  particle_sources,
