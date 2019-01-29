@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 
 from ef.config.components import *
-from ef.config.efconf import EfConf
+from ef.config.config import Config
 from ef.config.section import ConfigSection
 
 comp_list = [BoundaryConditionsConf, InnerRegionConf, OutputFileConf, ParticleInteractionModelConf,
@@ -37,15 +37,15 @@ def test_minimal_example():
 
 class TestEfConf:
     def test_conf_export(self):
-        conf = EfConf(sources=[ParticleSourceConf()], inner_regions=(InnerRegionConf(),))
+        conf = Config(sources=[ParticleSourceConf()], inner_regions=(InnerRegionConf(),))
         s = conf.export_to_string()
-        c1 = EfConf.from_string(s)
+        c1 = Config.from_string(s)
         assert c1 == conf
 
     def test_conf_repr(self):
         # noinspection PyUnresolvedReferences
         from numpy import array  # for use in eval
-        conf = EfConf(sources=[ParticleSourceConf()], inner_regions=(InnerRegionConf(),))
+        conf = Config(sources=[ParticleSourceConf()], inner_regions=(InnerRegionConf(),))
         s = repr(conf)
         c1 = eval(s)
         assert c1 == conf
@@ -61,4 +61,4 @@ class TestPrint:
 
 
 def test_potentials():
-    assert EfConf().get_potentials() == [0., 0., 0., 0., 0., 0.]
+    assert Config().get_potentials() == [0., 0., 0., 0., 0., 0.]

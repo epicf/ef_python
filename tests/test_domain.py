@@ -15,15 +15,15 @@ from ef.particle_source import ParticleSource
 from ef.spatial_mesh import SpatialMesh
 from ef.time_grid import TimeGrid
 from ef.config.components import *
-from ef.config.efconf import EfConf
+from ef.config.config import Config
 
 
 class TestDomain:
     def test_init_from_config(self):
-        efconf = EfConf()
+        efconf = Config()
         parser = ConfigParser()
         parser.read_string(efconf.export_to_string())
-        dom = EfConf.from_configparser(parser).make()
+        dom = Config.from_configparser(parser).make()
         assert dom.time_grid == TimeGrid(100, 1, 10)
         assert dom.spat_mesh == SpatialMesh.do_init((10, 10, 10), (1, 1, 1), BoundaryConditionsConf(0))
         assert dom.inner_regions == []
@@ -37,7 +37,7 @@ class TestDomain:
 
     @pytest.mark.slowish
     def test_all_config(self):
-        efconf = EfConf(TimeGridConf(200, 20, 2), SpatialMeshConf((5, 5, 5), (.1, .1, .1)),
+        efconf = Config(TimeGridConf(200, 20, 2), SpatialMeshConf((5, 5, 5), (.1, .1, .1)),
                         sources=[ParticleSourceConf('a', Box()),
                                  ParticleSourceConf('c', Cylinder()),
                                  ParticleSourceConf('d', Tube())],
@@ -53,7 +53,7 @@ class TestDomain:
 
         parser = ConfigParser()
         parser.read_string(efconf.export_to_string())
-        dom = EfConf.from_configparser(parser).make()
+        dom = Config.from_configparser(parser).make()
         assert dom.time_grid == TimeGrid(200, 2, 20)
         assert dom.spat_mesh == SpatialMesh.do_init((5, 5, 5), (.1, .1, .1), BoundaryConditionsConf(-2.7))
         assert dom.inner_regions == [InnerRegion('1', Box(), 1),
@@ -71,7 +71,7 @@ class TestDomain:
         assert dom._output_filename_suffix == ".h5"
 
     def test_binary_field(self):
-        d = EfConf().make()
+        d = Config().make()
         d.particle_sources = [
             ParticleSource('s1', Box(), 1, 0, mean_momentum=np.zeros(3), temperature=0, charge=1, mass=1,
                            particle_arrays=[ParticleArray(1, -1, 1, [(1, 2, 3)], [(-2, 2, 0)], False)], max_id=0)]
@@ -83,7 +83,7 @@ class TestDomain:
     @pytest.mark.parametrize('model', ['noninteracting', 'PIC', 'binary'])
     def test_cube_of_gas(self, model, monkeypatch, tmpdir):
         monkeypatch.chdir(tmpdir)
-        EfConf(TimeGridConf(1.0, save_step=.5, step=.1), SpatialMeshConf((10, 10, 10), (1, 1, 1)),
+        Config(TimeGridConf(1.0, save_step=.5, step=.1), SpatialMeshConf((10, 10, 10), (1, 1, 1)),
                [ParticleSourceConf('gas', Box(size=(10, 10, 10)), 50, 0, np.zeros(3), 300)],
                particle_interaction_model=ParticleInteractionModelConf(model)
                ).make().start_pic_simulation()
@@ -91,7 +91,7 @@ class TestDomain:
     @pytest.mark.parametrize('model', ['noninteracting', 'PIC', 'binary'])
     def test_cube_of_gas_with_hole(self, model, monkeypatch, tmpdir):
         monkeypatch.chdir(tmpdir)
-        EfConf(TimeGridConf(1.0, save_step=.5, step=.1), SpatialMeshConf((10, 10, 10), (1, 1, 1)),
+        Config(TimeGridConf(1.0, save_step=.5, step=.1), SpatialMeshConf((10, 10, 10), (1, 1, 1)),
                [ParticleSourceConf('gas', Box(size=(10, 10, 10)), 50, 0, np.zeros(3), 300)],
                [InnerRegionConf('hole', Box(origin=(4, 4, 4), size=(2, 2, 2)))],
                particle_interaction_model=ParticleInteractionModelConf(model)

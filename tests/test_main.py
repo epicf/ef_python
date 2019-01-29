@@ -6,14 +6,14 @@ from shutil import copyfile
 import pytest
 
 from ef.config.components import TimeGridConf
-from ef.config.efconf import EfConf
+from ef.config.config import Config
 from ef.main import main
 
 
 def test_main(mocker, capsys, tmpdir, monkeypatch):
     monkeypatch.chdir(tmpdir)
     config = tmpdir.join("test_main.conf")
-    EfConf(time_grid=TimeGridConf(10, 5, 1)).export_to_fname("test_main.conf")
+    Config(time_grid=TimeGridConf(10, 5, 1)).export_to_fname("test_main.conf")
     mocker.patch("sys.argv", ["main.py", str(config)])
     main()
     out, err = capsys.readouterr()

@@ -7,7 +7,7 @@ from ef.config.section import ConfigSection
 from ef.util.data_class import DataClass
 
 
-class EfConf(DataClass):
+class Config(DataClass):
     def __init__(self, time_grid=TimeGridConf(), spatial_mesh=SpatialMeshConf(), sources=(), inner_regions=(),
                  output_file=OutputFileConf(), boundary_conditions=BoundaryConditionsConf(),
                  particle_interaction_model=ParticleInteractionModelConf(), external_fields=()):
@@ -33,9 +33,9 @@ class EfConf(DataClass):
             children = [c for c in components if isinstance(c, parent)]
             if parent in singletons:
                 if len(children) > 1:
-                    raise Exception("Several {} configured, cannot init EfConf".format(parent))
+                    raise Exception("Several {} configured, cannot init Config".format(parent))
                 if len(children) < 1:
-                    raise Exception("No {} configuration found, cannot init EfConf".format(parent))
+                    raise Exception("No {} configuration found, cannot init Config".format(parent))
                 kwargs[arg] = children[0]
             else:
                 kwargs[arg] = children
@@ -113,7 +113,7 @@ class EfConf(DataClass):
 
 
 def main():
-    ef = EfConf()
+    ef = Config()
     print(ef)
 
 
