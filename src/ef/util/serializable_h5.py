@@ -8,7 +8,6 @@ from ef.util.subclasses import get_all_subclasses
 
 
 class SerializableH5(DataClass):
-    _max_attr_size = 10
     _subclass_dict = None
 
     def save_h5(self, h5group):
@@ -31,7 +30,7 @@ class SerializableH5(DataClass):
 
     @classmethod
     def _save_value(cls, group, key, value):
-        if isinstance(value, np.ndarray) and value.size > cls._max_attr_size:
+        if isinstance(value, np.ndarray):
             group[key] = value
         elif isinstance(value, SerializableH5):
             value.save_h5(group.create_group(key))
