@@ -2,7 +2,7 @@ numpy
 h5py
 matplotlib
 rowan
-sympy
+sympy<1.3
 simpleeval
 scipy
 jupyter
