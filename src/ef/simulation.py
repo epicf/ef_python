@@ -122,9 +122,9 @@ class Simulation(SerializableH5):
             mgn_field = sum(f.get_at_points(positions, self.time_grid.current_time) for f in self.magnetic_fields)
         return total_el_field, mgn_field
 
-    def binary_electric_field_at_positions(self, position):
+    def binary_electric_field_at_positions(self, positions):
         return sum(
-            np.nan_to_num(p.field_at_point(position)) for src in self.particle_sources for p in src.particle_arrays)
+            np.nan_to_num(p.field_at_points(positions)) for src in self.particle_sources for p in src.particle_arrays)
 
     #
     # Push particles
