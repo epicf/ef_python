@@ -74,7 +74,7 @@ class TestDomain:
         d = Config().make()
         d.particle_sources = [
             ParticleSource('s1', Box(), 1, 0, mean_momentum=np.zeros(3), temperature=0, charge=1, mass=1,
-                           particle_arrays=[ParticleArray(1, -1, 1, [(1, 2, 3)], [(-2, 2, 0)], False)], max_id=0)]
+                           particle_arrays=[ParticleArray(1, -1, 1, [(1, 2, 3)], [(-2, 2, 0)], False)])]
         assert_array_almost_equal(d.binary_electric_field_at_positions((1, 2, 3)), (0, 0, 0))
         assert_array_almost_equal(d.binary_electric_field_at_positions((1, 2, 4)), (0, 0, -1))
         assert_array_almost_equal(d.binary_electric_field_at_positions((0, 2, 3)), (1, 0, 0))

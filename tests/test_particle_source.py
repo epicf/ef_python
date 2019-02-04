@@ -1,5 +1,6 @@
 import h5py
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from ef.particle_source import ParticleSource
 from ef.config.components import Box
@@ -39,3 +40,11 @@ class TestParticleSource:
         assert p1 != p3
         p1.generate_each_step()
         assert p1 == p3
+
+    def test_particle_ids(self):
+        p1 = ParticleSource("test", Box(), 120, 5, np.array((1, 0, 0)), 200, -1, 2)
+        p1.generate_initial_particles()
+        p1.generate_each_step()
+        p1.generate_each_step()
+        assert_array_equal(p1.particle_arrays[0].ids, range(120))
+        assert_array_equal(p1.particle_arrays[1].ids, range(5))

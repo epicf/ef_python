@@ -10,7 +10,7 @@ class Simulation(SerializableH5):
     def __init__(self, time_grid, spat_mesh, inner_regions,
                  particle_sources,
                  electric_fields, magnetic_fields, particle_interaction_model,
-                 output_filename_prefix, outut_filename_suffix):
+                 output_filename_prefix, outut_filename_suffix, max_id=0):
         self.time_grid = time_grid
         self.spat_mesh = spat_mesh
         self.inner_regions = inner_regions
@@ -21,6 +21,7 @@ class Simulation(SerializableH5):
         self.particle_interaction_model = particle_interaction_model
         self._output_filename_prefix = output_filename_prefix
         self._output_filename_suffix = outut_filename_suffix
+        self.max_id = max_id
 
     @classmethod
     def init_from_h5(cls, h5file, filename_prefix, filename_suffix):
@@ -33,6 +34,8 @@ class Simulation(SerializableH5):
         self.eval_and_write_fields_without_particles()
         for src in self.particle_sources:
             src.generate_initial_particles()
+            if src.initial_number_of_particles:
+                src.particle_arrays[-1].ids = self.generate_particle_ids(src.initial_number_of_particles)
         self.prepare_recently_generated_particles_for_boris_integration()
         self.write_step_to_save()
         self.run_pic()
@@ -155,7 +158,14 @@ class Simulation(SerializableH5):
     def generate_new_particles(self):
         for src in self.particle_sources:
             src.generate_each_step()
+            if src.particles_to_generate_each_step:
+                src.particle_arrays[-1].ids = self.generate_particle_ids(src.particles_to_generate_each_step)
         self.shift_new_particles_velocities_half_time_step_back()
+
+    def generate_particle_ids(self, num_of_particles):
+        range_of_ids = range(self.max_id + 1, self.max_id + num_of_particles + 1)
+        self.max_id += num_of_particles
+        return np.array(range_of_ids)
 
     #
     # Update time grid
