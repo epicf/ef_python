@@ -18,22 +18,22 @@ from ef.config.components import *
 from ef.config.config import Config
 
 
-class TestDomain:
+class TestSimulation:
     def test_init_from_config(self):
         efconf = Config()
         parser = ConfigParser()
         parser.read_string(efconf.export_to_string())
-        dom = Config.from_configparser(parser).make()
-        assert dom.time_grid == TimeGrid(100, 1, 10)
-        assert dom.spat_mesh == SpatialMesh.do_init((10, 10, 10), (1, 1, 1), BoundaryConditionsConf(0))
-        assert dom.inner_regions == []
-        assert type(dom._field_solver) == FieldSolver
-        assert dom.particle_sources == []
-        assert dom.electric_fields == []
-        assert dom.magnetic_fields == []
-        assert dom.particle_interaction_model == ParticleInteractionModel("PIC")
-        assert dom._output_filename_prefix == "out_"
-        assert dom._output_filename_suffix == ".h5"
+        sim = Config.from_configparser(parser).make()
+        assert sim.time_grid == TimeGrid(100, 1, 10)
+        assert sim.spat_mesh == SpatialMesh.do_init((10, 10, 10), (1, 1, 1), BoundaryConditionsConf(0))
+        assert sim.inner_regions == []
+        assert type(sim._field_solver) == FieldSolver
+        assert sim.particle_sources == []
+        assert sim.electric_fields == []
+        assert sim.magnetic_fields == []
+        assert sim.particle_interaction_model == ParticleInteractionModel("PIC")
+        assert sim._output_filename_prefix == "out_"
+        assert sim._output_filename_suffix == ".h5"
 
     @pytest.mark.slowish
     def test_all_config(self):
@@ -53,22 +53,22 @@ class TestDomain:
 
         parser = ConfigParser()
         parser.read_string(efconf.export_to_string())
-        dom = Config.from_configparser(parser).make()
-        assert dom.time_grid == TimeGrid(200, 2, 20)
-        assert dom.spat_mesh == SpatialMesh.do_init((5, 5, 5), (.1, .1, .1), BoundaryConditionsConf(-2.7))
-        assert dom.inner_regions == [InnerRegion('1', Box(), 1),
+        sim = Config.from_configparser(parser).make()
+        assert sim.time_grid == TimeGrid(200, 2, 20)
+        assert sim.spat_mesh == SpatialMesh.do_init((5, 5, 5), (.1, .1, .1), BoundaryConditionsConf(-2.7))
+        assert sim.inner_regions == [InnerRegion('1', Box(), 1),
                                      InnerRegion('2', Sphere(), -2),
                                      InnerRegion('3', Cylinder(), 0),
                                      InnerRegion('4', Tube(), 4)]
-        assert type(dom._field_solver) == FieldSolver
-        assert dom.particle_sources == [ParticleSourceConf('a', Box()).make(),
+        assert type(sim._field_solver) == FieldSolver
+        assert sim.particle_sources == [ParticleSourceConf('a', Box()).make(),
                                         ParticleSourceConf('c', Cylinder()).make(),
                                         ParticleSourceConf('d', Tube()).make()]
-        assert dom.electric_fields == [ExternalFieldUniform('x', 'electric', np.array((-2, -2, 1)))]
-        assert dom.magnetic_fields == [ExternalFieldExpression('y', 'magnetic', '0', '0', '3*x + sqrt(y) - z**2')]
-        assert dom.particle_interaction_model == ParticleInteractionModel("binary")
-        assert dom._output_filename_prefix == "out_"
-        assert dom._output_filename_suffix == ".h5"
+        assert sim.electric_fields == [ExternalFieldUniform('x', 'electric', np.array((-2, -2, 1)))]
+        assert sim.magnetic_fields == [ExternalFieldExpression('y', 'magnetic', '0', '0', '3*x + sqrt(y) - z**2')]
+        assert sim.particle_interaction_model == ParticleInteractionModel("binary")
+        assert sim._output_filename_prefix == "out_"
+        assert sim._output_filename_suffix == ".h5"
 
     def test_binary_field(self):
         d = Config().make()
