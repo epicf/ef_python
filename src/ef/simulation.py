@@ -85,7 +85,7 @@ class Simulation(SerializableH5):
         for src in self.particle_sources:
             for particle in src.particle_arrays:
                 total_el_field, total_mgn_field = \
-                    self.compute_total_fields_at_position(particle.positions)
+                    self.compute_total_fields_at_positions(particle.positions)
                 if total_mgn_field is not None and total_mgn_field.any():
                     particle.boris_update_momentums(dt, total_el_field, total_mgn_field)
                 else:
@@ -98,28 +98,28 @@ class Simulation(SerializableH5):
             for particle in src.particle_arrays:
                 if not particle.momentum_is_half_time_step_shifted:
                     total_el_field, total_mgn_field = \
-                        self.compute_total_fields_at_position(particle.positions)
+                        self.compute_total_fields_at_positions(particle.positions)
                     if total_mgn_field is not None and total_mgn_field.any():
                         particle.boris_update_momentums(minus_half_dt, total_el_field, total_mgn_field)
                     else:
                         particle.boris_update_momentum_no_mgn(minus_half_dt, total_el_field)
                     particle.momentum_is_half_time_step_shifted = True
 
-    def compute_total_fields_at_position(self, position):
-        total_el_field = np.zeros_like(position) # make sure shape is correct, as += operators can't broadcast left side
-        total_el_field += sum(f.get_at_points(position, self.time_grid.current_time) for f in self.electric_fields)
+    def compute_total_fields_at_positions(self, positions):
+        total_el_field = np.zeros_like(positions)  # make sure shape is set, as += operators can't broadcast left side
+        total_el_field += sum(f.get_at_points(positions, self.time_grid.current_time) for f in self.electric_fields)
         if self.particle_interaction_model.noninteracting:
             if self.inner_regions or not self.spat_mesh.is_potential_equal_on_boundaries():
-                total_el_field += self.spat_mesh.field_at_position(position)
+                total_el_field += self.spat_mesh.field_at_position(positions)
         elif self.particle_interaction_model.binary:
-            total_el_field += self.binary_electric_field_at_positions(position)
+            total_el_field += self.binary_electric_field_at_positions(positions)
             if self.inner_regions or not self.spat_mesh.is_potential_equal_on_boundaries():
-                total_el_field += self.spat_mesh.field_at_position(position)
+                total_el_field += self.spat_mesh.field_at_position(positions)
         elif self.particle_interaction_model.pic:
-            total_el_field += self.spat_mesh.field_at_position(position)
+            total_el_field += self.spat_mesh.field_at_position(positions)
         mgn_field = None
         if self.magnetic_fields:
-            mgn_field = sum(f.get_at_points(position, self.time_grid.current_time) for f in self.magnetic_fields)
+            mgn_field = sum(f.get_at_points(positions, self.time_grid.current_time) for f in self.magnetic_fields)
         return total_el_field, mgn_field
 
     def binary_electric_field_at_positions(self, position):
