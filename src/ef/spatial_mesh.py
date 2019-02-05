@@ -137,10 +137,9 @@ class SpatialMesh(SerializableH5):
         electric_field = np.zeros(list(grid.n_nodes) + [3], dtype='f8')
         return cls(grid, charge_density, potential, electric_field)
 
-    def weight_particles_charge_to_mesh(self, particle_sources):
-        for part_src in particle_sources:
-            for p in part_src.particle_arrays:
-                self.charge_density += self.mesh.distribute_scalar_at_positions(p.charge, p.positions)
+    def weight_particles_charge_to_mesh(self, particle_arrays):
+        for p in particle_arrays:
+            self.charge_density += self.mesh.distribute_scalar_at_positions(p.charge, p.positions)
 
     def field_at_position(self, positions):
         return self.mesh.interpolate_field_at_positions(self.electric_field, positions)

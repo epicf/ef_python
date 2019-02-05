@@ -153,30 +153,29 @@ class TestDefaultSpatialMesh:
 
     def test_weight_particles_charge_to_mesh(self):
         mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())
-        sources = [ParticleSourceConf().make()]
-        sources[0].particle_arrays = [ParticleArray(1, -2, 4, [(1, 1, 3)], [(0, 0, 0)])]
-        mesh.weight_particles_charge_to_mesh(sources)
+        particle_arrays = [ParticleArray(1, -2, 4, [(1, 1, 3)], [(0, 0, 0)])]
+        mesh.weight_particles_charge_to_mesh(particle_arrays)
         assert_array_equal(mesh.charge_density,
                            np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                                      [[-0.25 / 8, -0.75 / 8, 0], [-0.25 / 8, -0.75 / 8, 0], [0, 0, 0]],
                                      [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]))
-        sources[0].particle_arrays = [ParticleArray([1, 2], -2, 4, [(1, 1, 3), (1, 1, 3)], np.zeros((2, 3)))]
+        particle_arrays = [ParticleArray([1, 2], -2, 4, [(1, 1, 3), (1, 1, 3)], np.zeros((2, 3)))]
         mesh.clear_old_density_values()
-        mesh.weight_particles_charge_to_mesh(sources)
+        mesh.weight_particles_charge_to_mesh(particle_arrays)
         assert_array_equal(mesh.charge_density,
                            np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                                      [[-0.25 / 4, -0.75 / 4, 0], [-0.25 / 4, -0.75 / 4, 0], [0, 0, 0]],
                                      [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]))
         mesh.clear_old_density_values()
-        sources[0].particle_arrays = [ParticleArray(1, -2, 4, [(2, 4, 8)], [(0, 0, 0)])]
-        mesh.weight_particles_charge_to_mesh(sources)
+        particle_arrays = [ParticleArray(1, -2, 4, [(2, 4, 8)], [(0, 0, 0)])]
+        mesh.weight_particles_charge_to_mesh(particle_arrays)
         assert_array_equal(mesh.charge_density,
                            np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                                      [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                                      [[0, 0, 0], [0, 0, 0], [0, 0, -0.25]]]))
-        sources[0].particle_arrays = [ParticleArray(1, -2, 4, [(1, 2, 8.1)], [(0, 0, 0)])]
+        particle_arrays = [ParticleArray(1, -2, 4, [(1, 2, 8.1)], [(0, 0, 0)])]
         with pytest.raises(ValueError, message="Particle out of bounds"):
-            mesh.weight_particles_charge_to_mesh(sources)
+            mesh.weight_particles_charge_to_mesh(particle_arrays)
 
     def test_field_at_position(self):
         mesh = SpatialMeshConf((2, 4, 8), (1, 2, 4)).make(BoundaryConditionsConf())

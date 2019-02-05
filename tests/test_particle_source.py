@@ -31,20 +31,19 @@ class TestParticleSource:
         p2 = ParticleSource("test", Box(), 120, 5, np.array((1, 0, 0)), 200, -1, 2)
         p3 = ParticleSource("test", Box(), 120, 5, np.array((1, 0, 0)), 200, -1, 2)
         p3._generator.set_state(p1._generator.get_state())
-        p1.generate_initial_particles()
-        p2.generate_initial_particles()
-        p3.generate_initial_particles()
-        assert p1 != p2
-        assert p1 == p3
-        p3.generate_each_step()
-        assert p1 != p3
-        p1.generate_each_step()
-        assert p1 == p3
+        a1 = p1.generate_initial_particles()
+        a2 = p2.generate_initial_particles()
+        a3 = p3.generate_initial_particles()
+        assert a1 != a2
+        assert a1 == a3
+        a32 = p3.generate_each_step()
+        assert a1 != a32
+        a12 = p1.generate_each_step()
+        assert a12 == a32
 
     def test_particle_ids(self):
         p1 = ParticleSource("test", Box(), 120, 5, np.array((1, 0, 0)), 200, -1, 2)
-        p1.generate_initial_particles()
-        p1.generate_each_step()
-        p1.generate_each_step()
-        assert_array_equal(p1.particle_arrays[0].ids, range(120))
-        assert_array_equal(p1.particle_arrays[1].ids, range(5))
+        a1 = p1.generate_initial_particles()
+        a2 = p1.generate_each_step()
+        assert_array_equal(a1.ids, range(120))
+        assert_array_equal(a2.ids, range(5))
