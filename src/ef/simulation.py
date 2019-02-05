@@ -147,12 +147,14 @@ class Simulation(SerializableH5):
             for arr in src.particle_arrays:
                 collisions = self.out_of_bound(arr)
                 arr.remove(collisions)
+            src.particle_arrays = [a for a in src.particle_arrays if len(a.ids) > 0]
 
     def remove_particles_inside_inner_regions(self):
         for region in self.inner_regions:
             for src in self.particle_sources:
                 for p in src.particle_arrays:
                     region.collide_with_particles(p)
+                src.particle_arrays = [a for a in src.particle_arrays if len(a.ids) > 0]
 
     def out_of_bound(self, particle):
         return np.logical_or(np.any(particle.positions < 0, axis=-1),
