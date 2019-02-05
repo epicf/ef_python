@@ -3,7 +3,7 @@ from math import sqrt
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from ef.external_field_expression import ExternalFieldExpression
 from ef.external_field_uniform import ExternalFieldUniform
@@ -96,3 +96,21 @@ class TestSimulation:
                [InnerRegionConf('hole', Box(origin=(4, 4, 4), size=(2, 2, 2)))],
                particle_interaction_model=ParticleInteractionModelConf(model)
                ).make().start_pic_simulation()
+
+    def test_id_generation(self, monkeypatch, tmpdir):
+        monkeypatch.chdir(tmpdir)
+        conf = Config(TimeGridConf(0.001, save_step=.0005, step=0.0001), SpatialMeshConf((10, 10, 10), (1, 1, 1)),
+                     sources=[ParticleSourceConf('gas', Box((4, 4, 4), size=(1, 1, 1)), 50, 0, np.zeros(3), 0.00),
+                              ParticleSourceConf('gas2', Box((5, 5, 5), size=(1, 1, 1)), 50, 0, np.zeros(3), 0.00)],
+                     particle_interaction_model=ParticleInteractionModelConf('noninteracting')
+                     )
+        assert len(conf.sources) == 2
+        sim = conf.make()
+        assert len(sim.particle_sources) == 2
+        sim.start_pic_simulation()
+        assert len(sim.particle_sources) == 2
+        assert len(sim.particle_sources[0].particle_arrays) == 1
+        assert len(sim.particle_sources[1].particle_arrays) == 1
+        assert_array_equal(sim.particle_sources[0].particle_arrays[0].ids, range(50))
+        assert_array_equal(sim.particle_sources[1].particle_arrays[0].ids, range(50, 100))
+

@@ -10,7 +10,7 @@ class Simulation(SerializableH5):
     def __init__(self, time_grid, spat_mesh, inner_regions,
                  particle_sources,
                  electric_fields, magnetic_fields, particle_interaction_model,
-                 output_filename_prefix, outut_filename_suffix, max_id=0):
+                 output_filename_prefix, outut_filename_suffix, max_id=-1):
         self.time_grid = time_grid
         self.spat_mesh = spat_mesh
         self.inner_regions = inner_regions
@@ -144,7 +144,9 @@ class Simulation(SerializableH5):
 
     def apply_domain_boundary_conditions(self):
         for src in self.particle_sources:
-            src.particle_arrays[:] = [p for p in src.particle_arrays if not self.out_of_bound(p)]
+            for arr in src.particle_arrays:
+                collisions = self.out_of_bound(arr)
+                arr.remove(collisions)
 
     def remove_particles_inside_inner_regions(self):
         for region in self.inner_regions:
@@ -153,7 +155,8 @@ class Simulation(SerializableH5):
                     region.collide_with_particles(p)
 
     def out_of_bound(self, particle):
-        return np.any(particle.positions < 0) or np.any(particle.positions > self.spat_mesh.size)
+        return np.logical_or(np.any(particle.positions < 0, axis=-1),
+                             np.any(particle.positions > self.spat_mesh.size, axis=-1))
 
     def generate_new_particles(self):
         for src in self.particle_sources:
