@@ -1,9 +1,9 @@
 numpy
 h5py
 matplotlib
-sympy
+rowan
+sympy<1.3
 simpleeval
-pytest
-pytest-mock
 scipy
 jupyter
+pandas
