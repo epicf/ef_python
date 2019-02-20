@@ -7,7 +7,6 @@ from setuptools import setup, find_packages
 setup(
     name='ef',
     use_scm_version=True,
-    license="MIT",
     description="Ef is a software for simulation of charged particles dynamics.",
     long_description=open(path.join(path.dirname(__file__), 'README.md'), encoding='utf-8').read(),
     long_description_content_type='text/markdown',
