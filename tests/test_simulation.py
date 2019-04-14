@@ -73,10 +73,16 @@ class TestSimulation:
     def test_binary_field(self):
         d = Config().make()
         d.particle_arrays = [ParticleArray(1, -1, 1, [(1, 2, 3)], [(-2, 2, 0)], False)]
-        assert_array_almost_equal(d.binary_electric_field_at_positions((1, 2, 3)), (0, 0, 0))
-        assert_array_almost_equal(d.binary_electric_field_at_positions((1, 2, 4)), (0, 0, -1))
-        assert_array_almost_equal(d.binary_electric_field_at_positions((0, 2, 3)), (1, 0, 0))
-        assert_array_almost_equal(d.binary_electric_field_at_positions((0, 1, 2)), (1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27)))
+        assert_array_almost_equal(d.binary_electric_field_at_positions((1, 2, 3)), [(0, 0, 0)])
+        assert_array_almost_equal(d.binary_electric_field_at_positions((1, 2, 4)), [(0, 0, -1)])
+        assert_array_almost_equal(d.binary_electric_field_at_positions((0, 2, 3)), [(1, 0, 0)])
+        assert_array_almost_equal(d.binary_electric_field_at_positions((0, 1, 2)),
+                                  [(1 / sqrt(27), 1 / sqrt(27), 1 / sqrt(27))])
+        d.particle_arrays = [ParticleArray(2, -1, 1, [(1, 2, 3), (1, 2, 3)], [(-2, 2, 0), (0, 0, 0)], False),
+                             ParticleArray(2, -1, 1, [(1, 2, 3), (1, 2, 3)], [(-2, 2, 0), (0, 0, 0)], False)]
+        assert_array_almost_equal(d.binary_electric_field_at_positions(
+            [(1, 2, 3), (1, 2, 4), (0, 2, 3), (0, 1, 2)]),
+            [(0, 0, 0), (0, 0, -4), (4, 0, 0), (4 / sqrt(27), 4 / sqrt(27), 4 / sqrt(27))])
 
     @pytest.mark.parametrize('model', ['noninteracting', 'PIC', 'binary'])
     def test_cube_of_gas(self, model, monkeypatch, tmpdir):
@@ -98,10 +104,10 @@ class TestSimulation:
     def test_id_generation(self, monkeypatch, tmpdir):
         monkeypatch.chdir(tmpdir)
         conf = Config(TimeGridConf(0.001, save_step=.0005, step=0.0001), SpatialMeshConf((10, 10, 10), (1, 1, 1)),
-                     sources=[ParticleSourceConf('gas', Box((4, 4, 4), size=(1, 1, 1)), 50, 0, np.zeros(3), 0.00),
-                              ParticleSourceConf('gas2', Box((5, 5, 5), size=(1, 1, 1)), 50, 0, np.zeros(3), 0.00)],
-                     particle_interaction_model=ParticleInteractionModelConf('noninteracting')
-                     )
+                      sources=[ParticleSourceConf('gas', Box((4, 4, 4), size=(1, 1, 1)), 50, 0, np.zeros(3), 0.00),
+                               ParticleSourceConf('gas2', Box((5, 5, 5), size=(1, 1, 1)), 50, 0, np.zeros(3), 0.00)],
+                      particle_interaction_model=ParticleInteractionModelConf('noninteracting')
+                      )
         assert len(conf.sources) == 2
         sim = conf.make()
         assert len(sim.particle_sources) == 2
@@ -111,4 +117,3 @@ class TestSimulation:
         assert len(sim.particle_arrays) == 2
         assert_array_equal(sim.particle_arrays[0].ids, range(50))
         assert_array_equal(sim.particle_arrays[1].ids, range(50, 100))
-
