@@ -23,17 +23,18 @@ class FieldSolver:
 
     def construct_equation_matrix(self, spat_mesh, inner_regions):
         nx, ny, nz = spat_mesh.n_nodes - 2
-        dx, dy, dz = spat_mesh.cell
+        cx, cy, cz = spat_mesh.cell**2
+        dx, dy, dz = cy*cz, cx*cz, cx*cy
         self.construct_equation_matrix_in_full_domain(nx, ny, nz, dx, dy, dz)
         self.zero_nondiag_for_nodes_inside_objects(spat_mesh, inner_regions)
 
     def construct_equation_matrix_in_full_domain(self, nx, ny, nz, dx, dy, dz):
         self.A = self.construct_d2dx2_in_3d(nx, ny, nz)
-        self.A = self.A * (dy * dy * dz * dz)
+        self.A = self.A * dx
         d2dy2 = self.construct_d2dy2_in_3d(nx, ny, nz)
-        self.A = self.A + d2dy2 * (dx * dx * dz * dz)
+        self.A = self.A + d2dy2 * dy
         d2dz2 = self.construct_d2dz2_in_3d(nx, ny, nz)
-        self.A = self.A + d2dz2 * (dx * dx * dy * dy)
+        self.A = self.A + d2dz2 * dz
 
     @staticmethod
     def construct_d2dx2_in_3d(nx, ny, nz):
