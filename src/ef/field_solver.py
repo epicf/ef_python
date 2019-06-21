@@ -107,8 +107,7 @@ class FieldSolver:
                     self.rhs[n] = ir.potential  # where is dx**2 dy**2 etc?
 
     def transfer_solution_to_spat_mesh(self, spat_mesh):
-        for n, i, j, k in self._double_index:
-            spat_mesh.potential[i][j][k] = self.phi_vec[n]
+        spat_mesh.potential[1:-1, 1:-1, 1:-1] = self.phi_vec.reshape(spat_mesh.n_nodes - 2, order='F')
 
     @staticmethod
     def eval_fields_from_potential(spat_mesh):
