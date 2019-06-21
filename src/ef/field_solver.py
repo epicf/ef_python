@@ -23,8 +23,8 @@ class FieldSolver:
 
     def construct_equation_matrix(self, spat_mesh, inner_regions):
         nx, ny, nz = spat_mesh.n_nodes - 2
-        cx, cy, cz = spat_mesh.cell**2
-        dx, dy, dz = cy*cz, cx*cz, cx*cy
+        cx, cy, cz = spat_mesh.cell ** 2
+        dx, dy, dz = cy * cz, cx * cz, cx * cy
         self.construct_equation_matrix_in_full_domain(nx, ny, nz, dx, dy, dz)
         self.zero_nondiag_for_nodes_inside_objects(spat_mesh, inner_regions)
 
@@ -37,21 +37,24 @@ class FieldSolver:
     def construct_d2dx2_in_3d(nx, ny, nz):
         diag_offset = 1
         block_size = nx
-        block = scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size), format='csr')
+        block = scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size),
+                                   format='csr')
         return scipy.sparse.block_diag([block] * (ny * nz))
 
     @staticmethod
     def construct_d2dy2_in_3d(nx, ny, nz):
         diag_offset = nx
         block_size = nx * ny
-        block = scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size), format='csr')
+        block = scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size),
+                                   format='csr')
         return scipy.sparse.block_diag([block] * nz)
 
     @staticmethod
     def construct_d2dz2_in_3d(nx, ny, nz):
         diag_offset = nx * ny
         block_size = nx * ny * nz
-        return scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size), format='csr')
+        return scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size),
+                                  format='csr')
 
     def zero_nondiag_for_nodes_inside_objects(self, mesh, inner_regions):
         for ir in inner_regions:
@@ -116,11 +119,11 @@ class FieldSolver:
         #   then along X axis to the right
         #   then along Y axis to the top
         #   then along Z axis far
-        if ((i <= 0) or (i >= nx - 1) or \
-                (j <= 0) or (j >= ny - 1) or \
+        if ((i <= 0) or (i >= nx - 1) or
+                (j <= 0) or (j >= ny - 1) or
                 (k <= 0) or (k >= nz - 1)):
-            print("incorrect index at node_ijk_to_global_index_in_matrix: " + \
-                  "i  = {:d}, j  = {:d},  k  = {:d} \n".format(i, j, k) + \
+            print("incorrect index at node_ijk_to_global_index_in_matrix: " +
+                  "i  = {:d}, j  = {:d},  k  = {:d} \n".format(i, j, k) +
                   "nx = {:d}, ny = {:d},  nz = {:d} \n".format(nx, ny, nz))
             print("this is not supposed to happen; aborting \n")
             sys.exit(-1)
