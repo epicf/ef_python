@@ -12,8 +12,7 @@ class FieldSolver:
             print("WARNING: proceed with caution")
         self._double_index = self.double_index(spat_mesh.n_nodes)
         nrows = (spat_mesh.n_nodes - 2).prod()
-        self.A = None
-        self.construct_equation_matrix(spat_mesh, inner_regions)
+        self.A = self.construct_equation_matrix(spat_mesh, inner_regions)
         self.phi_vec = np.empty(nrows, dtype='f')
         self.rhs = np.empty_like(self.phi_vec)
         self.create_solver_and_preconditioner()
@@ -22,13 +21,10 @@ class FieldSolver:
         nx, ny, nz = spat_mesh.n_nodes - 2
         cx, cy, cz = spat_mesh.cell ** 2
         dx, dy, dz = cy * cz, cx * cz, cx * cy
-        self.construct_equation_matrix_in_full_domain(nx, ny, nz, dx, dy, dz)
-        self.zero_nondiag_for_nodes_inside_objects(spat_mesh, inner_regions)
-
-    def construct_equation_matrix_in_full_domain(self, nx, ny, nz, dx, dy, dz):
-        self.A = dx * self.construct_d2dx2_in_3d(nx, ny, nz) + \
-                 dy * self.construct_d2dy2_in_3d(nx, ny, nz) + \
-                 dz * self.construct_d2dz2_in_3d(nx, ny, nz)
+        matrix = dx * self.construct_d2dx2_in_3d(nx, ny, nz) + \
+            dy * self.construct_d2dy2_in_3d(nx, ny, nz) + \
+            dz * self.construct_d2dz2_in_3d(nx, ny, nz)
+        return self.zero_nondiag_for_nodes_inside_objects(matrix, spat_mesh, inner_regions)
 
     @staticmethod
     def construct_d2dx2_in_3d(nx, ny, nz):
@@ -53,18 +49,19 @@ class FieldSolver:
         return scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size),
                                   format='csr')
 
-    def zero_nondiag_for_nodes_inside_objects(self, mesh, inner_regions):
+    def zero_nondiag_for_nodes_inside_objects(self, matrix, mesh, inner_regions):
         for ir in inner_regions:
             for n, i, j, k in self._double_index:
                 xyz = mesh.cell * (i, j, k)
                 if ir.check_if_points_inside(xyz):
-                    csr_row_start = self.A.indptr[n]
-                    csr_row_end = self.A.indptr[n + 1]
+                    csr_row_start = matrix.indptr[n]
+                    csr_row_end = matrix.indptr[n + 1]
                     for t in range(csr_row_start, csr_row_end):
-                        if self.A.indices[t] != n:
-                            self.A.data[t] = 0
+                        if matrix.indices[t] != n:
+                            matrix.data[t] = 0
                         else:
-                            self.A.data[t] = 1
+                            matrix.data[t] = 1
+        return matrix
 
     def create_solver_and_preconditioner(self):
         self.maxiter = 1000
