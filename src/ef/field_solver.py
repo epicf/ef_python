@@ -29,12 +29,9 @@ class FieldSolver:
         self.zero_nondiag_for_nodes_inside_objects(spat_mesh, inner_regions)
 
     def construct_equation_matrix_in_full_domain(self, nx, ny, nz, dx, dy, dz):
-        self.A = self.construct_d2dx2_in_3d(nx, ny, nz)
-        self.A = self.A * dx
-        d2dy2 = self.construct_d2dy2_in_3d(nx, ny, nz)
-        self.A = self.A + d2dy2 * dy
-        d2dz2 = self.construct_d2dz2_in_3d(nx, ny, nz)
-        self.A = self.A + d2dz2 * dz
+        self.A = dx * self.construct_d2dx2_in_3d(nx, ny, nz) + \
+                 dy * self.construct_d2dy2_in_3d(nx, ny, nz) + \
+                 dz * self.construct_d2dz2_in_3d(nx, ny, nz)
 
     @staticmethod
     def construct_d2dx2_in_3d(nx, ny, nz):
