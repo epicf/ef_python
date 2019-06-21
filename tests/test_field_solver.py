@@ -2,10 +2,10 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 from scipy.sparse import csr_matrix
 
-from ef.field_solver import FieldSolver
-from ef.inner_region import InnerRegion
 from ef.config.components import BoundaryConditionsConf, SpatialMeshConf
 from ef.config.components import Box
+from ef.field_solver import FieldSolver
+from ef.inner_region import InnerRegion
 
 
 class TestFieldSolver:
@@ -248,3 +248,19 @@ class TestFieldSolver:
                                                 [0, 0, 0, z, 0, 0, y, 0, 0, d, x, 0],
                                                 [0, 0, 0, 0, z, 0, 0, y, 0, x, d, x],
                                                 [0, 0, 0, 0, 0, z, 0, 0, y, 0, x, d]])
+
+    def test_transfer_solution_to_spat_mesh(self):
+        mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
+        solver = FieldSolver(mesh, [])
+        solver.phi_vec = np.array(range(1, 3 * 2 * 2 + 1))
+        solver.transfer_solution_to_spat_mesh(mesh)
+        assert_array_equal(mesh.potential[1:-1, 1:-1, 1:-1], [[[1, 7], [4, 10]],
+                                                              [[2, 8], [5, 11]],
+                                                              [[3, 9], [6, 12]]])
+
+        assert_array_equal(mesh.potential, [
+            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            [[0, 0, 0, 0], [0, 1, 7, 0], [0, 4, 10, 0], [0, 0, 0, 0]],
+            [[0, 0, 0, 0], [0, 2, 8, 0], [0, 5, 11, 0], [0, 0, 0, 0]],
+            [[0, 0, 0, 0], [0, 3, 9, 0], [0, 6, 12, 0], [0, 0, 0, 0]],
+            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]])
