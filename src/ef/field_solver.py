@@ -144,12 +144,8 @@ class FieldSolver:
         return (i, j, k)
 
     def transfer_solution_to_spat_mesh(self, spat_mesh):
-        nx, ny, nz = spat_mesh.n_nodes
-        nrow = (nx - 2) * (ny - 2) * (nz - 2)
-        ncol = nrow
-        for global_index in range(nrow):
-            i, j, k = self.global_index_in_matrix_to_node_ijk(global_index, nx, ny, nz)
-            spat_mesh.potential[i][j][k] = self.phi_vec[global_index]
+        for n, i, j, k in self._double_index:
+            spat_mesh.potential[i][j][k] = self.phi_vec[n]
 
     @staticmethod
     def eval_fields_from_potential(spat_mesh):
