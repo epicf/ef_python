@@ -155,6 +155,13 @@ class TestFieldSolver:
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 1, 0],
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1],
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2]])
+        a = FieldSolver.construct_d2dx2_in_3d(5, 4, 3).toarray()
+        assert_array_equal(a, [[-2, 1, 0, 0, 0, 0],
+                               [1, -2, 1, 0, 0, 0],
+                               [0, 1, -2, 0, 0, 0],
+                               [0, 0, 0, -2, 1, 0],
+                               [0, 0, 0, 1, -2, 1],
+                               [0, 0, 0, 0, 1, -2]])
 
     def test_d2dy2(self):
         a = FieldSolver.construct_d2dy2_in_3d(5, 4, 4).toarray()
@@ -170,6 +177,13 @@ class TestFieldSolver:
                                [0, 0, 0, 0, 0, 0, 1, 0, 0, -2, 0, 0],
                                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -2, 0],
                                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -2]])
+        a = FieldSolver.construct_d2dy2_in_3d(5, 4, 3).toarray()
+        assert_array_equal(a, [[-2, 0, 0, 1, 0, 0],
+                               [0, -2, 0, 0, 1, 0],
+                               [0, 0, -2, 0, 0, 1],
+                               [1, 0, 0, -2, 0, 0],
+                               [0, 1, 0, 0, -2, 0],
+                               [0, 0, 1, 0, 0, -2]])
 
     def test_d2dz2(self):
         a = FieldSolver.construct_d2dz2_in_3d(5, 4, 4).toarray()
@@ -185,6 +199,13 @@ class TestFieldSolver:
                                [0, 0, 0, 1, 0, 0, 0, 0, 0, -2, 0, 0],
                                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -2, 0],
                                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -2]])
+        a = FieldSolver.construct_d2dz2_in_3d(5, 4, 3).toarray()
+        assert_array_equal(a, [[-2, 0, 0, 0, 0, 0],
+                               [0, -2, 0, 0, 0, 0],
+                               [0, 0, -2, 0, 0, 0],
+                               [0, 0, 0, -2, 0, 0],
+                               [0, 0, 0, 0, -2, 0],
+                               [0, 0, 0, 0, 0, -2]])
 
     def test_construct_equation_matrix_full_domain(self):
         mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
