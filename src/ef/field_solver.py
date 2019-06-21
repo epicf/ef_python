@@ -126,12 +126,3 @@ class FieldSolver:
         nx, ny, nz = n_nodes - 2
         return [(i + j * nx + k * nx * ny, i + 1, j + 1, k + 1)
                 for k in range(nz) for j in range(ny) for i in range(nx)]
-
-    def clear(self):
-        pass
-        # todo: deallocate
-        # phi_vec;
-        # rhs;
-        # A;
-        # precond;
-        # monitor;
