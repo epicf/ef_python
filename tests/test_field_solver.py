@@ -142,7 +142,7 @@ class TestFieldSolver:
                                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
 
     def test_d2dx2(self):
-        a = FieldSolver.construct_d2dx2_in_3d(5, 4, 4).toarray()
+        a = FieldSolver.construct_d2dx2_in_3d(3, 2, 2).toarray()
         assert_array_equal(a, [[-2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                [1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                [0, 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -155,7 +155,7 @@ class TestFieldSolver:
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 1, 0],
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1],
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2]])
-        a = FieldSolver.construct_d2dx2_in_3d(5, 4, 3).toarray()
+        a = FieldSolver.construct_d2dx2_in_3d(3, 2, 1).toarray()
         assert_array_equal(a, [[-2, 1, 0, 0, 0, 0],
                                [1, -2, 1, 0, 0, 0],
                                [0, 1, -2, 0, 0, 0],
@@ -164,7 +164,7 @@ class TestFieldSolver:
                                [0, 0, 0, 0, 1, -2]])
 
     def test_d2dy2(self):
-        a = FieldSolver.construct_d2dy2_in_3d(5, 4, 4).toarray()
+        a = FieldSolver.construct_d2dy2_in_3d(3, 2, 2).toarray()
         assert_array_equal(a, [[-2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                                [0, -2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
                                [0, 0, -2, 0, 0, 1, 0, 0, 0, 0, 0, 0],
@@ -177,7 +177,7 @@ class TestFieldSolver:
                                [0, 0, 0, 0, 0, 0, 1, 0, 0, -2, 0, 0],
                                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -2, 0],
                                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -2]])
-        a = FieldSolver.construct_d2dy2_in_3d(5, 4, 3).toarray()
+        a = FieldSolver.construct_d2dy2_in_3d(3, 2, 1).toarray()
         assert_array_equal(a, [[-2, 0, 0, 1, 0, 0],
                                [0, -2, 0, 0, 1, 0],
                                [0, 0, -2, 0, 0, 1],
@@ -186,7 +186,7 @@ class TestFieldSolver:
                                [0, 0, 1, 0, 0, -2]])
 
     def test_d2dz2(self):
-        a = FieldSolver.construct_d2dz2_in_3d(5, 4, 4).toarray()
+        a = FieldSolver.construct_d2dz2_in_3d(3, 2, 2).toarray()
         assert_array_equal(a, [[-2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
                                [0, -2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
                                [0, 0, -2, 0, 0, 0, 0, 0, 1, 0, 0, 0],
@@ -199,7 +199,7 @@ class TestFieldSolver:
                                [0, 0, 0, 1, 0, 0, 0, 0, 0, -2, 0, 0],
                                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -2, 0],
                                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -2]])
-        a = FieldSolver.construct_d2dz2_in_3d(5, 4, 3).toarray()
+        a = FieldSolver.construct_d2dz2_in_3d(3, 2, 1).toarray()
         assert_array_equal(a, [[-2, 0, 0, 0, 0, 0],
                                [0, -2, 0, 0, 0, 0],
                                [0, 0, -2, 0, 0, 0],
@@ -210,7 +210,7 @@ class TestFieldSolver:
     def test_construct_equation_matrix_full_domain(self):
         mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
         solver = FieldSolver(mesh, [])
-        solver.construct_equation_matrix_in_full_domain(5, 4, 4, 1, 2, 3)
+        solver.construct_equation_matrix_in_full_domain(3, 2, 2, 1, 2, 3)
         d = -2 * (2 * 2 * 3 * 3 + 3 * 3 + 2 * 2)
         x = 2 * 2 * 3 * 3
         y = 3 * 3

@@ -22,7 +22,7 @@ class FieldSolver:
         self.create_solver_and_preconditioner()
 
     def construct_equation_matrix(self, spat_mesh, inner_regions):
-        nx, ny, nz = spat_mesh.n_nodes
+        nx, ny, nz = spat_mesh.n_nodes - 2
         dx, dy, dz = spat_mesh.cell
         self.construct_equation_matrix_in_full_domain(nx, ny, nz, dx, dy, dz)
         self.zero_nondiag_for_nodes_inside_objects(spat_mesh, inner_regions)
@@ -32,28 +32,27 @@ class FieldSolver:
         self.A = self.A * (dy * dy * dz * dz)
         d2dy2 = self.construct_d2dy2_in_3d(nx, ny, nz)
         self.A = self.A + d2dy2 * (dx * dx * dz * dz)
-        # d2dy2 = None
         d2dz2 = self.construct_d2dz2_in_3d(nx, ny, nz)
         self.A = self.A + d2dz2 * (dx * dx * dy * dy)
 
     @staticmethod
     def construct_d2dx2_in_3d(nx, ny, nz):
         diag_offset = 1
-        block_size = (nx - 2)
+        block_size = nx
         block = scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size), format='csr')
-        return scipy.sparse.block_diag([block] * ((ny - 2)*(nz - 2)))
+        return scipy.sparse.block_diag([block] * (ny * nz))
 
     @staticmethod
     def construct_d2dy2_in_3d(nx, ny, nz):
-        diag_offset = nx - 2
-        block_size = (nx - 2) * (ny - 2)
+        diag_offset = nx
+        block_size = nx * ny
         block = scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size), format='csr')
-        return scipy.sparse.block_diag([block] * (nz - 2))
+        return scipy.sparse.block_diag([block] * nz)
 
     @staticmethod
     def construct_d2dz2_in_3d(nx, ny, nz):
-        diag_offset = (nx - 2) * (ny - 2)
-        block_size = (nx - 2) * (ny - 2) * (nz - 2)
+        diag_offset = nx * ny
+        block_size = nx * ny * nz
         return scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size), format='csr')
 
     def zero_nondiag_for_nodes_inside_objects(self, mesh, inner_regions):
