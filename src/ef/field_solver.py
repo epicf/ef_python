@@ -112,40 +112,6 @@ class FieldSolver:
                 if ir.check_if_points_inside(xyz):
                     self.rhs[n] = ir.potential  # where is dx**2 dy**2 etc?
 
-    @staticmethod
-    def node_ijk_to_global_index_in_matrix(i, j, k, nx, ny, nz):
-        # numbering of nodes corresponds to axis direction
-        # i.e. numbering starts from bottom-left-near corner
-        #   then along X axis to the right
-        #   then along Y axis to the top
-        #   then along Z axis far
-        if ((i <= 0) or (i >= nx - 1) or
-                (j <= 0) or (j >= ny - 1) or
-                (k <= 0) or (k >= nz - 1)):
-            print("incorrect index at node_ijk_to_global_index_in_matrix: " +
-                  "i  = {:d}, j  = {:d},  k  = {:d} \n".format(i, j, k) +
-                  "nx = {:d}, ny = {:d},  nz = {:d} \n".format(nx, ny, nz))
-            print("this is not supposed to happen; aborting \n")
-            sys.exit(-1)
-        else:
-            return (i - 1) + (j - 1) * (nx - 2) + (k - 1) * (nx - 2) * (ny - 2)
-
-    @staticmethod
-    def global_index_in_matrix_to_node_ijk(global_index, nx, ny, nz):
-        # global_index = (i - 1) +
-        #                (j - 1) * (nx - 2) +
-        #                (k - 1) * (nx - 2) * (ny - 2)
-        k = global_index // ((nx - 2) * (ny - 2)) + 1
-        i_and_j_part = global_index % ((nx - 2) * (ny - 2))
-        j = i_and_j_part // (nx - 2) + 1
-        i = i_and_j_part % (nx - 2) + 1
-        # todo: remove test
-        # if(node_ijk_to_global_index_in_matrix(i, j, k, nx, ny, nz) != global_index){
-        # 	printf("mistake in global_index_in_matrix_to_node_ijk; aborting");
-        # 	exit(EXIT_FAILURE);
-        # }
-        return (i, j, k)
-
     def transfer_solution_to_spat_mesh(self, spat_mesh):
         for n, i, j, k in self._double_index:
             spat_mesh.potential[i][j][k] = self.phi_vec[n]
