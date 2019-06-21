@@ -1,4 +1,3 @@
-import sys
 from logging import warning
 
 import numpy as np
@@ -12,9 +11,7 @@ class FieldSolver:
             print("WARNING: field-solver: inner region support is untested")
             print("WARNING: proceed with caution")
         self._double_index = self.double_index(spat_mesh.n_nodes)
-        nx, ny, nz = spat_mesh.n_nodes
-        nrows = (nx - 2) * (ny - 2) * (nz - 2)
-        ncols = nrows
+        nrows = (spat_mesh.n_nodes - 2).prod()
         self.A = None
         self.construct_equation_matrix(spat_mesh, inner_regions)
         self.phi_vec = np.empty(nrows, dtype='f')
