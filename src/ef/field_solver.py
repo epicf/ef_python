@@ -38,33 +38,23 @@ class FieldSolver:
 
     @staticmethod
     def construct_d2dx2_in_3d(nx, ny, nz):
-        n = (nx - 2) * (ny - 2) * (nz - 2)
-        a = scipy.sparse.dok_matrix((n, n), np.float64)
-        for n, i, j, k in FieldSolver.double_index(np.array((nx, ny, nz))):
-            a[n, n] = -2
-            if i < nx - 2:
-                a[n, n + 1] = 1
-            if i > 1:
-                a[n, n - 1] = 1
-        return a.tocsr()
+        diag_offset = 1
+        block_size = (nx - 2)
+        block = scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size), format='csr')
+        return scipy.sparse.block_diag([block] * ((ny - 2)*(nz - 2)))
 
     @staticmethod
     def construct_d2dy2_in_3d(nx, ny, nz):
-        n = (nx - 2) * (ny - 2) * (nz - 2)
-        a = scipy.sparse.dok_matrix((n, n), np.float64)
-        for n, i, j, k in FieldSolver.double_index(np.array((nx, ny, nz))):
-            a[n, n] = -2
-            if j < ny - 2:
-                a[n, n + nx - 2] = 1
-            if j > 1:
-                a[n, n - nx + 2] = 1
-        return a.tocsr()
+        diag_offset = nx - 2
+        block_size = (nx - 2) * (ny - 2)
+        block = scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size), format='csr')
+        return scipy.sparse.block_diag([block] * (nz - 2))
 
     @staticmethod
     def construct_d2dz2_in_3d(nx, ny, nz):
-        offset = (nx - 2) * (ny - 2)
-        n = offset * (nz - 2)
-        return scipy.sparse.diags([1.0, -2.0, 1.0], [-offset, 0, offset], shape=(n, n)).tocsr()
+        diag_offset = (nx - 2) * (ny - 2)
+        block_size = (nx - 2) * (ny - 2) * (nz - 2)
+        return scipy.sparse.diags([1.0, -2.0, 1.0], [-diag_offset, 0, diag_offset], shape=(block_size, block_size), format='csr')
 
     def zero_nondiag_for_nodes_inside_objects(self, mesh, inner_regions):
         for ir in inner_regions:
