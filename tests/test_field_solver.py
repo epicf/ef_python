@@ -4,7 +4,7 @@ from scipy.sparse import csr_matrix
 
 from ef.config.components import BoundaryConditionsConf, SpatialMeshConf
 from ef.config.components import Box
-from ef.field_solver import FieldSolver
+from ef.field.solvers.field_solver import FieldSolver
 from ef.inner_region import InnerRegion
 
 

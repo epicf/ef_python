@@ -7,11 +7,10 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from ef.external_field_expression import ExternalFieldExpression
 from ef.external_field_uniform import ExternalFieldUniform
-from ef.field_solver import FieldSolver
+from ef.field.solvers.field_solver import FieldSolver
 from ef.inner_region import InnerRegion
 from ef.particle_array import ParticleArray
 from ef.particle_interaction_model import ParticleInteractionModel
-from ef.particle_source import ParticleSource
 from ef.spatial_mesh import SpatialMesh
 from ef.time_grid import TimeGrid
 from ef.config.components import *
