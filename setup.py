@@ -7,7 +7,6 @@ from setuptools import setup, find_packages
 setup(
     name='ef',
     use_scm_version=True,
-    license="MIT",
     description="Ef is a software for simulation of charged particles dynamics.",
     long_description=open(path.join(path.dirname(__file__), 'README.md'), encoding='utf-8').read(),
     long_description_content_type='text/markdown',
@@ -24,7 +23,8 @@ setup(
     zip_safe=True,
     python_requires='>=3.6',
     setup_requires=['setuptools_scm', 'setuptools>=38.6.0', 'wheel>=0.31.0', 'twine>=1.11.0'],  # md description support
-    install_requires=['numpy', 'h5py', 'matplotlib', 'rowan', 'sympy', 'simpleeval', 'scipy', 'jupyter'],
+    install_requires=['numpy', 'h5py', 'matplotlib', 'rowan', 'sympy', 'simpleeval', 'scipy'],
+    extras_require={'jupyter': 'jupyter_core', 'opencl': 'pyopencl'},
     classifiers=[
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Development Status :: 2 - Pre-Alpha',

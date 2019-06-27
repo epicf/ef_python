@@ -41,7 +41,7 @@ class ParticleArray(SerializableH5):
         self.positions += dt / self.mass * self.momentums
 
     def field_at_points(self, points):
-        diff = np.asarray(points) - self.positions
+        diff = np.asarray(points) - self.positions[:, np.newaxis, :]
         dist = np.linalg.norm(diff, axis=-1)
         return self.charge * np.sum(diff / (dist ** 3)[..., np.newaxis], axis=0)
 

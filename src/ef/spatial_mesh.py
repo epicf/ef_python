@@ -37,20 +37,23 @@ class MeshGrid(SerializableH5):
         volume_around_node = self.cell.prod()
         density = value / volume_around_node  # scalar
         result = np.zeros(self.n_nodes)
-        for pos in positions - self.origin:
-            node, remainder = np.divmod(pos, self.cell)  # (3)
-            node = node.astype(int)  # (3)
-            weight = remainder / self.cell  # (3)
-            w = np.stack([1. - weight, weight], axis=-2)  # (2, 3)
-            dn = np.array(list(product((0, 1), repeat=3)))  # (8, 3)
-            weight_on_nodes = w[dn[:, (0, 1, 2)], (0, 1, 2)].prod(-1)  # (8)
-            nodes_to_update = node + dn  # (8, 3)
-            for i, xyz in enumerate(nodes_to_update):
-                if np.any(xyz >= self.n_nodes) or np.any(xyz < 0):
-                    if weight_on_nodes[i] > 0:
-                        raise ValueError("Position is out of meshgrid bounds")
-                else:
-                    result[tuple(xyz)] += weight_on_nodes[i] * density
+        pos = positions - self.origin
+        nodes, remainders = np.divmod(pos, self.cell)  # (np, 3)
+        nodes = nodes.astype(int)  # (np, 3)
+        weights = remainders / self.cell  # (np, 3)
+        w = np.stack([1. - weights, weights], axis=-2)  # (np, 2, 3)
+        dn = np.array(list(product((0, 1), repeat=3)))  # (8, 3)
+        weight_on_nodes = w[:, dn[:, (0, 1, 2)], (0, 1, 2)].prod(-1)  # (np, 8)
+        nodes_to_update = nodes[:, np.newaxis] + dn[np.newaxis, :]  # (np, 8, 3)
+        wf = weight_on_nodes.flatten()  # (np*8)
+        nf = nodes_to_update.reshape((-1, 3))  # (np*8, 3)
+        wz = wf[wf > 0]
+        nz = nf[wf > 0]
+        # df = pd.DataFrame.from_dict({'coords': nodes_to_update, 'weight': weight_on_nodes})
+        if np.any(np.logical_or(nz >= self.n_nodes, nz < 0)):
+            raise ValueError("Position is out of meshgrid bounds")
+        for i in range(len(wz)):
+            result[tuple(nz[i])] += wz[i] * density
         return result
 
     def interpolate_field_at_positions(self, field, positions):

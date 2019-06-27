@@ -89,6 +89,7 @@ def test_example(fname, mocker, capsys, tmpdir, monkeypatch):
     assert err == ""
 
 
+@pytest.mark.requires_install
 @pytest.mark.parametrize("fname", _pytest_params)
 def test_main_shell(fname, tmpdir, monkeypatch):
     basedir = os.path.join(os.path.dirname(__file__), '..')

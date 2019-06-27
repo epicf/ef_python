@@ -26,14 +26,16 @@ class TestParticle:
 
     def test_field_at_point(self):
         p = ParticleArray([1], -16.0, 2.0, [(0., 0., 1.)], [(1., 0., 3.)])
-        assert_array_equal(p.field_at_points((2., 0., 1.)), (-4, 0, 0))
-        assert_array_equal(p.field_at_points((2., 0., 1.)), np.array((-4, 0, 0)))
-        assert_array_equal(p.field_at_points(np.array((2., 0., 1.))), (-4, 0, 0))
-        assert_array_equal(p.field_at_points((0., 0., 1.)), np.array([np.nan, np.nan, np.nan]))
+        assert_array_equal(p.field_at_points((2., 0., 1.)), [(-4, 0, 0)])
+        assert_array_equal(p.field_at_points((2., 0., 1.)), np.array([(-4, 0, 0)]))
+        assert_array_equal(p.field_at_points(np.array((2., 0., 1.))), [(-4, 0, 0)])
+        assert_array_equal(p.field_at_points((0., 0., 1.)), np.array([[np.nan, np.nan, np.nan]]))
         p = ParticleArray('12', -16.0, 2.0, [(0, 0, 1), (0, 0, 0)], np.zeros((2, 3)))
-        assert_array_equal(p.field_at_points((0, 0, 0.5)), (0, 0, 0))
-        assert_array_equal(p.field_at_points((0, 0, 2)), (0, 0, -20))
-        assert_array_equal(p.field_at_points((0., 0., 0)), np.array([np.nan, np.nan, np.nan]))  # todo: fix!
+        assert_array_equal(p.field_at_points((0, 0, 0.5)), [(0, 0, 0)])
+        assert_array_equal(p.field_at_points((0, 0, 2)), [(0, 0, -20)])
+        assert_array_equal(p.field_at_points((0., 0., 0)), np.array([[np.nan, np.nan, np.nan]]))  # todo: fix!
+        assert_array_equal(p.field_at_points([(0, 0, 0.5), (0, 0, 2), (0, 0, 2)]),
+                           [(0, 0, 0), (0, 0, -20), (0, 0, -20)])
 
     def test_update_momentums_no_mgn(self):
         p = ParticleArray(123, -1.0, 2.0, (0., 0., 1.), (1., 0., 3.))

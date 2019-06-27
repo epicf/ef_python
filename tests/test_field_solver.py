@@ -2,10 +2,10 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 from scipy.sparse import csr_matrix
 
-from ef.field_solver import FieldSolver
-from ef.inner_region import InnerRegion
 from ef.config.components import BoundaryConditionsConf, SpatialMeshConf
 from ef.config.components import Box
+from ef.field.solvers.field_solver import FieldSolver
+from ef.inner_region import InnerRegion
 
 
 class TestFieldSolver:
@@ -29,8 +29,6 @@ class TestFieldSolver:
             for j in range(8):
                 for k in range(4):
                     n = i + j * 7 + k * 7 * 8
-                    assert FieldSolver.global_index_in_matrix_to_node_ijk(n, 9, 10, 6) == (i + 1, j + 1, k + 1)
-                    assert FieldSolver.node_ijk_to_global_index_in_matrix(i + 1, j + 1, k + 1, 9, 10, 6) == n
                     assert double_index[n] == (n, i + 1, j + 1, k + 1)
         assert list(FieldSolver.double_index(np.array((4, 5, 3)))) == [(0, 1, 1, 1),
                                                                        (1, 2, 1, 1),
@@ -87,62 +85,62 @@ class TestFieldSolver:
         solver = FieldSolver(mesh, [])
         region = InnerRegion('test', Box((1, 2, 3), (1, 2, 3)), 3)
 
-        solver.A = csr_matrix(np.full((12, 12), 2))
-        assert_array_equal(solver.A.toarray(), [[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]])
-        solver.zero_nondiag_for_nodes_inside_objects(mesh, [region])
-        assert_array_equal(solver.A.toarray(), [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-                                                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]])
+        a = csr_matrix(np.full((12, 12), 2))
+        assert_array_equal(a.toarray(), [[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]])
+        result = solver.zero_nondiag_for_nodes_inside_objects(a, mesh, [region])
+        assert_array_equal(result.toarray(), [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                              [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                                              [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                              [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                                              [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                                              [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]])
 
         # TODO: check algorithm if on-diagonal zeros should turn into ones
-        solver.A = csr_matrix(np.array([[4, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 0],
-                                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0],
-                                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                        [0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0],
-                                        [0, 0, 2, 0, 0, 3, 0, 0, 0, 0, 0, 0],
-                                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                        [0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
-                                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 6, 0],
-                                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
-        solver.zero_nondiag_for_nodes_inside_objects(mesh, [region])
-        assert_array_equal(solver.A.toarray(), [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 2, 0, 0, 3, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+        a = csr_matrix(np.array([[4, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 0],
+                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0],
+                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                 [0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0],
+                                 [0, 0, 2, 0, 0, 3, 0, 0, 0, 0, 0, 0],
+                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                 [0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                 [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 6, 0],
+                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
+        result = solver.zero_nondiag_for_nodes_inside_objects(a, mesh, [region])
+        assert_array_equal(result.toarray(), [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 2, 0, 0, 3, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
 
     def test_d2dx2(self):
-        a = FieldSolver.construct_d2dx2_in_3d(5, 4, 4).toarray()
+        a = FieldSolver.construct_d2dx2_in_3d(3, 2, 2).toarray()
         assert_array_equal(a, [[-2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                [1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                [0, 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -155,9 +153,16 @@ class TestFieldSolver:
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 1, 0],
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1],
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2]])
+        a = FieldSolver.construct_d2dx2_in_3d(3, 2, 1).toarray()
+        assert_array_equal(a, [[-2, 1, 0, 0, 0, 0],
+                               [1, -2, 1, 0, 0, 0],
+                               [0, 1, -2, 0, 0, 0],
+                               [0, 0, 0, -2, 1, 0],
+                               [0, 0, 0, 1, -2, 1],
+                               [0, 0, 0, 0, 1, -2]])
 
     def test_d2dy2(self):
-        a = FieldSolver.construct_d2dy2_in_3d(5, 4, 4).toarray()
+        a = FieldSolver.construct_d2dy2_in_3d(3, 2, 2).toarray()
         assert_array_equal(a, [[-2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                                [0, -2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
                                [0, 0, -2, 0, 0, 1, 0, 0, 0, 0, 0, 0],
@@ -170,9 +175,16 @@ class TestFieldSolver:
                                [0, 0, 0, 0, 0, 0, 1, 0, 0, -2, 0, 0],
                                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -2, 0],
                                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -2]])
+        a = FieldSolver.construct_d2dy2_in_3d(3, 2, 1).toarray()
+        assert_array_equal(a, [[-2, 0, 0, 1, 0, 0],
+                               [0, -2, 0, 0, 1, 0],
+                               [0, 0, -2, 0, 0, 1],
+                               [1, 0, 0, -2, 0, 0],
+                               [0, 1, 0, 0, -2, 0],
+                               [0, 0, 1, 0, 0, -2]])
 
     def test_d2dz2(self):
-        a = FieldSolver.construct_d2dz2_in_3d(5, 4, 4).toarray()
+        a = FieldSolver.construct_d2dz2_in_3d(3, 2, 2).toarray()
         assert_array_equal(a, [[-2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
                                [0, -2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
                                [0, 0, -2, 0, 0, 0, 0, 0, 1, 0, 0, 0],
@@ -185,11 +197,18 @@ class TestFieldSolver:
                                [0, 0, 0, 1, 0, 0, 0, 0, 0, -2, 0, 0],
                                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -2, 0],
                                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -2]])
+        a = FieldSolver.construct_d2dz2_in_3d(3, 2, 1).toarray()
+        assert_array_equal(a, [[-2, 0, 0, 0, 0, 0],
+                               [0, -2, 0, 0, 0, 0],
+                               [0, 0, -2, 0, 0, 0],
+                               [0, 0, 0, -2, 0, 0],
+                               [0, 0, 0, 0, -2, 0],
+                               [0, 0, 0, 0, 0, -2]])
 
-    def test_construct_equation_matrix_full_domain(self):
+    def test_construct_equation_matrix(self):
         mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
         solver = FieldSolver(mesh, [])
-        solver.construct_equation_matrix_in_full_domain(5, 4, 4, 1, 2, 3)
+        solver.construct_equation_matrix(mesh, [])
         d = -2 * (2 * 2 * 3 * 3 + 3 * 3 + 2 * 2)
         x = 2 * 2 * 3 * 3
         y = 3 * 3
@@ -206,3 +225,19 @@ class TestFieldSolver:
                                                 [0, 0, 0, z, 0, 0, y, 0, 0, d, x, 0],
                                                 [0, 0, 0, 0, z, 0, 0, y, 0, x, d, x],
                                                 [0, 0, 0, 0, 0, z, 0, 0, y, 0, x, d]])
+
+    def test_transfer_solution_to_spat_mesh(self):
+        mesh = SpatialMeshConf((4, 6, 9), (1, 2, 3)).make(BoundaryConditionsConf())
+        solver = FieldSolver(mesh, [])
+        solver.phi_vec = np.array(range(1, 3 * 2 * 2 + 1))
+        solver.transfer_solution_to_spat_mesh(mesh)
+        assert_array_equal(mesh.potential[1:-1, 1:-1, 1:-1], [[[1, 7], [4, 10]],
+                                                              [[2, 8], [5, 11]],
+                                                              [[3, 9], [6, 12]]])
+
+        assert_array_equal(mesh.potential, [
+            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            [[0, 0, 0, 0], [0, 1, 7, 0], [0, 4, 10, 0], [0, 0, 0, 0]],
+            [[0, 0, 0, 0], [0, 2, 8, 0], [0, 5, 11, 0], [0, 0, 0, 0]],
+            [[0, 0, 0, 0], [0, 3, 9, 0], [0, 6, 12, 0], [0, 0, 0, 0]],
+            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]])

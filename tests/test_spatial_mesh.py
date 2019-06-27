@@ -174,7 +174,7 @@ class TestDefaultSpatialMesh:
                                      [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                                      [[0, 0, 0], [0, 0, 0], [0, 0, -0.25]]]))
         particle_arrays = [ParticleArray(1, -2, 4, [(1, 2, 8.1)], [(0, 0, 0)])]
-        with pytest.raises(ValueError, message="Particle out of bounds"):
+        with pytest.raises(ValueError, match="Position is out of meshgrid bounds"):
             mesh.weight_particles_charge_to_mesh(particle_arrays)
 
     def test_field_at_position(self):

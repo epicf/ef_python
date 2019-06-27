@@ -5,5 +5,4 @@ rowan
 sympy<1.3
 simpleeval
 scipy
-jupyter
 pandas
